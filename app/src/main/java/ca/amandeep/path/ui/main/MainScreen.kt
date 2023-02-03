@@ -28,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import ca.amandeep.path.R
 import ca.amandeep.path.ui.getCurrentLocation
 import ca.amandeep.path.ui.stations.StationsAndTrains
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -97,7 +99,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("PATH Arrivals") },
+                title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
                     IconButton(
                         onClick = { setRefreshing(true) }
