@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_monochrome</item>
+        <item name="postSplashScreenTheme">@style/Theme.App</item>
+    </style>
 
-    <style name="Theme.PATH" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.App" parent="android:Theme.Material.NoActionBar">
+    </style>
 </resources>
