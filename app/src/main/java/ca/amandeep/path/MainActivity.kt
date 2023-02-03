@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalPermissionsApi::class)
-
 package ca.amandeep.path
 
 import android.os.Bundle
@@ -43,6 +41,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 }
 
