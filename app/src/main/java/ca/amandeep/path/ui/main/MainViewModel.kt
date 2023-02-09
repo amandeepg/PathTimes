@@ -3,12 +3,13 @@ package ca.amandeep.path.ui.main
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.Station
+import ca.amandeep.path.UpcomingTrain
 import ca.amandeep.path.data.LocationUseCase
 import ca.amandeep.path.data.MainUseCase
 import ca.amandeep.path.data.PathApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
-import ca.amandeep.path.isInNJ
+import ca.amandeep.path.util.isInNJ
 import com.github.ajalt.timberkt.d
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -63,7 +64,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     sealed interface UiModel {
         data class Valid(
             val lastUpdated: Long,
-            val stations: List<Pair<Station, List<MainUseCase.Result.UiUpcomingTrain>>>,
+            val stations: List<Pair<Station, List<UiUpcomingTrain>>>,
             val hasError: Boolean,
         ) : UiModel
 
@@ -71,3 +72,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         object Loading : UiModel
     }
 }
+
+data class UiUpcomingTrain(
+    val upcomingTrain: UpcomingTrain,
+    val arrivalInMinutesFromNow: Int,
+    val isDepartedTrain: Boolean = false,
+    val isInOppositeDirection: Boolean = false,
+)

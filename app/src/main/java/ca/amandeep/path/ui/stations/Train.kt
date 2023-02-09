@@ -33,7 +33,7 @@ import ca.amandeep.path.Direction
 import ca.amandeep.path.Route
 import ca.amandeep.path.RouteStation
 import ca.amandeep.path.UpcomingTrain
-import ca.amandeep.path.data.MainUseCase
+import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.ui.theme.surfaceColorAtElevation
@@ -44,7 +44,7 @@ import java.util.*
  */
 @Composable
 fun Train(
-    train: MainUseCase.Result.UiUpcomingTrain,
+    train: UiUpcomingTrain,
     userState: UserState,
 ) {
     Row(
@@ -186,7 +186,7 @@ private fun SingleTrainHeading(
 @Preview(name = "Dark", widthDp = 250, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TrainShortNamesPreview(
-    @PreviewParameter(SampleTrainPreviewProvider::class) train: MainUseCase.Result.UiUpcomingTrain,
+    @PreviewParameter(SampleTrainPreviewProvider::class) train: UiUpcomingTrain,
 ) {
     PATHTheme {
         Box(
@@ -210,7 +210,7 @@ private fun TrainShortNamesPreview(
 @Preview(name = "Dark", widthDp = 250, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TrainLongNamesPreview(
-    @PreviewParameter(SampleTrainPreviewProvider::class) train: MainUseCase.Result.UiUpcomingTrain,
+    @PreviewParameter(SampleTrainPreviewProvider::class) train: UiUpcomingTrain,
 ) {
     PATHTheme {
         Box(
@@ -230,9 +230,9 @@ private fun TrainLongNamesPreview(
     }
 }
 
-class SampleTrainPreviewProvider : PreviewParameterProvider<MainUseCase.Result.UiUpcomingTrain> {
+class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
     override val values = sequenceOf(
-        MainUseCase.Result.UiUpcomingTrain(
+        UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.JSQ_33,
                 direction = Direction.TO_NY,
@@ -241,7 +241,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<MainUseCase.Result.U
             arrivalInMinutesFromNow = 0,
             isInOppositeDirection = false
         ),
-        MainUseCase.Result.UiUpcomingTrain(
+        UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.NWK_WTC,
                 direction = Direction.TO_NJ,
@@ -250,7 +250,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<MainUseCase.Result.U
             arrivalInMinutesFromNow = 1,
             isInOppositeDirection = false
         ),
-        MainUseCase.Result.UiUpcomingTrain(
+        UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.HOB_WTC,
                 direction = Direction.TO_NJ,
@@ -259,7 +259,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<MainUseCase.Result.U
             arrivalInMinutesFromNow = 33,
             isInOppositeDirection = false
         ),
-        MainUseCase.Result.UiUpcomingTrain(
+        UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.JSQ_33_HOB,
                 direction = Direction.TO_NJ,

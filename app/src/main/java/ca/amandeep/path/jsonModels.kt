@@ -42,8 +42,8 @@ data class UpcomingTrain(
 fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
     val diff = projectedArrival.time - now
     val seconds = diff / 1000
-    val minutes = seconds / 60.0
-    return minutes
+    // minutes
+    return seconds / 60.0
 }
 
 @Stable

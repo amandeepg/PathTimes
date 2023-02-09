@@ -22,7 +22,7 @@ import ca.amandeep.path.Direction
 import ca.amandeep.path.Route
 import ca.amandeep.path.Station
 import ca.amandeep.path.UpcomingTrain
-import ca.amandeep.path.data.MainUseCase
+import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
@@ -33,7 +33,7 @@ private val PATH_ON_BLUE = Color(0xeeeeeeee)
 
 @Composable
 fun Station(
-    station: Pair<Station, List<MainUseCase.Result.UiUpcomingTrain>>,
+    station: Pair<Station, List<UiUpcomingTrain>>,
     userState: UserState,
 ) {
     Card3(
@@ -97,7 +97,7 @@ private fun StationPreview() {
                 name = "World Trade Center",
                 coordinates = Coordinates(0.0, 0.0)
             ) to listOf(
-                MainUseCase.Result.UiUpcomingTrain(
+                UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.JSQ_33,
                         direction = Direction.TO_NY,
@@ -106,7 +106,7 @@ private fun StationPreview() {
                     arrivalInMinutesFromNow = 0,
                     isInOppositeDirection = false
                 ),
-                MainUseCase.Result.UiUpcomingTrain(
+                UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.NWK_WTC,
                         direction = Direction.TO_NJ,
@@ -115,7 +115,7 @@ private fun StationPreview() {
                     arrivalInMinutesFromNow = 1,
                     isInOppositeDirection = false
                 ),
-                MainUseCase.Result.UiUpcomingTrain(
+                UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.HOB_WTC,
                         direction = Direction.TO_NJ,
@@ -124,7 +124,7 @@ private fun StationPreview() {
                     arrivalInMinutesFromNow = 33,
                     isInOppositeDirection = false
                 ),
-                MainUseCase.Result.UiUpcomingTrain(
+                UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.JSQ_33_HOB,
                         direction = Direction.TO_NJ,

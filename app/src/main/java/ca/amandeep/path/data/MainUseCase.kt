@@ -5,8 +5,9 @@ import ca.amandeep.path.Direction
 import ca.amandeep.path.SortPlaces
 import ca.amandeep.path.Station
 import ca.amandeep.path.UpcomingTrain
-import ca.amandeep.path.isInNJ
 import ca.amandeep.path.relativeArrivalMins
+import ca.amandeep.path.ui.main.UiUpcomingTrain
+import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.repeat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -63,7 +64,7 @@ class MainUseCase(
 
     private fun Map.Entry<Station, List<UpcomingTrain>>.toUiTrains(
         currentLocation: Coordinates
-    ): List<Result.UiUpcomingTrain> = value
+    ): List<UiUpcomingTrain> = value
         .map { it.toUiTrain(currentLocation) }
         .sortedWith(
             // Sort the trains so that direction is grouped together
@@ -76,9 +77,9 @@ class MainUseCase(
 
     private fun UpcomingTrain.toUiTrain(
         currentLocation: Coordinates
-    ): Result.UiUpcomingTrain {
+    ): UiUpcomingTrain {
         val minsFromNow = relativeArrivalMins(System.currentTimeMillis()).roundToInt()
-        return Result.UiUpcomingTrain(
+        return UiUpcomingTrain(
             upcomingTrain = this,
             arrivalInMinutesFromNow = minsFromNow,
             isDepartedTrain = minsFromNow < 0,
@@ -90,7 +91,7 @@ class MainUseCase(
     }
 
     // Return -1 if the train is going in the opposite direction, 1 otherwise
-    private fun Result.UiUpcomingTrain.directionFromCurrentLocation(coords: Coordinates): Int =
+    private fun UiUpcomingTrain.directionFromCurrentLocation(coords: Coordinates): Int =
         when (upcomingTrain.direction) {
             Direction.TO_NJ -> if (coords.isInNJ) -1 else 1
             Direction.TO_NY -> if (coords.isInNJ) 1 else -1
@@ -107,13 +108,6 @@ class MainUseCase(
     ) {
         data class Metadata(
             val lastUpdated: Long
-        )
-
-        data class UiUpcomingTrain(
-            val upcomingTrain: UpcomingTrain,
-            val arrivalInMinutesFromNow: Int,
-            val isDepartedTrain: Boolean = false,
-            val isInOppositeDirection: Boolean = false,
         )
     }
 }

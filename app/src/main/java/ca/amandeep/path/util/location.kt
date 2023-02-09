@@ -1,5 +1,6 @@
-package ca.amandeep.path
+package ca.amandeep.path.util
 
+import ca.amandeep.path.Coordinates
 import kotlin.math.abs
 
 // NJ: 40.71670935568646, -74.03240619573852
