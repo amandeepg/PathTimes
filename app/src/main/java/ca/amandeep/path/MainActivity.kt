@@ -15,7 +15,6 @@ import androidx.navigation.compose.rememberNavController
 import ca.amandeep.path.ui.main.MainScreen
 import ca.amandeep.path.ui.main.MainViewModel
 import ca.amandeep.path.ui.theme.PATHTheme
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()

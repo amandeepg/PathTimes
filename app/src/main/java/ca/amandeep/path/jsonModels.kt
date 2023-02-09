@@ -1,6 +1,5 @@
 package ca.amandeep.path
 
-import android.util.Log
 import androidx.compose.runtime.Stable
 import com.squareup.moshi.Json
 import java.util.Date
@@ -90,11 +89,6 @@ enum class RouteStation {
 }
 
 class SortPlaces(private val currentLocation: Coordinates) : Comparator<Station> {
-
-    init {
-        Log.d("agrewal", currentLocation.toString())
-    }
-
     override fun compare(station1: Station, station2: Station): Int {
         val lat1 = station1.coordinates.latitude
         val lon1 = station1.coordinates.longitude
@@ -118,7 +112,6 @@ class SortPlaces(private val currentLocation: Coordinates) : Comparator<Station>
                         sin(deltaLon / 2).pow(2.0)
             )
         )
-        Log.d("agrewal", "sort")
         return radius * angle
     }
 }

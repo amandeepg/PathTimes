@@ -1,162 +1,73 @@
 package ca.amandeep.path.ui.main
 
-import android.content.Context
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import ca.amandeep.path.Coordinates
-import ca.amandeep.path.Direction
-import ca.amandeep.path.PathApiService
-import ca.amandeep.path.SortPlaces
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.Station
-import ca.amandeep.path.Stations
-import ca.amandeep.path.UpcomingTrain
+import ca.amandeep.path.data.LocationUseCase
+import ca.amandeep.path.data.MainUseCase
+import ca.amandeep.path.data.PathApiService
+import ca.amandeep.path.data.PathRemoteDataSource
+import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.isInNJ
-import ca.amandeep.path.relativeArrivalMins
+import com.github.ajalt.timberkt.d
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import java.util.Calendar
-import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
+import kotlin.time.Duration.Companion.seconds
 
+class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-class MainViewModel : ViewModel() {
-    val uiState: MutableState<UiModel> = mutableStateOf(UiModel.Loading)
+    private val locationUseCase = LocationUseCase(application)
+    private val mainUseCase = MainUseCase(
+        locationUseCase = locationUseCase,
+        pathRepository = PathRepository(
+            pathRemoteDataSource = PathRemoteDataSource(
+                pathApi = PathApiService.INSTANCE,
+                ioDispatcher = Dispatchers.IO,
+            )
+        )
+    )
 
-    private var currentLocation = Coordinates(0.0, 0.0)
-    val isInNJ: MutableState<Boolean> = mutableStateOf(false)
-
-    private var stationsFromNetwork: Stations? = null
-    private var stationsByDistance: List<Station>? = null
-
-    private var trainsFromNetwork: Map<Station, List<UpcomingTrain>>? = null
-    private var trainsSorted: Map<Station, List<UiUpcomingTrain>>? = null
-
-    fun refreshTrainsFromNetwork(): Job = viewModelScope.launch(Dispatchers.IO) {
-        trainsFromNetwork = null
-        loadAll()
-    }
-
-    fun refreshTrainsTimes(): Job = viewModelScope.launch(Dispatchers.IO) {
-        trainsSorted = null
-        loadAll()
-    }
-
-    private suspend fun loadAll() {
-        var hasError = false
-
-        stationsFromNetwork = stationsFromNetwork ?: run {
-            try {
-                getStationsFromNetwork().also {
-                    stationsByDistance = null
-                    trainsFromNetwork = null
-                }
-            } catch (e: Exception) {
-                hasError = true
-                null
+    val uiState: Flow<UiModel> = mainUseCase
+        .getArrivals(
+            updateInterval = 30.seconds,
+            uiUpdateInterval = 5.seconds,
+        )
+        // Convert the result to a UI model, assuming that no trains is an error which it probably is
+        .map {
+            if (it.arrivals.isEmpty()) {
+                UiModel.Error
+            } else {
+                UiModel.Valid(it.metadata.lastUpdated, it.arrivals, hasError = false)
             }
         }
-        stationsByDistance = stationsByDistance ?: run {
-            getStationsByDistance()
+        // Retry all errors with a 1 second delay
+        .retryWhen { cause, attempt ->
+            emit(UiModel.Error)
+            delay(1.seconds)
+            d { "Retrying after error: $cause (attempt $attempt)" }
+            true
         }
-        trainsFromNetwork = trainsFromNetwork ?: run {
-            try {
-                getTrainsFromNetwork()?.also {
-                    trainsSorted = null
-                }
-            } catch (e: Exception) {
-                hasError = true
-                null
-            }
-        }
-        trainsSorted = trainsSorted ?: run {
-            getSortedTrains()
-        }
+    val isInNJ: Flow<Boolean> = locationUseCase.getCoordinates().map { it.isInNJ }
 
-        uiState.value = trainsSorted.let { trainsSorted ->
-            stationsByDistance.let { stationsByDistance ->
-                if (trainsSorted.isNullOrEmpty() || stationsByDistance.isNullOrEmpty()) {
-                    UiModel.Error
-                } else {
-                    UiModel.Valid(
-                        trainsSorted.toList().sortedBy { stationsByDistance.indexOf(it.first) },
-                        hasError = hasError
-                    )
-                }
-            }
-        }
+    suspend fun refreshTrainsFromNetwork() {
+        mainUseCase.refresh()
     }
 
-    private fun getSortedTrains(): Map<Station, List<UiUpcomingTrain>>? {
-        val currentTime = Calendar.getInstance().time.time
-        return trainsFromNetwork?.mapValues {
-            it.value
-                .map {
-                    val arrivalInMinutesFromNow = it.relativeArrivalMins(currentTime).roundToInt()
-                    UiUpcomingTrain(
-                        upcomingTrain = it,
-                        arrivalInMinutesFromNow = arrivalInMinutesFromNow,
-                        pastTrain = arrivalInMinutesFromNow < 0,
-                        isInOppositeDirection = when (it.direction) {
-                            Direction.TO_NJ -> !isInNJ.value
-                            Direction.TO_NY -> isInNJ.value
-                        }
-                    )
-                }
-                .sortedWith(
-                    compareBy(
-                        {
-                            when (it.upcomingTrain.direction) {
-                                Direction.TO_NJ -> if (isInNJ.value) -1 else 1
-                                Direction.TO_NY -> if (isInNJ.value) 1 else -1
-                            }
-                        },
-                        { it.arrivalInMinutesFromNow }
-                    )
-                )
-        }
-    }
-
-    private suspend fun getTrainsFromNetwork() = stationsFromNetwork
-        ?.stations
-        ?.map { it to viewModelScope.async { PathApiService.INSTANCE.getArrivals(it.station) } }
-        ?.associate { it.first to it.second.await().upcomingTrains.orEmpty() }
-
-    private fun getStationsByDistance() = stationsFromNetwork
-        ?.stations
-        ?.sortedWith(SortPlaces(currentLocation))
-
-    private suspend fun getStationsFromNetwork(): Stations = PathApiService.INSTANCE.listStations()
-
-    suspend fun setCurrentLocation(context: Context, newCurrentLocation: Coordinates) {
-        if (newCurrentLocation != currentLocation) {
-            currentLocation = newCurrentLocation
-            isInNJ.value = currentLocation.isInNJ(context)
-
-            stationsByDistance = null
-            trainsSorted = null
-            viewModelScope.launch(Dispatchers.IO) {
-                loadAll()
-            }
-        }
+    suspend fun locationPermissionsUpdated(currentPermissions: List<String>) {
+        locationUseCase.permissionsUpdated(currentPermissions)
     }
 
     sealed interface UiModel {
         data class Valid(
-            val stations: List<Pair<Station, List<UiUpcomingTrain>>>,
+            val lastUpdated: Long,
+            val stations: List<Pair<Station, List<MainUseCase.Result.UiUpcomingTrain>>>,
             val hasError: Boolean,
         ) : UiModel
 
         object Error : UiModel
         object Loading : UiModel
     }
-
-    data class UiUpcomingTrain(
-        val upcomingTrain: UpcomingTrain,
-        val arrivalInMinutesFromNow: Int,
-        val pastTrain: Boolean = false,
-        val isInOppositeDirection: Boolean = false,
-    )
 }

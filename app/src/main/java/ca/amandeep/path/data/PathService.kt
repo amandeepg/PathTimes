@@ -1,5 +1,7 @@
-package ca.amandeep.path
+package ca.amandeep.path.data
 
+import ca.amandeep.path.Stations
+import ca.amandeep.path.UpcomingTrains
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
 import retrofit2.Retrofit
@@ -16,9 +18,11 @@ interface PathApiService {
     suspend fun getArrivals(@Path("station") station: String): UpcomingTrains
 
     companion object {
+        private const val API_PATH = "https://path.api.razza.dev/v1/"
+
         val INSTANCE: PathApiService by lazy {
             Retrofit.Builder()
-                .baseUrl("https://path.api.razza.dev/v1/")
+                .baseUrl(API_PATH)
                 .addConverterFactory(
                     MoshiConverterFactory.create(
                         Moshi.Builder()
