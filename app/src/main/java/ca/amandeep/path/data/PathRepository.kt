@@ -57,7 +57,9 @@ class PathRepository(
     // Workaround for the API not returning a list of stations with trains data
     private fun fetchArrivals(stations: List<Station>): Flow<Map<Station, List<UpcomingTrain>>> =
         stations.map { flow { emit(it to pathRemoteDataSource.fetchArrivals(it.station)) } }
+            // Zip all the flows together, so that we can emit a single map of stations to arrivals
             .zip { it.associate { it.first to it.second.upcomingTrains.orEmpty() } }
+            // If the API returns an empty list, emit an empty map so there is an emission
             .onEmpty { emit(emptyMap()) }
 
     /**
