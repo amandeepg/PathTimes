@@ -16,8 +16,12 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -80,11 +84,13 @@ fun requireOptionalLocationItem(
             permissionsNotAvailableContent = {
                 if (!doNotShowSettingsRationale) {
                     PermissionsUi(
-                        rationaleText = (if (coarseLocationState.hasPermission)
-                            "Precise location is preferred over coarse location to show the closest station"
-                        else
-                            "Location is used to show you the closest stations and routes.") +
-                                "\nPlease grant access on the Settings screen",
+                        rationaleText = (
+                            if (coarseLocationState.hasPermission)
+                                "Precise location is preferred over coarse location to show the closest station"
+                            else
+                                "Location is used to show you the closest stations and routes."
+                            ) +
+                            "\nPlease grant access on the Settings screen",
                         allowButtonText = "Open Settings",
                         allowButtonAction = { navigateToSettingsScreen(ctx) },
                         denyButtonText = "Don't ask again",
@@ -132,8 +138,7 @@ private fun PermissionsUi(
 @Composable
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PermissionsUiPreview(
-) {
+private fun PermissionsUiPreview() {
     PATHTheme {
         PermissionsUi(
             rationaleText = "Location is used to show you the closest stations and routes",
@@ -148,8 +153,7 @@ private fun PermissionsUiPreview(
 @Composable
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PermissionsUi2Preview(
-) {
+private fun PermissionsUi2Preview() {
     PATHTheme {
         PermissionsUi(
             rationaleText = "Precise location is preferred over coarse location to show the closest station.\nPlease grant access on the Settings screen",

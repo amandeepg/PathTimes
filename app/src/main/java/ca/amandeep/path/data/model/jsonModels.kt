@@ -1,4 +1,4 @@
-package ca.amandeep.path
+package ca.amandeep.path.data.model
 
 import androidx.compose.runtime.Stable
 import com.squareup.moshi.Json
@@ -108,8 +108,8 @@ class SortPlaces(private val currentLocation: Coordinates) : Comparator<Station>
         val angle = 2 * asin(
             sqrt(
                 sin(deltaLat / 2).pow(2.0) +
-                        cos(fromLat) * cos(toLat) *
-                        sin(deltaLon / 2).pow(2.0)
+                    cos(fromLat) * cos(toLat) *
+                    sin(deltaLon / 2).pow(2.0)
             )
         )
         return radius * angle

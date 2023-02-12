@@ -1,4 +1,8 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
+@file:OptIn(
+    ExperimentalMaterialApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalTime::class
+)
 
 package ca.amandeep.path.ui.main
 
@@ -7,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,11 +55,11 @@ import ca.amandeep.path.util.observeConnectivity
 import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(mainViewModel: MainViewModel) {
     var refreshing by remember { mutableStateOf(false) }
@@ -67,6 +70,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
             refreshing = false
         }
     }
+    val forceRefresh = { refreshing = true }
 
     var anyLocationPermissionsGranted by remember { mutableStateOf(false) }
 
@@ -90,7 +94,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
                 title = { Text(stringResource(id = R.string.app_name)) },
                 actions = {
                     OverflowItems(
-                        setRefreshing = { refreshing = it },
+                        forceRefresh = forceRefresh,
                         shortenNamesPref = shortenNamesPref,
                         showOppositeDirectionPref = showOppositeDirectionPref,
                         anyLocationPermissionsGranted = anyLocationPermissionsGranted,
@@ -101,47 +105,34 @@ fun MainScreen(mainViewModel: MainViewModel) {
     ) { innerPadding ->
         val ptrState = rememberPullRefreshState(
             refreshing = refreshing,
-            onRefresh = { refreshing = true },
+            onRefresh = forceRefresh,
         )
 
-        val uiModel by mainViewModel.uiState
-            .collectAsStateWithLifecycle(initialValue = MainViewModel.UiModel.Loading)
         val isInNJ by mainViewModel.isInNJ.collectAsStateWithLifecycle(initialValue = false)
 
         // If there's an error, show the last valid state, but with an error flag
-        val (lastGoodState, setLastGoodState) = remember {
-            mutableStateOf<MainViewModel.UiModel>(MainViewModel.UiModel.Loading)
-        }
-        setLastGoodState(
-            if (uiModel is MainViewModel.UiModel.Error && lastGoodState is MainViewModel.UiModel.Valid)
-                lastGoodState.copy(hasError = true)
-            else uiModel
+        val uiState = setAndComputeLastGoodState(
+            uiStateFlow = mainViewModel.uiState,
+            forceUpdate = forceRefresh,
         )
 
-        // If all trains are empty, force a refresh, and show a loading screen
-        val allTrainsEmpty = lastGoodState is MainViewModel.UiModel.Valid &&
-                lastGoodState.stations.all { it.second.all { it.isDepartedTrain } }
-        LaunchedEffect(allTrainsEmpty) {
-            if (allTrainsEmpty) {
-                refreshing = true
-                setLastGoodState(MainViewModel.UiModel.Loading)
-            }
-        }
-
-        Box(Modifier.pullRefresh(ptrState)) {
+        Box(
+            Modifier
+                .padding(innerPadding)
+                .pullRefresh(ptrState)
+        ) {
             MainScreenContent(
-                innerPadding = innerPadding,
-                uiModel = lastGoodState,
+                uiModel = uiState,
                 userState = UserState(
                     shortenNames = shortenNamesPref.value,
                     showOppositeDirection = showOppositeDirection.value,
                     isInNJ = isInNJ
                 ),
-                forceUpdate = { refreshing = true },
+                forceUpdate = forceRefresh,
                 locationPermissionsUpdated = {
                     anyLocationPermissionsGranted = it.isNotEmpty()
                     mainViewModel.locationPermissionsUpdated(it)
-                }
+                },
             )
             PullRefreshIndicator(
                 refreshing = refreshing,
@@ -153,17 +144,46 @@ fun MainScreen(mainViewModel: MainViewModel) {
 }
 
 @Composable
+private fun setAndComputeLastGoodState(
+    uiStateFlow: Flow<MainUiModel>,
+    forceUpdate: () -> Unit
+): MainUiModel {
+    val uiModel by uiStateFlow
+        .collectAsStateWithLifecycle(initialValue = MainUiModel.Loading)
+
+    val (lastGoodState, setLastGoodState) = remember {
+        mutableStateOf<MainUiModel>(MainUiModel.Loading)
+    }
+
+    setLastGoodState(
+        if (uiModel is MainUiModel.Error && lastGoodState is MainUiModel.Valid)
+            lastGoodState.copy(hasError = true)
+        else uiModel
+    )
+
+    // If all trains are empty, force a refresh, and show a loading screen
+    val allTrainsEmpty = lastGoodState is MainUiModel.Valid &&
+        lastGoodState.stations.all { it.second.all { it.isDepartedTrain } }
+    LaunchedEffect(allTrainsEmpty) {
+        if (allTrainsEmpty) {
+            forceUpdate()
+            setLastGoodState(MainUiModel.Loading)
+        }
+    }
+
+    return lastGoodState
+}
+
+@Composable
 private fun OverflowItems(
-    setRefreshing: (Boolean) -> Unit,
+    forceRefresh: () -> Unit,
     shortenNamesPref: MutableState<Boolean>,
     showOppositeDirectionPref: MutableState<Boolean>,
     anyLocationPermissionsGranted: Boolean,
 ) {
-    IconButton(
-        onClick = { setRefreshing(true) }
-    ) {
+    IconButton(onClick = forceRefresh) {
         Icon(
-            Icons.Filled.Refresh,
+            imageVector = Icons.Filled.Refresh,
             contentDescription = "Refresh"
         )
     }
@@ -171,7 +191,7 @@ private fun OverflowItems(
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = { expanded = true }) {
         Icon(
-            Icons.Default.MoreVert,
+            imageVector = Icons.Default.MoreVert,
             contentDescription = "More"
         )
     }
@@ -190,7 +210,7 @@ private fun OverflowItems(
                 onCheckedChange = { shortenNamesPref.value = it },
             )
             Text(
-                "Shorten station names",
+                text = "Shorten station names",
                 modifier = Modifier.padding(end = 10.dp),
             )
         }
@@ -207,19 +227,17 @@ private fun OverflowItems(
                     onCheckedChange = { showOppositeDirectionPref.value = it },
                 )
                 Text(
-                    "Show opposite direction",
+                    text = "Show opposite direction",
                     modifier = Modifier.padding(end = 10.dp),
                 )
             }
     }
 }
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 private fun MainScreenContent(
-    innerPadding: PaddingValues,
-    uiModel: MainViewModel.UiModel,
+    uiModel: MainUiModel,
     userState: UserState,
     forceUpdate: () -> Unit,
     locationPermissionsUpdated: suspend (List<String>) -> Unit,
@@ -227,19 +245,18 @@ private fun MainScreenContent(
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
 
-    if (uiModel == MainViewModel.UiModel.Error)
+    if (uiModel == MainUiModel.Error)
         ErrorScreen(
             connectivityState = connectivityState,
             forceUpdate = forceUpdate
         )
     else
-        Crossfade(targetState = uiModel == MainViewModel.UiModel.Loading) { isLoading ->
+        Crossfade(targetState = uiModel == MainUiModel.Loading) { isLoading ->
             when (isLoading) {
                 true -> LoadingScreen()
                 false -> Stations(
-                    uiModel = uiModel as MainViewModel.UiModel.Valid,
+                    uiModel = uiModel as MainUiModel.Valid,
                     locationPermissionsUpdated = locationPermissionsUpdated,
-                    innerPadding = innerPadding,
                     connectivityState = connectivityState,
                     userState = userState
                 )
@@ -256,7 +273,7 @@ private fun LoadingScreen() {
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(10.dp))
-        Text("Loading …", color = MaterialTheme.colorScheme.secondary)
+        Text(text = "Loading …", color = MaterialTheme.colorScheme.secondary)
     }
 }
 

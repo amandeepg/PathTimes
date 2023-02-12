@@ -17,16 +17,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ca.amandeep.path.Coordinates
-import ca.amandeep.path.Direction
-import ca.amandeep.path.Route
-import ca.amandeep.path.Station
-import ca.amandeep.path.UpcomingTrain
+import ca.amandeep.path.data.model.Coordinates
+import ca.amandeep.path.data.model.Direction
+import ca.amandeep.path.data.model.Route
+import ca.amandeep.path.data.model.Station
+import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 private val PATH_BLUE = Color(0xff003da0)
 private val PATH_ON_BLUE = Color(0xeeeeeeee)

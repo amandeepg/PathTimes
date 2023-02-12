@@ -7,9 +7,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -19,7 +17,7 @@ import androidx.core.content.ContextCompat.startActivity
 import ca.amandeep.path.ui.ErrorBar
 import ca.amandeep.path.ui.KeepUpdatedEffect
 import ca.amandeep.path.ui.LastUpdatedInfoRow
-import ca.amandeep.path.ui.main.MainViewModel
+import ca.amandeep.path.ui.main.MainUiModel
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.rememberLastUpdatedState
 import ca.amandeep.path.ui.requireOptionalLocationItem
@@ -28,9 +26,8 @@ import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun Stations(
-    uiModel: MainViewModel.UiModel.Valid,
+    uiModel: MainUiModel.Valid,
     locationPermissionsUpdated: suspend (List<String>) -> Unit,
-    innerPadding: PaddingValues,
     connectivityState: ConnectionState,
     userState: UserState
 ) {
@@ -38,19 +35,19 @@ fun Stations(
         permissionsUpdated = locationPermissionsUpdated,
         navigateToSettingsScreen = {
             startActivity(
-                it, Intent(
+                it,
+                Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     Uri.fromParts("package", it.packageName, null)
-                ), null
+                ),
+                null
             )
         }
     )
 
     val lastUpdatedState = rememberLastUpdatedState(uiModel.lastUpdated)
 
-    LazyColumn(
-        modifier = Modifier.padding(innerPadding)
-    ) {
+    LazyColumn {
         item {
             lastUpdatedState.KeepUpdatedEffect(uiModel.lastUpdated, 1.seconds)
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

@@ -57,8 +57,7 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
     return LastUpdatedUiModel(
         unit = if (value == 1L)
             if (secondsAgo >= 60) "minute" else "second"
-        else
-            if (secondsAgo >= 60) "minutes" else "seconds",
+        else if (secondsAgo >= 60) "minutes" else "seconds",
         value = value
     )
 }

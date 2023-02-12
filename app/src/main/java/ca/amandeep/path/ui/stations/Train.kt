@@ -1,6 +1,5 @@
 package ca.amandeep.path.ui.stations
 
-
 import android.content.res.Configuration
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -29,15 +28,15 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ca.amandeep.path.Direction
-import ca.amandeep.path.Route
-import ca.amandeep.path.RouteStation
-import ca.amandeep.path.UpcomingTrain
+import ca.amandeep.path.data.model.Direction
+import ca.amandeep.path.data.model.Route
+import ca.amandeep.path.data.model.RouteStation
+import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.ui.theme.surfaceColorAtElevation
-import java.util.*
+import java.util.Date
 
 /**
  * A single train with heading and next arrival time.

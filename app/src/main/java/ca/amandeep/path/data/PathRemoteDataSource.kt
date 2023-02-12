@@ -1,7 +1,7 @@
 package ca.amandeep.path.data
 
-import ca.amandeep.path.Stations
-import ca.amandeep.path.UpcomingTrains
+import ca.amandeep.path.data.model.Stations
+import ca.amandeep.path.data.model.UpcomingTrains
 import com.github.ajalt.timberkt.Timber.d
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -11,16 +11,15 @@ class PathRemoteDataSource(
     private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    suspend fun fetchStations(): Stations =
+    suspend fun getStations(): Stations =
         withContext(ioDispatcher) {
-            d { "fetchStations" }
-            pathApi.listStations()
+            d { "getStations" }
+            pathApi.getStations()
         }
 
-    suspend fun fetchArrivals(station: String): UpcomingTrains =
+    suspend fun getArrivals(station: String): UpcomingTrains =
         withContext(ioDispatcher) {
-            d { "fetchArrivals: $station" }
+            d { "getArrivals: $station" }
             pathApi.getArrivals(station)
         }
 }
-
