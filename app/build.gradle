@@ -49,33 +49,33 @@ android {
 }
 
 dependencies {
-    implementation "androidx.activity:activity-compose:1.6.1"
-    implementation "androidx.compose.material3:material3:1.1.0-alpha06"
-    implementation "androidx.compose.material:material:1.4.0-beta01"
-    implementation "androidx.compose.ui:ui:1.3.3"
-    implementation "androidx.core:core-ktx:1.9.0"
-    implementation "androidx.core:core-splashscreen:1.0.0"
-    implementation "androidx.lifecycle:lifecycle-runtime-compose:2.6.0-beta01"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.5.1"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
-    implementation "androidx.navigation:navigation-compose:2.6.0-alpha05"
+    implementation AndroidX.activity.compose
+    implementation AndroidX.compose.material3
+    implementation AndroidX.compose.material
+    implementation AndroidX.compose.ui
+    implementation AndroidX.core.ktx
+    implementation AndroidX.core.splashscreen
+    implementation AndroidX.lifecycle.runtime.compose
+    implementation AndroidX.lifecycle.runtime.ktx
+    implementation AndroidX.lifecycle.viewModelKtx
+    implementation AndroidX.navigation.compose
 
     //noinspection GradleDependency breaking permissions changes, TODO handle them
-    implementation "com.google.accompanist:accompanist-permissions:0.24.1-alpha"
-    implementation "com.google.android.gms:play-services-location:21.0.1"
+    implementation Google.accompanist.permissions
+    implementation Google.android.playServices.location
 
-    implementation "com.squareup.moshi:moshi-adapters:1.8.0"
-    implementation "com.squareup.moshi:moshi:1.8.0"
-    implementation "com.squareup.retrofit2:converter-moshi:2.9.0"
-    implementation "com.squareup.retrofit2:retrofit:2.9.0"
+    implementation Square.moshi.adapters
+    implementation Square.moshi
+    implementation Square.retrofit2.converter.moshi
+    implementation Square.retrofit2
 
-    implementation "dev.burnoo:compose-remember-preference:0.3.4"
+    implementation "dev.burnoo:compose-remember-preference:_"
 
-    implementation 'com.github.ajalt:timberkt:1.5.1'
-    implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation 'com.github.ajalt:timberkt:_'
+    implementation JakeWharton.timber
 
-    implementation "androidx.compose.ui:ui-tooling:1.4.0-beta01"
-    debugImplementation "androidx.compose.ui:ui-tooling-preview:1.4.0-beta01"
+    implementation AndroidX.compose.ui.tooling
+    debugImplementation AndroidX.compose.ui.toolingPreview
 
-    ktlintRuleset "io.nlopez.compose.rules:ktlint:0.1.1"
+    ktlintRuleset "io.nlopez.compose.rules:ktlint:_"
 }
