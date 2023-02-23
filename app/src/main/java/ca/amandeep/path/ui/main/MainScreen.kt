@@ -1,11 +1,13 @@
 @file:OptIn(
     ExperimentalMaterialApi::class,
     ExperimentalMaterial3Api::class,
-    ExperimentalTime::class
+    ExperimentalTime::class,
 )
 
 package ca.amandeep.path.ui.main
 
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +53,7 @@ import ca.amandeep.path.R
 import ca.amandeep.path.ui.ErrorScreen
 import ca.amandeep.path.ui.stations.Stations
 import ca.amandeep.path.util.ConnectionState
+import ca.amandeep.path.util.checkPermission
 import ca.amandeep.path.util.observeConnectivity
 import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -62,6 +65,7 @@ import kotlin.time.ExperimentalTime
 
 @Composable
 fun MainScreen(mainViewModel: MainViewModel) {
+    val context = LocalContext.current
     var refreshing by remember { mutableStateOf(false) }
     LaunchedEffect(refreshing) {
         if (refreshing) {
@@ -72,19 +76,24 @@ fun MainScreen(mainViewModel: MainViewModel) {
     }
     val forceRefresh = { refreshing = true }
 
-    var anyLocationPermissionsGranted by remember { mutableStateOf(false) }
+    var anyLocationPermissionsGranted by remember {
+        mutableStateOf(
+            context.checkPermission(ACCESS_COARSE_LOCATION) ||
+                    context.checkPermission(ACCESS_FINE_LOCATION),
+        )
+    }
 
     val shortenNamesPref = rememberBooleanPreference(
         keyName = "shortenNames",
         initialValue = false,
-        defaultValue = false
+        defaultValue = false,
     )
     val showOppositeDirectionPref = rememberBooleanPreference(
         keyName = "showOppositeDirection",
         initialValue = true,
-        defaultValue = true
+        defaultValue = true,
     )
-    val showOppositeDirection = remember {
+    val showOppositeDirection by remember(showOppositeDirectionPref, anyLocationPermissionsGranted) {
         derivedStateOf { showOppositeDirectionPref.value || !anyLocationPermissionsGranted }
     }
 
@@ -99,9 +108,9 @@ fun MainScreen(mainViewModel: MainViewModel) {
                         showOppositeDirectionPref = showOppositeDirectionPref,
                         anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                     )
-                }
+                },
             )
-        }
+        },
     ) { innerPadding ->
         val ptrState = rememberPullRefreshState(
             refreshing = refreshing,
@@ -119,14 +128,14 @@ fun MainScreen(mainViewModel: MainViewModel) {
         Box(
             Modifier
                 .padding(innerPadding)
-                .pullRefresh(ptrState)
+                .pullRefresh(ptrState),
         ) {
             MainScreenContent(
                 uiModel = uiState,
                 userState = UserState(
                     shortenNames = shortenNamesPref.value,
-                    showOppositeDirection = showOppositeDirection.value,
-                    isInNJ = isInNJ
+                    showOppositeDirection = showOppositeDirection,
+                    isInNJ = isInNJ,
                 ),
                 forceUpdate = forceRefresh,
                 locationPermissionsUpdated = {
@@ -137,7 +146,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
             PullRefreshIndicator(
                 refreshing = refreshing,
                 state = ptrState,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
             )
         }
     }
@@ -146,7 +155,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
 @Composable
 private fun setAndComputeLastGoodState(
     uiStateFlow: Flow<MainUiModel>,
-    forceUpdate: () -> Unit
+    forceUpdate: () -> Unit,
 ): MainUiModel {
     val uiModel by uiStateFlow
         .collectAsStateWithLifecycle(initialValue = MainUiModel.Loading)
@@ -158,12 +167,12 @@ private fun setAndComputeLastGoodState(
     setLastGoodState(
         if (uiModel is MainUiModel.Error && lastGoodState is MainUiModel.Valid)
             lastGoodState.copy(hasError = true)
-        else uiModel
+        else uiModel,
     )
 
     // If all trains are empty, force a refresh, and show a loading screen
     val allTrainsEmpty = lastGoodState is MainUiModel.Valid &&
-        lastGoodState.stations.all { it.second.all { it.isDepartedTrain } }
+            lastGoodState.stations.all { it.second.all { it.isDepartedTrain } }
     LaunchedEffect(allTrainsEmpty) {
         if (allTrainsEmpty) {
             forceUpdate()
@@ -184,7 +193,7 @@ private fun OverflowItems(
     IconButton(onClick = forceRefresh) {
         Icon(
             imageVector = Icons.Filled.Refresh,
-            contentDescription = "Refresh"
+            contentDescription = "Refresh",
         )
     }
 
@@ -192,18 +201,18 @@ private fun OverflowItems(
     IconButton(onClick = { expanded = true }) {
         Icon(
             imageVector = Icons.Default.MoreVert,
-            contentDescription = "More"
+            contentDescription = "More",
         )
     }
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = { expanded = false }
+        onDismissRequest = { expanded = false },
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
                 shortenNamesPref.value = !shortenNamesPref.value
-            }
+            },
         ) {
             Checkbox(
                 checked = shortenNamesPref.value,
@@ -220,7 +229,7 @@ private fun OverflowItems(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
                     showOppositeDirectionPref.value = !showOppositeDirectionPref.value
-                }
+                },
             ) {
                 Checkbox(
                     checked = showOppositeDirectionPref.value,
@@ -248,7 +257,7 @@ private fun MainScreenContent(
     if (uiModel == MainUiModel.Error)
         ErrorScreen(
             connectivityState = connectivityState,
-            forceUpdate = forceUpdate
+            forceUpdate = forceUpdate,
         )
     else
         Crossfade(targetState = uiModel == MainUiModel.Loading) { isLoading ->
@@ -258,7 +267,7 @@ private fun MainScreenContent(
                     uiModel = uiModel as MainUiModel.Valid,
                     locationPermissionsUpdated = locationPermissionsUpdated,
                     connectivityState = connectivityState,
-                    userState = userState
+                    userState = userState,
                 )
             }
         }
@@ -269,7 +278,7 @@ private fun LoadingScreen() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(10.dp))
@@ -280,5 +289,5 @@ private fun LoadingScreen() {
 data class UserState(
     val shortenNames: Boolean,
     val showOppositeDirection: Boolean,
-    val isInNJ: Boolean
+    val isInNJ: Boolean,
 )

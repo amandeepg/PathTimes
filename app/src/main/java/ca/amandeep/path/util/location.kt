@@ -1,5 +1,8 @@
 package ca.amandeep.path.util
 
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import ca.amandeep.path.data.model.Coordinates
 import kotlin.math.abs
 
@@ -20,3 +23,8 @@ val Coordinates.isInNJ: Boolean
 
         return distanceToNJ < distanceToNY
     }
+
+fun Context.checkPermission(permission: String): Boolean {
+    return ContextCompat.checkSelfPermission(this, permission) ==
+            PackageManager.PERMISSION_GRANTED
+}
