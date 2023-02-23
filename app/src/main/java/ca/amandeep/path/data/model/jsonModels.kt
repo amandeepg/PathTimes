@@ -2,6 +2,7 @@ package ca.amandeep.path.data.model
 
 import androidx.compose.runtime.Stable
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import java.util.Date
 import kotlin.math.asin
 import kotlin.math.cos
@@ -10,11 +11,13 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Stable
+@JsonClass(generateAdapter = true)
 data class Stations(
     @field:Json(name = "stations") val stations: List<Station>?,
 )
 
 @Stable
+@JsonClass(generateAdapter = true)
 data class Station(
     @field:Json(name = "station") val station: String,
     @field:Json(name = "name") val name: String,
@@ -22,17 +25,20 @@ data class Station(
 )
 
 @Stable
+@JsonClass(generateAdapter = true)
 data class Coordinates(
     @field:Json(name = "latitude") val latitude: Double,
     @field:Json(name = "longitude") val longitude: Double,
 )
 
 @Stable
+@JsonClass(generateAdapter = true)
 data class UpcomingTrains(
     @field:Json(name = "upcomingTrains") val upcomingTrains: List<UpcomingTrain>?,
 )
 
 @Stable
+@JsonClass(generateAdapter = true)
 data class UpcomingTrain(
     @field:Json(name = "route") val route: Route,
     @field:Json(name = "direction") val direction: Direction,
