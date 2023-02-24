@@ -191,6 +191,7 @@ private fun setAndComputeLastGoodState(
     return lastGoodState
 }
 
+@Suppress("UnusedReceiverParameter")
 @Composable
 private fun RowScope.OverflowItems(
     forceRefresh: () -> Unit,
@@ -203,7 +204,7 @@ private fun RowScope.OverflowItems(
     IconButton(onClick = forceRefresh) {
         Icon(
             imageVector = Icons.Filled.Refresh,
-            contentDescription = "Refresh",
+            contentDescription = stringResource(R.string.refresh_action),
         )
     }
 
@@ -211,7 +212,7 @@ private fun RowScope.OverflowItems(
     IconButton(onClick = { expanded = true }) {
         Icon(
             imageVector = Icons.Default.MoreVert,
-            contentDescription = "More",
+            contentDescription = stringResource(R.string.more_item_actions),
         )
     }
     DropdownMenu(
@@ -229,7 +230,7 @@ private fun RowScope.OverflowItems(
                 onCheckedChange = setShortenNamesPref,
             )
             Text(
-                text = "Shorten station names",
+                text = stringResource(R.string.shorten_names_action_text),
                 modifier = Modifier.padding(end = 10.dp),
             )
         }
@@ -246,7 +247,7 @@ private fun RowScope.OverflowItems(
                     onCheckedChange = setShowOppositeDirectionPref,
                 )
                 Text(
-                    text = "Show opposite direction",
+                    text = stringResource(R.string.show_opposite_direction_action_text),
                     modifier = Modifier.padding(end = 10.dp),
                 )
             }
@@ -294,7 +295,7 @@ private fun LoadingScreen() {
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(10.dp))
-        Text(text = "Loading …", color = MaterialTheme.colorScheme.secondary)
+        Text(text = stringResource(R.string.loading), color = MaterialTheme.colorScheme.secondary)
     }
 }
 

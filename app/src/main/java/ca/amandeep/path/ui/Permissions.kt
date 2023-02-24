@@ -24,9 +24,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ca.amandeep.path.R
 import ca.amandeep.path.ui.theme.PATHTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
@@ -71,13 +73,13 @@ fun requireOptionalLocationItem(
                 if (!doNotShowRationale) {
                     PermissionsUi(
                         rationaleText = if (coarseLocationState.hasPermission) {
-                            "Precise location is preferred over coarse location to show the closest station"
+                            stringResource(R.string.precise_location_rationale)
                         } else {
-                            "Location is used to show you the closest stations and routes"
+                            stringResource(R.string.location_rationale)
                         },
-                        allowButtonText = "Allow",
+                        allowButtonText = stringResource(R.string.allow),
                         allowButtonAction = { locationStates.launchMultiplePermissionRequest() },
-                        denyButtonText = "Deny",
+                        denyButtonText = stringResource(R.string.deny),
                         denyButtonAction = { doNotShowRationale = true },
                     )
                 }
@@ -87,15 +89,15 @@ fun requireOptionalLocationItem(
                     PermissionsUi(
                         rationaleText = (
                             if (coarseLocationState.hasPermission) {
-                                "Precise location is preferred over coarse location to show the closest station"
+                                stringResource(R.string.precise_location_rationale)
                             } else {
-                                "Location is used to show you the closest stations and routes."
+                                stringResource(R.string.location_rationale)
                             }
                             ) +
-                            "\nPlease grant access on the Settings screen",
-                        allowButtonText = "Open Settings",
+                            "\n" + stringResource(R.string.grant_settings_access),
+                        allowButtonText = stringResource(R.string.open_settings),
                         allowButtonAction = { navigateToSettingsScreen(ctx) },
-                        denyButtonText = "Don't ask again",
+                        denyButtonText = stringResource(R.string.dont_ask_again),
                         denyButtonAction = { doNotShowSettingsRationale = true },
                     )
                 }

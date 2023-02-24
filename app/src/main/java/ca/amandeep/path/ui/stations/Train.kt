@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +29,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ca.amandeep.path.R
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.RouteStation
@@ -57,7 +59,7 @@ fun Train(
                     Direction.TO_NJ -> Icons.Filled.ArrowBack
                     Direction.TO_NY -> Icons.Filled.ArrowForward
                 },
-                contentDescription = "To ${train.upcomingTrain.direction.stateName}",
+                contentDescription = stringResource(R.string.to) + train.upcomingTrain.direction.stateName,
             )
             Spacer(Modifier.width(5.dp))
         }
@@ -68,7 +70,7 @@ fun Train(
             Row {
                 Text(
                     when (it) {
-                        0 -> "now"
+                        0 -> stringResource(R.string.now)
                         else -> it.toString()
                     },
                     fontWeight = FontWeight.Black,
@@ -81,11 +83,11 @@ fun Train(
                         1 -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                "min",
+                                stringResource(R.string.mins_singular),
                                 modifier = Modifier.alignByBaseline(),
                             )
                             Text(
-                                "s",
+                                stringResource(R.string.mins_plural_part),
                                 color = Color.Transparent,
                                 modifier = Modifier.alignByBaseline(),
                             )
@@ -93,7 +95,7 @@ fun Train(
                         else -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                "mins",
+                                stringResource(R.string.mins_plural),
                                 modifier = Modifier.alignByBaseline(),
                             )
                         }

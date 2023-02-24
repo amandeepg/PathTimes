@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -53,12 +54,12 @@ fun ErrorScreen(
                 Icon(
                     modifier = Modifier.size(100.dp),
                     painter = painterResource(id = R.drawable.ic_wifi_off),
-                    contentDescription = "No internet icon",
+                    contentDescription = stringResource(R.string.no_internet_icon),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
                 Spacer(Modifier.height(30.dp))
                 Text(
-                    text = "No internet connection",
+                    text = stringResource(R.string.no_internet_connection),
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     lineHeight = MaterialTheme.typography.headlineMedium.lineHeight,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -67,7 +68,7 @@ fun ErrorScreen(
             }
             ConnectionState.Available -> {
                 Text(
-                    "Couldn't load next trains",
+                    stringResource(R.string.load_trains_error),
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     lineHeight = MaterialTheme.typography.headlineMedium.lineHeight,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -75,7 +76,7 @@ fun ErrorScreen(
                 )
                 Spacer(Modifier.height(5.dp))
                 Text(
-                    "Try again later or try the official app for now",
+                    stringResource(R.string.try_again_later_body_text),
                     fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     lineHeight = MaterialTheme.typography.titleMedium.lineHeight,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -83,12 +84,12 @@ fun ErrorScreen(
                 )
                 Spacer(Modifier.height(25.dp))
                 FilledTonalButton(onClick = forceUpdate) {
-                    Text("Try again")
+                    Text(stringResource(R.string.try_again_action))
                 }
                 TextButton(onClick = {
                     launchPackageOrMarketPage(context, OFFICIAL_PATH_APP_PACKAGE)
                 },) {
-                    Text("Try the official app")
+                    Text(stringResource(R.string.try_official_app_action))
                 }
             }
         }

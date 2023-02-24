@@ -1,6 +1,7 @@
 package ca.amandeep.path.ui
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
@@ -17,11 +18,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import ca.amandeep.path.R
 import ca.amandeep.path.ui.theme.PATHTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration
@@ -33,7 +36,7 @@ import kotlin.time.Duration
 fun rememberLastUpdatedState(lastUpdated: Long): MutableState<LastUpdatedUiModel> =
     remember { mutableStateOf(computeLastUpdatedModel(lastUpdated)) }
 
-data class LastUpdatedUiModel(val unit: String, val value: Long)
+data class LastUpdatedUiModel(@StringRes val unitResId: Int, val value: Long)
 
 /**
  * Updates the [MutableState] with the time since [lastUpdated] in a human readable format.
@@ -55,9 +58,9 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
     val secondsAgo = (System.currentTimeMillis() - lastUpdated) / 1000
     val value = if (secondsAgo >= 60) secondsAgo / 60 else secondsAgo
     return LastUpdatedUiModel(
-        unit = if (value == 1L) {
-            if (secondsAgo >= 60) "minute" else "second"
-        } else if (secondsAgo >= 60) "minutes" else "seconds",
+        unitResId = if (value == 1L) {
+            if (secondsAgo >= 60) R.string.minute else R.string.second
+        } else if (secondsAgo >= 60) R.string.minutes else R.string.seconds,
         value = value,
     )
 }
@@ -89,13 +92,13 @@ fun LastUpdatedInfoRow(
                 .animateContentSize(animationSpec = tween(1000))
                 .padding(5.dp),
         ) {
-            Text("last updated ")
+            Text(stringResource(R.string.last_updated) + " ")
             if (lastUpdatedState.value == 0L) {
-                AnimatedText("just now")
+                AnimatedText(stringResource(R.string.just_now))
             } else {
-                AnimatedText("${lastUpdatedState.value}")
-                AnimatedText(" ${lastUpdatedState.unit}")
-                Text(" ago")
+                AnimatedText(lastUpdatedState.value.toString())
+                AnimatedText(" " + stringResource(lastUpdatedState.unitResId))
+                Text(" " + stringResource(R.string.ago))
             }
         }
     }
@@ -112,7 +115,7 @@ private fun LastUpdatedInfoRowPreview(
 
 class SampleLastUpdatedProvider : PreviewParameterProvider<LastUpdatedUiModel> {
     override val values = sequenceOf(
-        LastUpdatedUiModel("seconds", 0L),
-        LastUpdatedUiModel("minutes", 15L),
+        LastUpdatedUiModel(R.string.seconds, 0L),
+        LastUpdatedUiModel(R.string.minutes, 15L),
     )
 }

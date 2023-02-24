@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -54,17 +55,17 @@ fun ErrorBar(
             modifier = Modifier
                 .size(20.dp)
                 .alignByBaseline(),
-            contentDescription = "Error icon",
+            contentDescription = stringResource(R.string.error_icon),
             tint = MaterialTheme.colorScheme.onErrorContainer,
         )
         Spacer(Modifier.width(10.dp))
         Crossfade(targetState = connectivityState) {
             val errorText = when (it) {
-                ConnectionState.Available -> "An error occurred while loading next trains"
-                ConnectionState.Unavailable -> "No internet connection"
+                ConnectionState.Available -> stringResource(R.string.load_trains_error_long)
+                ConnectionState.Unavailable -> stringResource(R.string.no_internet_connection)
             }
             Text(
-                text = "$errorText, however arrivals below will continue to estimate based on last known ETAs",
+                text = errorText + stringResource(R.string.stale_data_explanation),
                 fontSize = MaterialTheme.typography.labelSmall.fontSize,
                 lineHeight = MaterialTheme.typography.labelSmall.lineHeight,
                 color = MaterialTheme.colorScheme.onErrorContainer,

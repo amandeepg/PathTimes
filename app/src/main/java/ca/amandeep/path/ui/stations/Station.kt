@@ -13,10 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ca.amandeep.path.R
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
@@ -70,16 +72,17 @@ fun Station(
                         }
                     }
                 if (trains.isEmpty()) {
-                    val stateBound =
-                        if (!userState.showOppositeDirection) {
+                    Text(
+                        text = if (!userState.showOppositeDirection) {
                             val direction =
                                 if (userState.isInNJ) Direction.TO_NY else Direction.TO_NJ
-                            direction.stateName + "-bound "
+                            stringResource(
+                                R.string.no_trains_bound,
+                                direction.stateName,
+                            )
                         } else {
-                            ""
-                        }
-                    Text(
-                        "No upcoming ${stateBound}trains at ${station.first.name}",
+                            stringResource(R.string.no_trains)
+                        } + station.first.name,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
