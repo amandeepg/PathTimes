@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
             PATHTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     NavHost(navController = navController, startDestination = "main") {
                         composable("main") {

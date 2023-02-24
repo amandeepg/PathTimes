@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.map
 
 @SuppressLint("MissingPermission")
 class LocationUseCase constructor(
-    private val context: Context
+    private val context: Context,
 ) {
     private var permissionsUpdatedFlow = MutableStateFlow<List<String>>(emptyList())
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)

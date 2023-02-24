@@ -41,7 +41,7 @@ data class LastUpdatedUiModel(val unit: String, val value: Long)
 @Composable
 fun MutableState<LastUpdatedUiModel>.KeepUpdatedEffect(
     lastUpdated: Long,
-    updateInterval: Duration
+    updateInterval: Duration,
 ) {
     LaunchedEffect(lastUpdated) {
         while (true) {
@@ -55,10 +55,10 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
     val secondsAgo = (System.currentTimeMillis() - lastUpdated) / 1000
     val value = if (secondsAgo >= 60) secondsAgo / 60 else secondsAgo
     return LastUpdatedUiModel(
-        unit = if (value == 1L)
+        unit = if (value == 1L) {
             if (secondsAgo >= 60) "minute" else "second"
-        else if (secondsAgo >= 60) "minutes" else "seconds",
-        value = value
+        } else if (secondsAgo >= 60) "minutes" else "seconds",
+        value = value,
     )
 }
 
@@ -67,21 +67,24 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
  */
 @Composable
 @OptIn(ExperimentalAnimationApi::class)
-fun LastUpdatedInfoRow(lastUpdatedState: LastUpdatedUiModel) {
+fun LastUpdatedInfoRow(
+    lastUpdatedState: LastUpdatedUiModel,
+    modifier: Modifier = Modifier,
+) {
     @Composable
     fun AnimatedText(text: String) = AnimatedContent(
         targetState = text,
-        transitionSpec = verticalSwapAnimation
+        transitionSpec = verticalSwapAnimation,
     ) { Text(text = it) }
 
     ProvideTextStyle(
         TextStyle(
             fontSize = MaterialTheme.typography.labelSmall.fontSize,
             color = MaterialTheme.colorScheme.secondary,
-        )
+        ),
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .wrapContentWidth()
                 .animateContentSize(animationSpec = tween(1000))
                 .padding(5.dp),
@@ -102,7 +105,7 @@ fun LastUpdatedInfoRow(lastUpdatedState: LastUpdatedUiModel) {
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun LastUpdatedInfoRowPreview(
-    @PreviewParameter(SampleLastUpdatedProvider::class) lastUpdatedState: LastUpdatedUiModel
+    @PreviewParameter(SampleLastUpdatedProvider::class) lastUpdatedState: LastUpdatedUiModel,
 ) {
     PATHTheme { LastUpdatedInfoRow(lastUpdatedState) }
 }

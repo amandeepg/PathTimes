@@ -26,5 +26,5 @@ val Coordinates.isInNJ: Boolean
 
 fun Context.checkPermission(permission: String): Boolean {
     return ContextCompat.checkSelfPermission(this, permission) ==
-            PackageManager.PERMISSION_GRANTED
+        PackageManager.PERMISSION_GRANTED
 }

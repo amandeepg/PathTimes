@@ -29,7 +29,8 @@ fun Stations(
     uiModel: MainUiModel.Valid,
     locationPermissionsUpdated: suspend (List<String>) -> Unit,
     connectivityState: ConnectionState,
-    userState: UserState
+    userState: UserState,
+    modifier: Modifier = Modifier,
 ) {
     val requireOptionalLocationItem = requireOptionalLocationItem(
         permissionsUpdated = locationPermissionsUpdated,
@@ -38,16 +39,16 @@ fun Stations(
                 it,
                 Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", it.packageName, null)
+                    Uri.fromParts("package", it.packageName, null),
                 ),
-                null
+                null,
             )
-        }
+        },
     )
 
     val lastUpdatedState = rememberLastUpdatedState(uiModel.lastUpdated)
 
-    LazyColumn {
+    LazyColumn(modifier = modifier) {
         item {
             lastUpdatedState.KeepUpdatedEffect(uiModel.lastUpdated, 1.seconds)
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -59,7 +60,7 @@ fun Stations(
             AnimatedVisibility(
                 visible = uiModel.hasError,
                 enter = expandVertically(),
-                exit = shrinkVertically()
+                exit = shrinkVertically(),
             ) {
                 ErrorBar(connectivityState)
             }

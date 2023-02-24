@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -37,7 +38,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,7 +64,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 @Composable
-fun MainScreen(mainViewModel: MainViewModel) {
+fun MainScreen(
+    mainViewModel: MainViewModel,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     var refreshing by remember { mutableStateOf(false) }
     LaunchedEffect(refreshing) {
@@ -79,25 +82,26 @@ fun MainScreen(mainViewModel: MainViewModel) {
     var anyLocationPermissionsGranted by remember {
         mutableStateOf(
             context.checkPermission(ACCESS_COARSE_LOCATION) ||
-                    context.checkPermission(ACCESS_FINE_LOCATION),
+                context.checkPermission(ACCESS_FINE_LOCATION),
         )
     }
 
-    val shortenNamesPref = rememberBooleanPreference(
+    val (shortenNamesPref, setShortenNamesPref) = rememberBooleanPreference(
         keyName = "shortenNames",
         initialValue = false,
         defaultValue = false,
     )
-    val showOppositeDirectionPref = rememberBooleanPreference(
+    val (showOppositeDirectionPref, setShowOppositeDirectionPref) = rememberBooleanPreference(
         keyName = "showOppositeDirection",
         initialValue = true,
         defaultValue = true,
     )
     val showOppositeDirection by remember(showOppositeDirectionPref, anyLocationPermissionsGranted) {
-        derivedStateOf { showOppositeDirectionPref.value || !anyLocationPermissionsGranted }
+        derivedStateOf { showOppositeDirectionPref || !anyLocationPermissionsGranted }
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
@@ -105,7 +109,9 @@ fun MainScreen(mainViewModel: MainViewModel) {
                     OverflowItems(
                         forceRefresh = forceRefresh,
                         shortenNamesPref = shortenNamesPref,
+                        setShortenNamesPref = setShortenNamesPref,
                         showOppositeDirectionPref = showOppositeDirectionPref,
+                        setShowOppositeDirectionPref = setShowOppositeDirectionPref,
                         anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                     )
                 },
@@ -133,7 +139,7 @@ fun MainScreen(mainViewModel: MainViewModel) {
             MainScreenContent(
                 uiModel = uiState,
                 userState = UserState(
-                    shortenNames = shortenNamesPref.value,
+                    shortenNames = shortenNamesPref,
                     showOppositeDirection = showOppositeDirection,
                     isInNJ = isInNJ,
                 ),
@@ -165,14 +171,16 @@ private fun setAndComputeLastGoodState(
     }
 
     setLastGoodState(
-        if (uiModel is MainUiModel.Error && lastGoodState is MainUiModel.Valid)
+        if (uiModel is MainUiModel.Error && lastGoodState is MainUiModel.Valid) {
             lastGoodState.copy(hasError = true)
-        else uiModel,
+        } else {
+            uiModel
+        },
     )
 
     // If all trains are empty, force a refresh, and show a loading screen
     val allTrainsEmpty = lastGoodState is MainUiModel.Valid &&
-            lastGoodState.stations.all { it.second.all { it.isDepartedTrain } }
+        lastGoodState.stations.all { it.second.all { it.isDepartedTrain } }
     LaunchedEffect(allTrainsEmpty) {
         if (allTrainsEmpty) {
             forceUpdate()
@@ -184,10 +192,12 @@ private fun setAndComputeLastGoodState(
 }
 
 @Composable
-private fun OverflowItems(
+private fun RowScope.OverflowItems(
     forceRefresh: () -> Unit,
-    shortenNamesPref: MutableState<Boolean>,
-    showOppositeDirectionPref: MutableState<Boolean>,
+    shortenNamesPref: Boolean,
+    setShortenNamesPref: (Boolean) -> Unit,
+    showOppositeDirectionPref: Boolean,
+    setShowOppositeDirectionPref: (Boolean) -> Unit,
     anyLocationPermissionsGranted: Boolean,
 ) {
     IconButton(onClick = forceRefresh) {
@@ -211,12 +221,12 @@ private fun OverflowItems(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
-                shortenNamesPref.value = !shortenNamesPref.value
+                setShortenNamesPref(!shortenNamesPref)
             },
         ) {
             Checkbox(
-                checked = shortenNamesPref.value,
-                onCheckedChange = { shortenNamesPref.value = it },
+                checked = shortenNamesPref,
+                onCheckedChange = setShortenNamesPref,
             )
             Text(
                 text = "Shorten station names",
@@ -224,22 +234,23 @@ private fun OverflowItems(
             )
         }
 
-        if (anyLocationPermissionsGranted)
+        if (anyLocationPermissionsGranted) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
-                    showOppositeDirectionPref.value = !showOppositeDirectionPref.value
+                    setShowOppositeDirectionPref(!showOppositeDirectionPref)
                 },
             ) {
                 Checkbox(
-                    checked = showOppositeDirectionPref.value,
-                    onCheckedChange = { showOppositeDirectionPref.value = it },
+                    checked = showOppositeDirectionPref,
+                    onCheckedChange = setShowOppositeDirectionPref,
                 )
                 Text(
                     text = "Show opposite direction",
                     modifier = Modifier.padding(end = 10.dp),
                 )
             }
+        }
     }
 }
 
@@ -254,12 +265,12 @@ private fun MainScreenContent(
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
 
-    if (uiModel == MainUiModel.Error)
+    if (uiModel == MainUiModel.Error) {
         ErrorScreen(
             connectivityState = connectivityState,
             forceUpdate = forceUpdate,
         )
-    else
+    } else {
         Crossfade(targetState = uiModel == MainUiModel.Loading) { isLoading ->
             when (isLoading) {
                 true -> LoadingScreen()
@@ -271,6 +282,7 @@ private fun MainScreenContent(
                 )
             }
         }
+    }
 }
 
 @Composable

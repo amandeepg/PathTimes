@@ -54,7 +54,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 it to arrivalsResult.arrivals[it]
                     ?.toUiTrains(
                         currentLocation = currentLocation,
-                        now = System.currentTimeMillis()
+                        now = System.currentTimeMillis(),
                     )
                     ?.sortedByDirectionAndTime(currentLocation)
             }
@@ -64,7 +64,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 MainUiModel.Valid(
                     lastUpdated = arrivalsResult.metadata.lastUpdated,
-                    stations = closestArrivals, hasError = false
+                    stations = closestArrivals,
+                    hasError = false,
                 )
             }
         }.retryWhen { cause, attempt ->

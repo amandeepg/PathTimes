@@ -43,7 +43,7 @@ fun UpcomingTrain.toUiTrain(
         isInOppositeDirection = when (direction) {
             Direction.TO_NJ -> !currentLocation.isInNJ
             Direction.TO_NY -> currentLocation.isInNJ
-        }
+        },
     )
 }
 
@@ -51,12 +51,12 @@ fun UpcomingTrain.toUiTrain(
  * Sort the trains so that direction is grouped together, and within each direction, sort by arrival time
  */
 fun Iterable<UiUpcomingTrain>.sortedByDirectionAndTime(
-    currentLocation: Coordinates
+    currentLocation: Coordinates,
 ) = sortedWith(
     compareBy(
         { it.directionFromCurrentLocation(currentLocation) },
-        { it.arrivalInMinutesFromNow }
-    )
+        { it.arrivalInMinutesFromNow },
+    ),
 )
 
 // Return -1 if the train is going in the opposite direction, 1 otherwise

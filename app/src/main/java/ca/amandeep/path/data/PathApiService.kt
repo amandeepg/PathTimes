@@ -27,8 +27,8 @@ interface PathApiService {
                     MoshiConverterFactory.create(
                         Moshi.Builder()
                             .add(Date::class.java, Rfc3339DateJsonAdapter())
-                            .build()
-                    )
+                            .build(),
+                    ),
                 )
                 .build()
                 .create(PathApiService::class.java)

@@ -57,7 +57,7 @@ enum class Direction(
     val stateName: String,
 ) {
     TO_NJ("New Jersey"),
-    TO_NY("New York")
+    TO_NY("New York"),
 }
 
 @Stable
@@ -115,8 +115,8 @@ class SortPlaces(private val currentLocation: Coordinates) : Comparator<Station>
             sqrt(
                 sin(deltaLat / 2).pow(2.0) +
                     cos(fromLat) * cos(toLat) *
-                    sin(deltaLon / 2).pow(2.0)
-            )
+                    sin(deltaLon / 2).pow(2.0),
+            ),
         )
         return radius * angle
     }

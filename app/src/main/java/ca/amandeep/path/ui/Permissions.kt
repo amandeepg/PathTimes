@@ -53,8 +53,8 @@ fun requireOptionalLocationItem(
     val locationStates = rememberMultiplePermissionsState(
         listOf(
             ACCESS_COARSE_LOCATION,
-            ACCESS_FINE_LOCATION
-        )
+            ACCESS_FINE_LOCATION,
+        ),
     )
 
     val permissionsGranted =
@@ -70,14 +70,15 @@ fun requireOptionalLocationItem(
             permissionsNotGrantedContent = {
                 if (!doNotShowRationale) {
                     PermissionsUi(
-                        rationaleText = if (coarseLocationState.hasPermission)
+                        rationaleText = if (coarseLocationState.hasPermission) {
                             "Precise location is preferred over coarse location to show the closest station"
-                        else
-                            "Location is used to show you the closest stations and routes",
+                        } else {
+                            "Location is used to show you the closest stations and routes"
+                        },
                         allowButtonText = "Allow",
                         allowButtonAction = { locationStates.launchMultiplePermissionRequest() },
                         denyButtonText = "Deny",
-                        denyButtonAction = { doNotShowRationale = true }
+                        denyButtonAction = { doNotShowRationale = true },
                     )
                 }
             },
@@ -85,19 +86,20 @@ fun requireOptionalLocationItem(
                 if (!doNotShowSettingsRationale) {
                     PermissionsUi(
                         rationaleText = (
-                            if (coarseLocationState.hasPermission)
+                            if (coarseLocationState.hasPermission) {
                                 "Precise location is preferred over coarse location to show the closest station"
-                            else
+                            } else {
                                 "Location is used to show you the closest stations and routes."
+                            }
                             ) +
                             "\nPlease grant access on the Settings screen",
                         allowButtonText = "Open Settings",
                         allowButtonAction = { navigateToSettingsScreen(ctx) },
                         denyButtonText = "Don't ask again",
-                        denyButtonAction = { doNotShowSettingsRationale = true }
+                        denyButtonAction = { doNotShowSettingsRationale = true },
                     )
                 }
-            }
+            },
         ) {
         }
     }
@@ -118,12 +120,12 @@ private fun PermissionsUi(
             lineHeight = MaterialTheme.typography.bodyLarge.lineHeight,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.secondary,
         )
         Spacer(Modifier.height(5.dp))
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             FilledTonalButton(onClick = allowButtonAction) {
                 Text(allowButtonText)

@@ -45,8 +45,10 @@ import java.util.Date
 fun Train(
     train: UiUpcomingTrain,
     userState: UserState,
+    modifier: Modifier = Modifier,
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (userState.showOppositeDirection) {
@@ -71,7 +73,7 @@ fun Train(
                     },
                     fontWeight = FontWeight.Black,
                     fontSize = 20.sp,
-                    modifier = Modifier.alignByBaseline()
+                    modifier = Modifier.alignByBaseline(),
                 )
                 ProvideTextStyle(TextStyle(fontWeight = FontWeight.Light)) {
                     when (it) {
@@ -80,18 +82,19 @@ fun Train(
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 "min",
-                                modifier = Modifier.alignByBaseline()
+                                modifier = Modifier.alignByBaseline(),
                             )
                             Text(
-                                "s", color = Color.Transparent,
-                                modifier = Modifier.alignByBaseline()
+                                "s",
+                                color = Color.Transparent,
+                                modifier = Modifier.alignByBaseline(),
                             )
                         }
                         else -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 "mins",
-                                modifier = Modifier.alignByBaseline()
+                                modifier = Modifier.alignByBaseline(),
                             )
                         }
                     }
@@ -111,7 +114,7 @@ private fun TrainHeading(
         SingleTrainHeading(
             train.route,
             train.direction,
-            shortName = userState.shortenNames || hasVia
+            shortName = userState.shortenNames || hasVia,
         )
         if (hasVia) {
             Spacer(Modifier.width(5.dp))
@@ -119,7 +122,7 @@ private fun TrainHeading(
                 train.route,
                 train.direction,
                 shortName = true,
-                isVia = true
+                isVia = true,
             )
         }
     }
@@ -140,11 +143,13 @@ private fun SingleTrainHeading(
     shortName: Boolean = false,
     isVia: Boolean = false,
 ) {
-    val station = if (isVia && route.via != null)
+    val station = if (isVia && route.via != null) {
         route.via
-    else when (direction) {
-        Direction.TO_NJ -> route.njTerminus
-        Direction.TO_NY -> route.nyTerminus
+    } else {
+        when (direction) {
+            Direction.TO_NJ -> route.njTerminus
+            Direction.TO_NY -> route.nyTerminus
+        }
     }
     val name = when (station) {
         RouteStation.JSQ -> if (shortName) "JSQ" else "Journal Square"
@@ -169,14 +174,14 @@ private fun SingleTrainHeading(
     }
     Surface(
         shape = RoundedCornerShape(10.dp),
-        color = pillColor
+        color = pillColor,
     ) {
         Text(
             text = name,
             color = textColor,
             fontSize = 18.sp,
             fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
         )
     }
 }
@@ -191,15 +196,15 @@ private fun TrainShortNamesPreview(
         Box(
             Modifier
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp.div(5)))
-                .padding(5.dp)
+                .padding(5.dp),
         ) {
             Train(
                 train = train,
                 userState = UserState(
                     shortenNames = true,
                     showOppositeDirection = true,
-                    isInNJ = true
-                )
+                    isInNJ = true,
+                ),
             )
         }
     }
@@ -215,15 +220,15 @@ private fun TrainLongNamesPreview(
         Box(
             Modifier
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(10.dp.div(5)))
-                .padding(5.dp)
+                .padding(5.dp),
         ) {
             Train(
                 train = train,
                 userState = UserState(
                     shortenNames = false,
                     showOppositeDirection = true,
-                    isInNJ = true
-                )
+                    isInNJ = true,
+                ),
             )
         }
     }
@@ -238,7 +243,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 projectedArrival = Date(),
             ),
             arrivalInMinutesFromNow = 0,
-            isInOppositeDirection = false
+            isInOppositeDirection = false,
         ),
         UiUpcomingTrain(
             UpcomingTrain(
@@ -247,7 +252,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 projectedArrival = Date(),
             ),
             arrivalInMinutesFromNow = 1,
-            isInOppositeDirection = false
+            isInOppositeDirection = false,
         ),
         UiUpcomingTrain(
             UpcomingTrain(
@@ -256,7 +261,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 projectedArrival = Date(),
             ),
             arrivalInMinutesFromNow = 33,
-            isInOppositeDirection = false
+            isInOppositeDirection = false,
         ),
         UiUpcomingTrain(
             UpcomingTrain(
@@ -265,7 +270,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 projectedArrival = Date(),
             ),
             arrivalInMinutesFromNow = 5,
-            isInOppositeDirection = false
+            isInOppositeDirection = false,
         ),
     )
 }

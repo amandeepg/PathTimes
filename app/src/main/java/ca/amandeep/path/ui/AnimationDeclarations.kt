@@ -21,9 +21,9 @@ val verticalSwapAnimation: AnimatedContentScope<String>.() -> ContentTransform
     get() = {
         val contentTransform: ContentTransform =
             slideInVertically(animationSpec = tween(durationMillis = 800)) { height -> height } + fadeIn(
-                animationSpec = tween(durationMillis = 800)
+                animationSpec = tween(durationMillis = 800),
             ) with slideOutVertically(animationSpec = tween(durationMillis = 800)) { height -> -height } + fadeOut(
-                animationSpec = tween(durationMillis = 800)
+                animationSpec = tween(durationMillis = 800),
             )
         contentTransform.using(SizeTransform(clip = false))
     }

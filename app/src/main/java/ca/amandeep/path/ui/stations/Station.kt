@@ -36,9 +36,10 @@ private val PATH_ON_BLUE = Color(0xeeeeeeee)
 fun Station(
     station: Pair<Station, List<UiUpcomingTrain>>,
     userState: UserState,
+    modifier: Modifier = Modifier,
 ) {
     Card3(
-        modifier = Modifier.padding(horizontal = 15.dp, vertical = 9.dp),
+        modifier = modifier.padding(horizontal = 15.dp, vertical = 9.dp),
         elevation = 10.dp,
     ) {
         Column {
@@ -52,18 +53,21 @@ fun Station(
                     color = PATH_ON_BLUE,
                     fontWeight = FontWeight.Black,
                     fontSize = 24.sp,
-                    modifier = Modifier.padding(15.dp)
+                    modifier = Modifier.padding(15.dp),
                 )
             }
             Column(
                 modifier = Modifier.padding(15.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 val trains = station.second
                     .filterNot { it.isDepartedTrain }
                     .filter {
-                        if (userState.showOppositeDirection) true
-                        else it.isInOppositeDirection
+                        if (userState.showOppositeDirection) {
+                            true
+                        } else {
+                            it.isInOppositeDirection
+                        }
                     }
                 if (trains.isEmpty()) {
                     val stateBound =
@@ -71,10 +75,12 @@ fun Station(
                             val direction =
                                 if (userState.isInNJ) Direction.TO_NY else Direction.TO_NJ
                             direction.stateName + "-bound "
-                        } else ""
+                        } else {
+                            ""
+                        }
                     Text(
                         "No upcoming ${stateBound}trains at ${station.first.name}",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
 
@@ -96,7 +102,7 @@ private fun StationPreview() {
             Station(
                 station = "WTC",
                 name = "World Trade Center",
-                coordinates = Coordinates(0.0, 0.0)
+                coordinates = Coordinates(0.0, 0.0),
             ) to listOf(
                 UiUpcomingTrain(
                     UpcomingTrain(
@@ -105,7 +111,7 @@ private fun StationPreview() {
                         projectedArrival = Date(),
                     ),
                     arrivalInMinutesFromNow = 0,
-                    isInOppositeDirection = false
+                    isInOppositeDirection = false,
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
@@ -114,7 +120,7 @@ private fun StationPreview() {
                         projectedArrival = Date(),
                     ),
                     arrivalInMinutesFromNow = 1,
-                    isInOppositeDirection = false
+                    isInOppositeDirection = false,
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
@@ -123,7 +129,7 @@ private fun StationPreview() {
                         projectedArrival = Date(),
                     ),
                     arrivalInMinutesFromNow = 33,
-                    isInOppositeDirection = false
+                    isInOppositeDirection = false,
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
@@ -132,13 +138,13 @@ private fun StationPreview() {
                         projectedArrival = Date(),
                     ),
                     arrivalInMinutesFromNow = 5,
-                    isInOppositeDirection = false
+                    isInOppositeDirection = false,
                 ),
             ),
             userState = UserState(
                 shortenNames = true,
                 showOppositeDirection = true,
-                isInNJ = true
+                isInNJ = true,
             ),
         )
     }
@@ -154,7 +160,7 @@ fun EmptyStationPreview() {
             station = Station(
                 station = "HOB",
                 name = "Hoboken",
-                coordinates = Coordinates(0.0, 0.0)
+                coordinates = Coordinates(0.0, 0.0),
             ) to emptyList(),
             userState = UserState(
                 shortenNames = false,

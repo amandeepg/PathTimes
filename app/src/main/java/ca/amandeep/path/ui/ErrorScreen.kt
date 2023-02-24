@@ -37,11 +37,12 @@ private const val OFFICIAL_PATH_APP_PACKAGE = "gov.panynj.pathuatapp"
 fun ErrorScreen(
     connectivityState: ConnectionState,
     forceUpdate: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(20.dp),
         verticalArrangement = Arrangement.Center,
@@ -70,7 +71,7 @@ fun ErrorScreen(
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     lineHeight = MaterialTheme.typography.headlineMedium.lineHeight,
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(5.dp))
                 Text(
@@ -78,7 +79,7 @@ fun ErrorScreen(
                     fontSize = MaterialTheme.typography.titleMedium.fontSize,
                     lineHeight = MaterialTheme.typography.titleMedium.lineHeight,
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(25.dp))
                 FilledTonalButton(onClick = forceUpdate) {
@@ -86,7 +87,7 @@ fun ErrorScreen(
                 }
                 TextButton(onClick = {
                     launchPackageOrMarketPage(context, OFFICIAL_PATH_APP_PACKAGE)
-                }) {
+                },) {
                     Text("Try the official app")
                 }
             }
@@ -97,13 +98,13 @@ fun ErrorScreen(
 @Composable
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun ErrorScreenPreview(
-    @PreviewParameter(SampleConnectionStateProvider::class) connectivityState: ConnectionState
+private fun ErrorScreenPreview(
+    @PreviewParameter(SampleConnectionStateProvider::class) connectivityState: ConnectionState,
 ) {
     PATHTheme {
         ErrorScreen(
             connectivityState = connectivityState,
-            forceUpdate = {}
+            forceUpdate = {},
         )
     }
 }

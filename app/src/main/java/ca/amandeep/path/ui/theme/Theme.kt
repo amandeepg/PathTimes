@@ -52,7 +52,7 @@ fun PATHTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography
+        typography = Typography,
     ) {
         androidx.compose.material.MaterialTheme(
             colors = androidx.compose.material.MaterialTheme.colors.copy(
@@ -68,8 +68,8 @@ fun PATHTheme(
                 onBackground = colorScheme.onBackground,
                 onSurface = colorScheme.onSurface,
                 onError = colorScheme.onError,
-                isLight = !darkTheme
-            )
+                isLight = !darkTheme,
+            ),
         ) {
             content()
         }

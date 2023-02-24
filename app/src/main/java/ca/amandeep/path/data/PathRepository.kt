@@ -72,10 +72,10 @@ class PathRepository(
 
     data class Result(
         val metadata: Metadata,
-        val arrivals: Map<Station, List<UpcomingTrain>>
+        val arrivals: Map<Station, List<UpcomingTrain>>,
     ) {
         data class Metadata(
-            val lastUpdated: Long
+            val lastUpdated: Long,
         )
     }
 }

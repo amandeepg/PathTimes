@@ -31,28 +31,31 @@ import ca.amandeep.path.util.ConnectionState
  * differing depending on if there is an internet connection or not.
  */
 @Composable
-fun ErrorBar(connectivityState: ConnectionState) {
+fun ErrorBar(
+    connectivityState: ConnectionState,
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight(align = Alignment.CenterVertically)
             .background(color = MaterialTheme.colorScheme.errorContainer)
             .padding(10.dp),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             painter = painterResource(
                 id = when (connectivityState) {
                     ConnectionState.Available -> R.drawable.ic_sync_error
                     ConnectionState.Unavailable -> R.drawable.ic_wifi_off
-                }
+                },
             ),
             modifier = Modifier
                 .size(20.dp)
                 .alignByBaseline(),
             contentDescription = "Error icon",
-            tint = MaterialTheme.colorScheme.onErrorContainer
+            tint = MaterialTheme.colorScheme.onErrorContainer,
         )
         Spacer(Modifier.width(10.dp))
         Crossfade(targetState = connectivityState) {
@@ -74,7 +77,7 @@ fun ErrorBar(connectivityState: ConnectionState) {
 @Preview(name = "Light", showBackground = true, widthDp = 300)
 @Preview(name = "Dark", showBackground = true, widthDp = 300, uiMode = UI_MODE_NIGHT_YES)
 private fun ErrorBarPreview(
-    @PreviewParameter(SampleConnectionStateProvider::class) connectivityState: ConnectionState
+    @PreviewParameter(SampleConnectionStateProvider::class) connectivityState: ConnectionState,
 ) {
     PATHTheme { ErrorBar(connectivityState) }
 }

@@ -18,26 +18,29 @@ fun launchPackageOrMarketPage(ctx: Context, appPackageName: String) {
         } catch (e: ActivityNotFoundException) {
             false
         }
-    } else false
+    } else {
+        false
+    }
 
-    if (!launchedApp)
+    if (!launchedApp) {
         try {
             ContextCompat.startActivity(
                 ctx,
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
+                    Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName"),
                 ),
-                null
+                null,
             )
         } catch (e: ActivityNotFoundException) {
             ContextCompat.startActivity(
                 ctx,
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=$appPackageName")
+                    Uri.parse("market://details?id=$appPackageName"),
                 ),
-                null
+                null,
             )
         }
+    }
 }

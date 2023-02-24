@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.zip
  */
 fun <T, R> zip(
     vararg flows: Flow<T>,
-    transform: suspend (List<T>) -> R
+    transform: suspend (List<T>) -> R,
 ): Flow<R> = zip(flows.toList(), transform)
 
 /**
@@ -18,7 +18,7 @@ fun <T, R> zip(
  */
 fun <T, R> zip(
     flows: List<Flow<T>>,
-    transform: suspend (List<T>) -> R
+    transform: suspend (List<T>) -> R,
 ): Flow<R> = when (flows.size) {
     0 -> emptyFlow()
     1 -> flows[0].map { transform(listOf(it)) }
@@ -39,5 +39,5 @@ fun <T, R> zip(
  */
 @JvmName("zipExtension")
 fun <T, R> List<Flow<T>>.zip(
-    transform: suspend (List<T>) -> R
+    transform: suspend (List<T>) -> R,
 ): Flow<R> = zip(this, transform)
