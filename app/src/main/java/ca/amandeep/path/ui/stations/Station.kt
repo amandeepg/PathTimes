@@ -30,6 +30,7 @@ import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
 import java.util.Date
 import java.util.Locale
+import kotlin.time.Duration.Companion.minutes
 
 private val PATH_BLUE = Color(0xff003da0)
 private val PATH_ON_BLUE = Color(0xeeeeeeee)
@@ -37,6 +38,7 @@ private val PATH_ON_BLUE = Color(0xeeeeeeee)
 @Composable
 fun Station(
     station: Pair<Station, List<UiUpcomingTrain>>,
+    now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
 ) {
@@ -88,7 +90,11 @@ fun Station(
                 }
 
                 trains.forEach {
-                    Train(it, userState)
+                    Train(
+                        train = it,
+                        now = now,
+                        userState = userState
+                    )
                 }
             }
         }
@@ -111,7 +117,7 @@ private fun StationPreview() {
                     UpcomingTrain(
                         route = Route.JSQ_33,
                         direction = Direction.TO_NY,
-                        projectedArrival = Date(),
+                        projectedArrival = Date(System.currentTimeMillis() + 0.minutes.inWholeMilliseconds),
                     ),
                     arrivalInMinutesFromNow = 0,
                     isInOppositeDirection = false,
@@ -120,7 +126,7 @@ private fun StationPreview() {
                     UpcomingTrain(
                         route = Route.NWK_WTC,
                         direction = Direction.TO_NJ,
-                        projectedArrival = Date(),
+                        projectedArrival = Date(System.currentTimeMillis() + 1.minutes.inWholeMilliseconds),
                     ),
                     arrivalInMinutesFromNow = 1,
                     isInOppositeDirection = false,
@@ -129,7 +135,7 @@ private fun StationPreview() {
                     UpcomingTrain(
                         route = Route.HOB_WTC,
                         direction = Direction.TO_NJ,
-                        projectedArrival = Date(),
+                        projectedArrival = Date(System.currentTimeMillis() + 33.minutes.inWholeMilliseconds),
                     ),
                     arrivalInMinutesFromNow = 33,
                     isInOppositeDirection = false,
@@ -138,12 +144,13 @@ private fun StationPreview() {
                     UpcomingTrain(
                         route = Route.JSQ_33_HOB,
                         direction = Direction.TO_NJ,
-                        projectedArrival = Date(),
+                        projectedArrival = Date(System.currentTimeMillis() + 5.minutes.inWholeMilliseconds),
                     ),
                     arrivalInMinutesFromNow = 5,
                     isInOppositeDirection = false,
                 ),
             ),
+            now = System.currentTimeMillis(),
             userState = UserState(
                 shortenNames = true,
                 showOppositeDirection = true,
@@ -165,6 +172,7 @@ fun EmptyStationPreview() {
                 name = "Hoboken",
                 coordinates = Coordinates(0.0, 0.0),
             ) to emptyList(),
+            now = System.currentTimeMillis(),
             userState = UserState(
                 shortenNames = false,
                 showOppositeDirection = true,

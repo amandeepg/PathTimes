@@ -34,11 +34,14 @@ import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.RouteStation
 import ca.amandeep.path.data.model.UpcomingTrain
+import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.ui.theme.surfaceColorAtElevation
 import java.util.Date
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * A single train with heading and next arrival time.
@@ -46,6 +49,7 @@ import java.util.Date
 @Composable
 fun Train(
     train: UiUpcomingTrain,
+    now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
 ) {
@@ -66,7 +70,7 @@ fun Train(
         TrainHeading(train.upcomingTrain, userState)
         Spacer(modifier = Modifier.weight(1f))
 
-        Crossfade(targetState = train.arrivalInMinutesFromNow) {
+        Crossfade(targetState = train.upcomingTrain.relativeArrivalMins(now).roundToInt()) {
             Row {
                 Text(
                     when (it) {
@@ -92,6 +96,7 @@ fun Train(
                                 modifier = Modifier.alignByBaseline(),
                             )
                         }
+
                         else -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
@@ -202,6 +207,7 @@ private fun TrainShortNamesPreview(
         ) {
             Train(
                 train = train,
+                now = System.currentTimeMillis(),
                 userState = UserState(
                     shortenNames = true,
                     showOppositeDirection = true,
@@ -226,6 +232,7 @@ private fun TrainLongNamesPreview(
         ) {
             Train(
                 train = train,
+                now = System.currentTimeMillis(),
                 userState = UserState(
                     shortenNames = false,
                     showOppositeDirection = true,
@@ -242,7 +249,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.JSQ_33,
                 direction = Direction.TO_NY,
-                projectedArrival = Date(),
+                projectedArrival = Date(System.currentTimeMillis() + 0.minutes.inWholeMilliseconds),
             ),
             arrivalInMinutesFromNow = 0,
             isInOppositeDirection = false,
@@ -251,7 +258,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.NWK_WTC,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(),
+                projectedArrival = Date(System.currentTimeMillis() + 1.minutes.inWholeMilliseconds),
             ),
             arrivalInMinutesFromNow = 1,
             isInOppositeDirection = false,
@@ -260,7 +267,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.HOB_WTC,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(),
+                projectedArrival = Date(System.currentTimeMillis() + 33.minutes.inWholeMilliseconds),
             ),
             arrivalInMinutesFromNow = 33,
             isInOppositeDirection = false,
@@ -269,7 +276,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.JSQ_33_HOB,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(),
+                projectedArrival = Date(System.currentTimeMillis() + 5.minutes.inWholeMilliseconds),
             ),
             arrivalInMinutesFromNow = 5,
             isInOppositeDirection = false,

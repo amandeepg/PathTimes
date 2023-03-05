@@ -27,6 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 @Composable
 fun Stations(
     uiModel: MainUiModel.Valid,
+    now: Long,
     locationPermissionsUpdated: suspend (List<String>) -> Unit,
     connectivityState: ConnectionState,
     userState: UserState,
@@ -66,7 +67,11 @@ fun Stations(
             }
         }
         items(uiModel.stations) {
-            Station(it, userState)
+            Station(
+                station = it,
+                now = now,
+                userState = userState
+            )
         }
     }
 }

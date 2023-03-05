@@ -61,6 +61,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
 @Composable
@@ -131,6 +132,15 @@ fun MainScreen(
             forceUpdate = forceRefresh,
         )
 
+        var now by remember { mutableStateOf(System.currentTimeMillis()) }
+
+        LaunchedEffect(Unit) {
+            while(true) {
+                now = System.currentTimeMillis()
+                delay(5.seconds)
+            }
+        }
+
         Box(
             Modifier
                 .padding(innerPadding)
@@ -138,6 +148,7 @@ fun MainScreen(
         ) {
             MainScreenContent(
                 uiModel = uiState,
+                now = now,
                 userState = UserState(
                     shortenNames = shortenNamesPref,
                     showOppositeDirection = showOppositeDirection,
@@ -259,6 +270,7 @@ private fun RowScope.OverflowItems(
 @Composable
 private fun MainScreenContent(
     uiModel: MainUiModel,
+    now: Long,
     userState: UserState,
     forceUpdate: () -> Unit,
     locationPermissionsUpdated: suspend (List<String>) -> Unit,
@@ -277,6 +289,7 @@ private fun MainScreenContent(
                 true -> LoadingScreen()
                 false -> Stations(
                     uiModel = uiModel as MainUiModel.Valid,
+                    now = now,
                     locationPermissionsUpdated = locationPermissionsUpdated,
                     connectivityState = connectivityState,
                     userState = userState,
