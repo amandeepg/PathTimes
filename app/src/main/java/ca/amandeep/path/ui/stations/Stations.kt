@@ -64,7 +64,7 @@ fun Stations(
             Station(
                 station = it,
                 now = now,
-                userState = userState
+                userState = userState,
             )
         }
         item {

@@ -135,7 +135,7 @@ fun MainScreen(
         var now by remember { mutableStateOf(System.currentTimeMillis()) }
 
         LaunchedEffect(Unit) {
-            while(true) {
+            while (true) {
                 now = System.currentTimeMillis()
                 delay(5.seconds)
             }

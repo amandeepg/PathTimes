@@ -62,14 +62,14 @@ fun MutableState<LastUpdatedUiModel>.KeepUpdatedEffect(
 private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
     val secondsAgo = (System.currentTimeMillis() - lastUpdated) / 1000
     val value = if (secondsAgo >= 60) secondsAgo / 60 else secondsAgo
-    return if (secondsAgo == 0L)
+    return if (secondsAgo == 0L) {
         LastUpdatedUiModel(
             unitResId = R.string.just_now,
             value = 0,
             isNow = true,
             isUnderAMinute = true,
         )
-    else
+    } else {
         LastUpdatedUiModel(
             unitResId = if (value == 1L) {
                 if (secondsAgo >= 60) R.string.minute else R.string.second
@@ -78,6 +78,7 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
             isNow = false,
             isUnderAMinute = secondsAgo < 60,
         )
+    }
 }
 
 /**
@@ -108,7 +109,7 @@ fun LastUpdatedInfoRow(
                 .padding(10.dp),
         ) {
             Text(stringResource(R.string.last_updated) + " ")
-            if (lastUpdatedState.isNow ) {
+            if (lastUpdatedState.isNow) {
                 AnimatedText(stringResource(R.string.just_now))
             } else if (lastUpdatedState.isUnderAMinute) {
                 AnimatedText(stringResource(R.string.under_a_min_ago))

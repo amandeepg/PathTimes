@@ -93,7 +93,7 @@ fun Station(
                     Train(
                         train = it,
                         now = now,
-                        userState = userState
+                        userState = userState,
                     )
                 }
             }
