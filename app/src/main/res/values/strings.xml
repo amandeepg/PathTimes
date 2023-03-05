@@ -20,6 +20,7 @@
     <string name="minutes">minutes</string>
     <string name="last_updated">last updated</string>
     <string name="just_now">just now</string>
+    <string name="under_a_min_ago">less than a minutes ago</string>
     <string name="ago">ago</string>
     <string name="precise_location_rationale">Precise location is preferred over coarse location to show the closest station</string>
     <string name="location_rationale">Location is used to show you the closest stations and routes</string>

@@ -36,7 +36,12 @@ import kotlin.time.Duration
 fun rememberLastUpdatedState(lastUpdated: Long): MutableState<LastUpdatedUiModel> =
     remember { mutableStateOf(computeLastUpdatedModel(lastUpdated)) }
 
-data class LastUpdatedUiModel(@StringRes val unitResId: Int, val value: Long)
+data class LastUpdatedUiModel(
+    @StringRes val unitResId: Int,
+    val value: Long,
+    val isNow: Boolean,
+    val isUnderAMinute: Boolean,
+)
 
 /**
  * Updates the [MutableState] with the time since [lastUpdated] in a human readable format.
@@ -57,12 +62,22 @@ fun MutableState<LastUpdatedUiModel>.KeepUpdatedEffect(
 private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
     val secondsAgo = (System.currentTimeMillis() - lastUpdated) / 1000
     val value = if (secondsAgo >= 60) secondsAgo / 60 else secondsAgo
-    return LastUpdatedUiModel(
-        unitResId = if (value == 1L) {
-            if (secondsAgo >= 60) R.string.minute else R.string.second
-        } else if (secondsAgo >= 60) R.string.minutes else R.string.seconds,
-        value = value,
-    )
+    return if (secondsAgo == 0L)
+        LastUpdatedUiModel(
+            unitResId = R.string.just_now,
+            value = 0,
+            isNow = true,
+            isUnderAMinute = true,
+        )
+    else
+        LastUpdatedUiModel(
+            unitResId = if (value == 1L) {
+                if (secondsAgo >= 60) R.string.minute else R.string.second
+            } else if (secondsAgo >= 60) R.string.minutes else R.string.seconds,
+            value = value,
+            isNow = false,
+            isUnderAMinute = secondsAgo < 60,
+        )
 }
 
 /**
@@ -83,18 +98,20 @@ fun LastUpdatedInfoRow(
     ProvideTextStyle(
         TextStyle(
             fontSize = MaterialTheme.typography.labelSmall.fontSize,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.outline,
         ),
     ) {
         Row(
             modifier = modifier
                 .wrapContentWidth()
                 .animateContentSize(animationSpec = tween(1000))
-                .padding(5.dp),
+                .padding(10.dp),
         ) {
             Text(stringResource(R.string.last_updated) + " ")
-            if (lastUpdatedState.value == 0L) {
+            if (lastUpdatedState.isNow ) {
                 AnimatedText(stringResource(R.string.just_now))
+            } else if (lastUpdatedState.isUnderAMinute) {
+                AnimatedText(stringResource(R.string.under_a_min_ago))
             } else {
                 AnimatedText(lastUpdatedState.value.toString())
                 AnimatedText(" " + stringResource(lastUpdatedState.unitResId))
@@ -115,7 +132,8 @@ private fun LastUpdatedInfoRowPreview(
 
 class SampleLastUpdatedProvider : PreviewParameterProvider<LastUpdatedUiModel> {
     override val values = sequenceOf(
-        LastUpdatedUiModel(R.string.seconds, 0L),
-        LastUpdatedUiModel(R.string.minutes, 15L),
+        LastUpdatedUiModel(R.string.seconds, 0L, isNow = true, isUnderAMinute = true),
+        LastUpdatedUiModel(R.string.seconds, 12L, isNow = false, isUnderAMinute = true),
+        LastUpdatedUiModel(R.string.minutes, 15L, isNow = false, isUnderAMinute = false),
     )
 }

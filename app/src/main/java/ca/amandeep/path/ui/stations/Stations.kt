@@ -50,12 +50,6 @@ fun Stations(
     val lastUpdatedState = rememberLastUpdatedState(uiModel.lastUpdated)
 
     LazyColumn(modifier = modifier) {
-        item {
-            lastUpdatedState.KeepUpdatedEffect(uiModel.lastUpdated, 1.seconds)
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                LastUpdatedInfoRow(lastUpdatedState.value)
-            }
-        }
         item { requireOptionalLocationItem() }
         item {
             AnimatedVisibility(
@@ -72,6 +66,12 @@ fun Stations(
                 now = now,
                 userState = userState
             )
+        }
+        item {
+            lastUpdatedState.KeepUpdatedEffect(uiModel.lastUpdated, 1.seconds)
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                LastUpdatedInfoRow(lastUpdatedState.value)
+            }
         }
     }
 }
