@@ -70,7 +70,10 @@ fun Train(
         TrainHeading(train.upcomingTrain, userState)
         Spacer(modifier = Modifier.weight(1f))
 
-        Crossfade(targetState = train.upcomingTrain.relativeArrivalMins(now).roundToInt()) {
+        Crossfade(
+            targetState = train.upcomingTrain.relativeArrivalMins(now).roundToInt(),
+            label = "Arrival time crossfade"
+        ) {
             Row {
                 Text(
                     when (it) {

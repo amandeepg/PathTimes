@@ -284,7 +284,10 @@ private fun MainScreenContent(
             forceUpdate = forceUpdate,
         )
     } else {
-        Crossfade(targetState = uiModel == MainUiModel.Loading) { isLoading ->
+        Crossfade(
+            targetState = uiModel == MainUiModel.Loading,
+            label = "loading crossfade"
+        ) { isLoading ->
             when (isLoading) {
                 true -> LoadingScreen()
                 false -> Stations(
