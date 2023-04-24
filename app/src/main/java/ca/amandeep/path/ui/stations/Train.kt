@@ -1,3 +1,5 @@
+@file:Suppress("PrivatePropertyName")
+
 package ca.amandeep.path.ui.stations
 
 import android.content.res.Configuration
