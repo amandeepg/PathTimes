@@ -138,10 +138,10 @@ private fun TrainHeading(
     }
 }
 
-private val JSQ_33_COLOR = Color(240, 171, 67)
-private val HOB_33_COLOR = Color(43, 133, 187)
-private val HOB_WTC_COLOR = Color(70, 156, 35)
-private val NWK_WTC_COLOR = Color(213, 61, 46)
+private val JSQ_33_COLOR = Color(240, 171, 67, 225)
+private val HOB_33_COLOR = Color(43, 133, 187, 225)
+private val HOB_WTC_COLOR = Color(70, 156, 35, 225)
+private val NWK_WTC_COLOR = Color(213, 61, 46, 225)
 
 private val HEADING_LIGHT_TEXT_COLOR = Color(0xFFEBEBEB)
 private val HEADING_DARK_TEXT_COLOR = Color(0xFF2C2C2C)
