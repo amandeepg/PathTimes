@@ -76,8 +76,9 @@ fun Train(
         ) {
             Row {
                 Text(
-                    when (it) {
-                        0 -> stringResource(R.string.now)
+                    when {
+                        it < 0 -> ""
+                        it == 0 -> stringResource(R.string.now)
                         else -> it.toString()
                     },
                     fontWeight = FontWeight.Black,
@@ -85,9 +86,9 @@ fun Train(
                     modifier = Modifier.alignByBaseline(),
                 )
                 ProvideTextStyle(TextStyle(fontWeight = FontWeight.Light)) {
-                    when (it) {
-                        0 -> Unit
-                        1 -> {
+                    when {
+                        it <= 0 -> Unit
+                        it == 1 -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 stringResource(R.string.mins_singular),
@@ -99,7 +100,6 @@ fun Train(
                                 modifier = Modifier.alignByBaseline(),
                             )
                         }
-
                         else -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
@@ -279,7 +279,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.JSQ_33_HOB,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(System.currentTimeMillis() + 5.minutes.inWholeMilliseconds),
+                projectedArrival = Date(System.currentTimeMillis() - 5.minutes.inWholeMilliseconds),
             ),
             arrivalInMinutesFromNow = 5,
             isInOppositeDirection = false,
