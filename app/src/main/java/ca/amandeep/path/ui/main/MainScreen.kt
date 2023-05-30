@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Checkbox
-import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
@@ -83,7 +83,7 @@ fun MainScreen(
     var anyLocationPermissionsGranted by remember {
         mutableStateOf(
             context.checkPermission(ACCESS_COARSE_LOCATION) ||
-                context.checkPermission(ACCESS_FINE_LOCATION),
+                    context.checkPermission(ACCESS_FINE_LOCATION),
         )
     }
 
@@ -97,7 +97,10 @@ fun MainScreen(
         initialValue = true,
         defaultValue = true,
     )
-    val showOppositeDirection by remember(showOppositeDirectionPref, anyLocationPermissionsGranted) {
+    val showOppositeDirection by remember(
+        showOppositeDirectionPref,
+        anyLocationPermissionsGranted,
+    ) {
         derivedStateOf { showOppositeDirectionPref || !anyLocationPermissionsGranted }
     }
 
