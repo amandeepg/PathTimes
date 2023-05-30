@@ -36,4 +36,11 @@
     <string name="mins_plural_part">s</string>
     <string name="mins_plural">mins</string>
     <string name="to">"To "</string>
+    <string name="no_alerts_icon">No alerts icon</string>
+    <string name="couldn_t_load_path_alerts">Couldn\'t load PATH Alerts</string>
+    <string name="loading_path_alerts">Loading PATH Alerts …</string>
+    <string name="no_path_alerts">No PATH Alerts</string>
+    <string name="path_alerts_title">PATH Alerts (%1$s)</string>
+    <string name="expandable_arrow_content_description">Expandable Arrow</string>
+    <string name="default_alert_title">Alert</string>
 </resources>

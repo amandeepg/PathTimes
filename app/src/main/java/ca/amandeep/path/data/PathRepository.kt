@@ -1,5 +1,6 @@
 package ca.amandeep.path.data
 
+import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.data.model.UpcomingTrain
@@ -22,7 +23,8 @@ import kotlin.time.Duration
  */
 class PathRepository(
     private val pathRemoteDataSource: PathRemoteDataSource,
-    private val updateInterval: Duration,
+    private val arrivalsUpdateInterval: Duration,
+    private val alertsUpdateInterval: Duration,
 ) {
     private var stationsCache: Stations? = null
     private var refreshFlow = MutableSharedFlow<Unit>()
@@ -42,20 +44,31 @@ class PathRepository(
      * Get the list of arrivals for a station, periodically polling the API for updates.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val arrivals: Flow<Result>
-        get() {
+    val arrivals: Flow<ArrivalsResult>
+        get() =
             // Merge tick flow to periodically poll the API, and the refresh flow to force a refresh
-            return merge(tickFlow(updateInterval), refreshFlow).flatMapLatest {
+            merge(tickFlow(arrivalsUpdateInterval), refreshFlow).flatMapLatest {
                 stations
                     // Gets arrivals for all stations
                     .flatMapLatest { fetchArrivals(it.stations.orEmpty()) }
                     .map {
-                        Result(Result.Metadata(System.currentTimeMillis()), it).also {
-                            d { "new wallTime: ${it.metadata.lastUpdated}" }
+                        ArrivalsResult(Metadata(System.currentTimeMillis()), it).also {
+                            d { "new arrivals wallTime: ${it.metadata.lastUpdated}" }
                         }
                     }
             }
-        }
+
+    val alerts: Flow<AlertsResult>
+        get() =
+            // Merge tick flow to periodically poll the API, and the refresh flow to force a refresh
+            merge(tickFlow(alertsUpdateInterval), refreshFlow).map {
+                AlertsResult(
+                    Metadata(System.currentTimeMillis()),
+                    pathRemoteDataSource.getAlerts().alertDatas,
+                ).also {
+                    d { "new alerts wallTime: ${it.metadata.lastUpdated}" }
+                }
+            }
 
     // Workaround for the API not returning a list of stations with trains data
     private fun fetchArrivals(stations: List<Station>): Flow<Map<Station, List<UpcomingTrain>>> =
@@ -70,12 +83,16 @@ class PathRepository(
      */
     suspend fun refresh() = refreshFlow.emit(Unit)
 
-    data class Result(
-        val metadata: Metadata,
-        val arrivals: Map<Station, List<UpcomingTrain>>,
-    ) {
-        data class Metadata(
-            val lastUpdated: Long,
-        )
-    }
+    data class ArrivalsResult(
+        val metadata: Metadata = Metadata(),
+        val arrivals: Map<Station, List<UpcomingTrain>> = emptyMap(),
+    )
+
+    data class AlertsResult(
+        val metadata: Metadata = Metadata(),
+        val alerts: List<AlertData> = emptyList(),
+    )
+    data class Metadata(
+        val lastUpdated: Long = -1,
+    )
 }

@@ -3,7 +3,8 @@ package ca.amandeep.path.ui.main
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.data.LocationUseCase
-import ca.amandeep.path.data.PathApiService
+import ca.amandeep.path.data.PathEverbridgeApiService
+import ca.amandeep.path.data.PathRazzaApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.Coordinates
@@ -20,16 +21,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val locationUseCase = LocationUseCase(application)
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
-            pathApi = PathApiService.INSTANCE,
+            pathApi = PathRazzaApiService.INSTANCE,
+            everbridgeApiService = PathEverbridgeApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
         ),
-        updateInterval = NETWORK_UPDATE_INTERVAL,
+        arrivalsUpdateInterval = ARRIVALS_NETWORK_UPDATE_INTERVAL,
+        alertsUpdateInterval = ALERTS_NETWORK_UPDATE_INTERVAL,
     )
 
     val uiState: Flow<MainUiModel> by lazy {
@@ -42,12 +46,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val arrivalsFlow = pathRepository
             .arrivals
             .repeat(UI_UPDATE_INTERVAL)
+            .onStart { emit(PathRepository.ArrivalsResult()) }
+        val alertsFlow = pathRepository.alerts
+            .onStart { emit(PathRepository.AlertsResult()) }
 
         combine(
             currentLocationFlow,
             stationsFlow,
             arrivalsFlow,
-        ) { currentLocation, stations, arrivalsResult ->
+            alertsFlow,
+        ) { currentLocation, stations, arrivalsResult, alertsResult ->
             val closestStations =
                 stations.stations?.sortedWith(SortPlaces(currentLocation)).orEmpty()
             val closestArrivals = closestStations.mapToNotNullPairs {
@@ -59,18 +67,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     ?.sortedByDirectionAndTime(currentLocation)
             }
 
-            if (closestArrivals.isEmpty()) {
-                MainUiModel.Error
-            } else {
-                MainUiModel.Valid(
+            val arrivalsUiModel =
+                if (arrivalsResult.metadata.lastUpdated < 0)
+                    Result.Loading()
+                else if (closestArrivals.isEmpty())
+                    Result.Error()
+                else Result.Valid(
                     lastUpdated = arrivalsResult.metadata.lastUpdated,
-                    stations = closestArrivals,
+                    data = closestArrivals,
                     hasError = false,
                 )
-            }
+            val alertsUiModel =
+                if (alertsResult.metadata.lastUpdated < 0)
+                    Result.Loading()
+                else Result.Valid(
+                    lastUpdated = alertsResult.metadata.lastUpdated,
+                    data = alertsResult.alerts,
+                    hasError = false,
+                )
+
+            MainUiModel(
+                arrivals = arrivalsUiModel,
+                alerts = alertsUiModel,
+            )
         }.retryWhen { cause, attempt ->
             // Retry all errors with a 1 second delay
-            emit(MainUiModel.Error)
+            emit(
+                MainUiModel(
+                    arrivals = Result.Error(),
+                    alerts = Result.Error(),
+                ),
+            )
             delay(1.seconds)
             d { "Retrying after error: $cause (attempt $attempt)" }
             true
@@ -84,7 +111,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         locationUseCase.permissionsUpdated(currentPermissions)
 
     companion object {
-        private val NETWORK_UPDATE_INTERVAL = 30.seconds
+        private val ARRIVALS_NETWORK_UPDATE_INTERVAL = 30.seconds
+        private val ALERTS_NETWORK_UPDATE_INTERVAL = 2.minutes
         private val UI_UPDATE_INTERVAL = 5.seconds
         private val DEFAULT_WTC_COORDS = Coordinates(40.713056, -74.013333)
     }

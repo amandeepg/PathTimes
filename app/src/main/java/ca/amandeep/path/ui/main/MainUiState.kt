@@ -1,5 +1,6 @@
 package ca.amandeep.path.ui.main
 
+import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Station
@@ -8,16 +9,24 @@ import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.util.isInNJ
 import kotlin.math.roundToInt
 
-sealed interface MainUiModel {
-    data class Valid(
+sealed interface Result<T : Any> {
+    data class Valid<T: Any>(
         val lastUpdated: Long,
-        val stations: List<Pair<Station, List<UiUpcomingTrain>>>,
+        val data: T,
         val hasError: Boolean,
-    ) : MainUiModel
+    ) : Result<T>
 
-    object Error : MainUiModel
-    object Loading : MainUiModel
+    class Error<T:Any> : Result<T>
+    class Loading<T:Any> : Result<T>
 }
+
+data class MainUiModel(
+    val arrivals: Result<ArrivalsUiModel> = Result.Loading(),
+    val alerts: Result<AlertsUiModel> = Result.Loading(),
+)
+
+typealias ArrivalsUiModel = List<Pair<Station, List<UiUpcomingTrain>>>
+typealias AlertsUiModel = List<AlertData>
 
 data class UiUpcomingTrain(
     val upcomingTrain: UpcomingTrain,
