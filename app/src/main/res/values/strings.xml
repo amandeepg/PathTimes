@@ -43,4 +43,11 @@
     <string name="path_alerts_title">PATH Alerts (%1$s)</string>
     <string name="expandable_arrow_content_description">Expandable Arrow</string>
     <string name="default_alert_title">Alert</string>
+    <string name="undo">Undo</string>
+    <string name="change_dir_in_options">You can always change this setting in the options menu</string>
+    <string name="all_trains_shown_warning">All trains shown, including trains to %1$s even though you\'re in %2$s</string>
+    <string name="one_direction_shown_warning">You\'re in %1$s, only trains to %2$s shown</string>
+    <string name="show_only_to_nynj">Show only to %1$s</string>
+    <string name="show_to_nynj_too">Show to %1$s too</string>
+    <string name="dismiss">Dismiss</string>
 </resources>

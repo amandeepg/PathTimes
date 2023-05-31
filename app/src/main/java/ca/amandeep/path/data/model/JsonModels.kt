@@ -55,9 +55,10 @@ fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
 @Stable
 enum class Direction(
     val stateName: String,
+    val stateNameShort: String,
 ) {
-    TO_NJ("New Jersey"),
-    TO_NY("New York"),
+    TO_NJ("New Jersey", "NJ"),
+    TO_NY("New York", "NY"),
 }
 
 @Stable

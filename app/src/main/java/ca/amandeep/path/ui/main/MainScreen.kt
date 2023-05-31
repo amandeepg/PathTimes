@@ -28,12 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material.DropdownMenu
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
@@ -41,9 +36,17 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +54,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +71,7 @@ import ca.amandeep.path.ui.LastUpdatedInfoRow
 import ca.amandeep.path.ui.alerts.ExpandableAlerts
 import ca.amandeep.path.ui.rememberLastUpdatedState
 import ca.amandeep.path.ui.requireOptionalLocationItem
+import ca.amandeep.path.ui.stations.DirectionWarning
 import ca.amandeep.path.ui.stations.Station
 import ca.amandeep.path.util.ConnectionState
 import ca.amandeep.path.util.checkPermission
@@ -75,6 +80,7 @@ import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -120,8 +126,11 @@ fun MainScreen(
         derivedStateOf { showOppositeDirectionPref || !anyLocationPermissionsGranted }
     }
 
+    val snackbarState = remember { SnackbarHostState() }
+
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(id = R.string.app_name)) },
@@ -178,6 +187,9 @@ fun MainScreen(
                     anyLocationPermissionsGranted = it.isNotEmpty()
                     mainViewModel.locationPermissionsUpdated(it)
                 },
+                snackbarState = snackbarState,
+                setShowingOppositeDirection = setShowOppositeDirectionPref,
+                anyLocationPermissionsGranted = anyLocationPermissionsGranted,
             )
             PullRefreshIndicator(
                 refreshing = refreshing,
@@ -305,6 +317,9 @@ private fun MainScreenContent(
     userState: UserState,
     forceUpdate: () -> Unit,
     locationPermissionsUpdated: suspend (List<String>) -> Unit,
+    snackbarState: SnackbarHostState,
+    anyLocationPermissionsGranted: Boolean,
+    setShowingOppositeDirection: (Boolean) -> Unit,
 ) {
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
@@ -348,6 +363,15 @@ private fun MainScreenContent(
                                 expanded = alertsExpanded,
                                 setExpanded = setAlertsExpanded,
                             )
+                        }
+                        item {
+                            if (anyLocationPermissionsGranted)
+                                DirectionWarning(
+                                    isInNJ = userState.isInNJ,
+                                    showOppositeDirection = userState.showOppositeDirection,
+                                    setShowingOppositeDirection = setShowingOppositeDirection,
+                                    snackbarState = snackbarState,
+                                )
                         }
                         item {
                             AnimatedVisibility(
