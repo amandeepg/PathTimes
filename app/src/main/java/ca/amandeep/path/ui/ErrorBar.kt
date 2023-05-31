@@ -59,7 +59,7 @@ fun ErrorBar(
             tint = MaterialTheme.colorScheme.onErrorContainer,
         )
         Spacer(Modifier.width(10.dp))
-        Crossfade(targetState = connectivityState) {
+        Crossfade(targetState = connectivityState, label = "crossfade connectivity") {
             val errorText = when (it) {
                 ConnectionState.Available -> stringResource(R.string.load_trains_error_long)
                 ConnectionState.Unavailable -> stringResource(R.string.no_internet_connection)
