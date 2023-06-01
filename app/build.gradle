@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
-    id 'org.jlleitschuh.gradle.ktlint'
+    id 'org.jmailen.kotlinter'
     id 'com.google.devtools.ksp'
 }
 
@@ -83,6 +83,4 @@ dependencies {
 
     implementation AndroidX.compose.ui.tooling
     debugImplementation AndroidX.compose.ui.toolingPreview
-
-    ktlintRuleset "io.nlopez.compose.rules:ktlint:_"
 }

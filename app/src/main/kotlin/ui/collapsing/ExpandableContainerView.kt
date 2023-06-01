@@ -18,11 +18,11 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun ExpandableContainerView(
-    modifier: Modifier = Modifier,
-    expanded: Boolean,
     onClickHeader: () -> Unit,
-    headerContent: @Composable BoxScope.() -> Unit,
-    expandableContent: @Composable AnimatedVisibilityScope.() -> Unit,
+    headerContent: @Composable (BoxScope.() -> Unit),
+    expandableContent: @Composable (AnimatedVisibilityScope.() -> Unit),
+    modifier: Modifier = Modifier,
+    expanded: Boolean = false,
 ) {
     Column(modifier = modifier) {
         HeaderView(
@@ -55,7 +55,7 @@ private fun HeaderView(
 @Composable
 private fun ExpandableView(
     modifier: Modifier = Modifier,
-    isExpanded: Boolean,
+    isExpanded: Boolean = false,
     content: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
     AnimatedVisibility(

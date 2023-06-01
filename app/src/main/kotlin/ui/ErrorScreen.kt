@@ -88,7 +88,7 @@ fun ErrorScreen(
                 }
                 TextButton(onClick = {
                     launchPackageOrMarketPage(context, OFFICIAL_PATH_APP_PACKAGE)
-                },) {
+                }) {
                     Text(stringResource(R.string.try_official_app_action))
                 }
             }

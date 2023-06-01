@@ -44,10 +44,10 @@ import java.util.concurrent.TimeUnit
 
 @Composable
 fun ExpandableAlerts(
-    modifier: Modifier = Modifier,
     connectivityState: ConnectionState,
     alertsResult: Result<AlertsUiModel>,
-    expanded: Boolean,
+    modifier: Modifier = Modifier,
+    expanded: Boolean = false,
     setExpanded: (Boolean) -> Unit,
 ) {
     Card3(
@@ -55,7 +55,7 @@ fun ExpandableAlerts(
         elevation = 10.dp,
     ) {
         ExpandableContainerView(
-            modifier = modifier
+            modifier = Modifier
                 .background(alertsResult.backgroundColor())
                 .padding(4.dp),
             expanded = expanded,
@@ -168,8 +168,8 @@ private fun Result<AlertsUiModel>.backgroundColor() =
 
 @Composable
 private fun ArrowIcon(
-    modifier: Modifier = Modifier,
     degrees: Float,
+    modifier: Modifier = Modifier,
 ) {
     Icon(
         modifier = modifier.rotate(degrees),

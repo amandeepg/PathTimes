@@ -35,11 +35,11 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DirectionWarning(
-    modifier: Modifier = Modifier,
     isInNJ: Boolean,
     showOppositeDirection: Boolean,
     setShowingOppositeDirection: (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
+    modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
@@ -136,7 +136,7 @@ fun DirectionWarning(
 @Preview(name = "Light", widthDp = 350)
 @Preview(name = "Dark", widthDp = 350, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun BothDirectionWarningSample(isInNJ: Boolean = false) {
+private fun BothDirectionWarningSample() {
     PATHTheme {
         Box(
             Modifier
@@ -156,7 +156,7 @@ private fun BothDirectionWarningSample(isInNJ: Boolean = false) {
 @Preview(name = "Light", widthDp = 350)
 @Preview(name = "Dark", widthDp = 350, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun OneDirectionWarningSample(isInNJ: Boolean = false) {
+private fun OneDirectionWarningSample() {
     PATHTheme {
         Box(
             Modifier

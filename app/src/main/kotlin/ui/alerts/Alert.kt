@@ -18,8 +18,8 @@ import java.util.Locale
 
 @Composable
 fun Alert(
-    modifier: Modifier = Modifier,
     alert: AlertData,
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
         Text(
@@ -32,9 +32,9 @@ fun Alert(
         if (alert.date != null) {
             Text(
                 text = DateUtils.getRelativeTimeSpanString(
-                    /* time = */ alert.date.time,
-                    /* now = */ System.currentTimeMillis(),
-                    /* minResolution = */ DateUtils.MINUTE_IN_MILLIS,
+                    alert.date.time,
+                    System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS,
                 ).toString().lowercase(Locale.US),
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 fontSize = MaterialTheme.typography.labelSmall.fontSize,
@@ -47,8 +47,8 @@ fun Alert(
 
 @Composable
 fun Alerts(
-    modifier: Modifier = Modifier,
     alertsUiModel: AlertsUiModel,
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
         for (alert in alertsUiModel) {
@@ -66,10 +66,10 @@ fun Alerts(
 private fun AlertPreview() {
     PATHTheme {
         Alert(
+            alert = SampleAlertsPreviewProvider.ALERT1,
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(5.dp),
-            alert = SampleAlertsPreviewProvider.ALERT1,
         )
     }
 }
@@ -80,8 +80,7 @@ private fun AlertPreview() {
 private fun AlertsPreview() {
     PATHTheme {
         Alerts(
-            modifier =
-            Modifier
+            modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
             alertsUiModel = listOf(
