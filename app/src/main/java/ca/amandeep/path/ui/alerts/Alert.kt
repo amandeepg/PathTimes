@@ -84,7 +84,7 @@ private fun AlertsPreview() {
             Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
-            alerts = listOf(
+            alertsUiModel = listOf(
                 SampleAlertsPreviewProvider.ALERT1,
                 SampleAlertsPreviewProvider.ALERT2,
             ),

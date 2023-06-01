@@ -74,7 +74,7 @@ fun ExpandableAlerts(
             expandableContent = {
                 Alerts(
                     modifier = Modifier.padding(horizontal = 5.dp),
-                    alerts = (alertsResult as? Result.Valid)?.data.orEmpty(),
+                    alertsUiModel = (alertsResult as? Result.Valid)?.data.orEmpty(),
                 )
             },
         )
