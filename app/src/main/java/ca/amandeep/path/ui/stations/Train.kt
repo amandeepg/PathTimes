@@ -74,7 +74,7 @@ fun Train(
 
         Crossfade(
             targetState = train.upcomingTrain.relativeArrivalMins(now).roundToInt(),
-            label = "Arrival time crossfade"
+            label = "Arrival time crossfade",
         ) {
             Row {
                 Text(

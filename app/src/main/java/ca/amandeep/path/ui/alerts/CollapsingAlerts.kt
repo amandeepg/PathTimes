@@ -33,7 +33,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
-import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.ui.collapsing.ExpandableContainerView
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
@@ -42,7 +41,6 @@ import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import kotlin.math.roundToLong
 
 @Composable
 fun ExpandableAlerts(
@@ -95,10 +93,11 @@ private fun Text(alertsResults: Result<AlertsUiModel>) {
             is Result.Error -> stringResource(R.string.couldn_t_load_path_alerts)
             is Result.Loading -> stringResource(R.string.loading_path_alerts)
             is Result.Valid ->
-                if (alertsResults.data.isEmpty())
+                if (alertsResults.data.isEmpty()) {
                     stringResource(R.string.no_path_alerts)
-                else
+                } else {
                     stringResource(R.string.path_alerts_title, alertsResults.data.size)
+                }
         },
     )
 }
@@ -137,17 +136,19 @@ private fun BoxScope.Icon(
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
 
-                is Result.Valid -> if (alertsResults.data.isEmpty())
+                is Result.Valid -> if (alertsResults.data.isEmpty()) {
                     Icon(
                         painter = painterResource(R.drawable.ic_check),
                         modifier = modifier,
                         contentDescription = stringResource(R.string.no_alerts_icon),
                         tint = MaterialTheme.colorScheme.onBackground,
                     )
-                else ArrowIcon(
-                    modifier = modifier,
-                    degrees = arrowRotationDegree,
-                )
+                } else {
+                    ArrowIcon(
+                        modifier = modifier,
+                        degrees = arrowRotationDegree,
+                    )
+                }
             }
         }
 }
@@ -158,12 +159,12 @@ private fun Result<AlertsUiModel>.backgroundColor() =
         is Result.Error -> MaterialTheme.colorScheme.errorContainer
         is Result.Loading -> Color.Transparent
         is Result.Valid ->
-            if (data.isEmpty())
+            if (data.isEmpty()) {
                 Color(0, 200, 83).copy(alpha = 0.5f)
-            else
+            } else {
                 Color(253, 216, 53).copy(alpha = 0.3f)
+            }
     }
-
 
 @Composable
 private fun ArrowIcon(
@@ -218,7 +219,8 @@ object SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMod
         Result.Valid(lastUpdated = System.currentTimeMillis(), emptyList(), hasError = false),
         Result.Valid(lastUpdated = System.currentTimeMillis(), emptyList(), hasError = true),
         Result.Valid(
-            lastUpdated = System.currentTimeMillis(), hasError = false,
+            lastUpdated = System.currentTimeMillis(),
+            hasError = false,
             data = listOf(ALERT1, ALERT2),
         ),
     )

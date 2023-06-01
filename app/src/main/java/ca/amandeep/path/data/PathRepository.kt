@@ -1,6 +1,5 @@
 package ca.amandeep.path.data
 
-import ca.amandeep.path.data.model.AlertContainer
 import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.Stations

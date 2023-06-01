@@ -63,11 +63,11 @@ private fun ExpandableView(
         visible = isExpanded,
         enter = remember {
             expandVertically(expandFrom = Alignment.Top) +
-                    fadeIn()
+                fadeIn()
         },
         exit = remember {
             shrinkVertically(shrinkTowards = Alignment.Top) +
-                    fadeOut()
+                fadeOut()
         },
         content = content,
     )

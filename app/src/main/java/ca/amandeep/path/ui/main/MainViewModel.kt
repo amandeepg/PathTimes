@@ -20,8 +20,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -68,25 +68,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val arrivalsUiModel =
-                if (arrivalsResult.metadata.lastUpdated < 0)
+                if (arrivalsResult.metadata.lastUpdated < 0) {
                     Result.Loading()
-                else if (closestArrivals.isEmpty())
+                } else if (closestArrivals.isEmpty()) {
                     Result.Error()
-                else Result.Valid(
-                    lastUpdated = arrivalsResult.metadata.lastUpdated,
-                    data = closestArrivals,
-                    hasError = false,
-                )
+                } else {
+                    Result.Valid(
+                        lastUpdated = arrivalsResult.metadata.lastUpdated,
+                        data = closestArrivals,
+                        hasError = false,
+                    )
+                }
             val alertsUiModel =
-                if (alertsResult.metadata.lastUpdated < 0)
+                if (alertsResult.metadata.lastUpdated < 0) {
                     Result.Loading()
-                else if (alertsResult.alerts.hasError)
+                } else if (alertsResult.alerts.hasError) {
                     Result.Error()
-                else Result.Valid(
-                    lastUpdated = alertsResult.metadata.lastUpdated,
-                    data = alertsResult.alerts.alerts,
-                    hasError = false,
-                )
+                } else {
+                    Result.Valid(
+                        lastUpdated = alertsResult.metadata.lastUpdated,
+                        data = alertsResult.alerts.alerts,
+                        hasError = false,
+                    )
+                }
 
             MainUiModel(
                 arrivals = arrivalsUiModel,

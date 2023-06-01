@@ -1,6 +1,5 @@
 package ca.amandeep.path.ui.stations
 
-
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -77,18 +76,19 @@ fun DirectionWarning(
                 Text(
                     fontSize = MaterialTheme.typography.labelLarge.fontSize,
                     lineHeight = MaterialTheme.typography.labelLarge.lineHeight,
-                    text = if (showOppositeDirection)
+                    text = if (showOppositeDirection) {
                         stringResource(
                             R.string.all_trains_shown_warning,
                             location.stateNameShort,
                             location.stateNameShort,
                         )
-                    else
+                    } else {
                         stringResource(
                             R.string.one_direction_shown_warning,
                             location.stateNameShort,
                             direction.stateNameShort,
-                        ),
+                        )
+                    },
                 )
             }
             Row {
@@ -97,10 +97,11 @@ fun DirectionWarning(
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(
-                        text = if (showOppositeDirection)
+                        text = if (showOppositeDirection) {
                             stringResource(R.string.show_only_to_nynj, direction.stateNameShort)
-                        else
-                            stringResource(R.string.show_to_nynj_too, location.stateNameShort),
+                        } else {
+                            stringResource(R.string.show_to_nynj_too, location.stateNameShort)
+                        },
                         textAlign = TextAlign.Center,
                     )
                 }

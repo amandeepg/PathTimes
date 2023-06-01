@@ -29,18 +29,19 @@ fun Alert(
             fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
             lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
         )
-        if (alert.date != null)
+        if (alert.date != null) {
             Text(
                 text = DateUtils.getRelativeTimeSpanString(
                     /* time = */ alert.date.time,
                     /* now = */ System.currentTimeMillis(),
-                    /* minResolution = */ DateUtils.MINUTE_IN_MILLIS
+                    /* minResolution = */ DateUtils.MINUTE_IN_MILLIS,
                 ).toString().lowercase(Locale.US),
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 fontSize = MaterialTheme.typography.labelSmall.fontSize,
                 fontWeight = MaterialTheme.typography.labelSmall.fontWeight,
                 lineHeight = MaterialTheme.typography.labelSmall.lineHeight,
             )
+        }
     }
 }
 

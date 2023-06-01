@@ -46,7 +46,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +53,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,7 +78,6 @@ import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -105,7 +102,7 @@ fun MainScreen(
     var anyLocationPermissionsGranted by remember {
         mutableStateOf(
             context.checkPermission(ACCESS_COARSE_LOCATION) ||
-                    context.checkPermission(ACCESS_FINE_LOCATION),
+                context.checkPermission(ACCESS_FINE_LOCATION),
         )
     }
 
@@ -218,7 +215,7 @@ private fun setAndComputeLastGoodState(
 
     // If all trains are empty, force a refresh, and show a loading screen
     val allTrainsEmpty = lastGoodState.arrivals is Result.Valid &&
-            lastGoodState.arrivals.data.all { it.second.all { it.isDepartedTrain } }
+        lastGoodState.arrivals.data.all { it.second.all { it.isDepartedTrain } }
     LaunchedEffect(allTrainsEmpty) {
         if (allTrainsEmpty) {
             forceUpdate()
@@ -367,13 +364,14 @@ private fun MainScreenContent(
                             )
                         }
                         item {
-                            if (anyLocationPermissionsGranted)
+                            if (anyLocationPermissionsGranted) {
                                 DirectionWarning(
                                     isInNJ = userState.isInNJ,
                                     showOppositeDirection = userState.showOppositeDirection,
                                     setShowingOppositeDirection = setShowingOppositeDirection,
                                     snackbarState = snackbarState,
                                 )
+                            }
                         }
                         item {
                             AnimatedVisibility(
