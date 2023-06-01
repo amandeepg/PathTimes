@@ -1,6 +1,7 @@
 package ca.amandeep.path.data
 
-import ca.amandeep.path.data.model.AlertData
+import ca.amandeep.path.data.model.AlertContainer
+import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.data.model.UpcomingTrain
@@ -64,7 +65,7 @@ class PathRepository(
             merge(tickFlow(alertsUpdateInterval), refreshFlow).map {
                 AlertsResult(
                     Metadata(System.currentTimeMillis()),
-                    pathRemoteDataSource.getAlerts().alertDatas,
+                    pathRemoteDataSource.getAlerts(),
                 ).also {
                     d { "new alerts wallTime: ${it.metadata.lastUpdated}" }
                 }
@@ -90,7 +91,7 @@ class PathRepository(
 
     data class AlertsResult(
         val metadata: Metadata = Metadata(),
-        val alerts: List<AlertData> = emptyList(),
+        val alerts: AlertDatas = AlertDatas(),
     )
     data class Metadata(
         val lastUpdated: Long = -1,

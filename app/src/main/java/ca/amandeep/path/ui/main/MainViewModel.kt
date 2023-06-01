@@ -3,7 +3,7 @@ package ca.amandeep.path.ui.main
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.data.LocationUseCase
-import ca.amandeep.path.data.PathEverbridgeApiService
+import ca.amandeep.path.data.PathAlertsApiService
 import ca.amandeep.path.data.PathRazzaApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
@@ -29,7 +29,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
             pathApi = PathRazzaApiService.INSTANCE,
-            everbridgeApiService = PathEverbridgeApiService.INSTANCE,
+            everbridgeApiService = PathAlertsApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
         ),
         arrivalsUpdateInterval = ARRIVALS_NETWORK_UPDATE_INTERVAL,
@@ -80,9 +80,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val alertsUiModel =
                 if (alertsResult.metadata.lastUpdated < 0)
                     Result.Loading()
+                else if (alertsResult.alerts.hasError)
+                    Result.Error()
                 else Result.Valid(
                     lastUpdated = alertsResult.metadata.lastUpdated,
-                    data = alertsResult.alerts,
+                    data = alertsResult.alerts.alerts,
                     hasError = false,
                 )
 

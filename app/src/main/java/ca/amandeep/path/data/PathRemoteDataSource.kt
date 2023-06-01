@@ -1,6 +1,7 @@
 package ca.amandeep.path.data
 
-import ca.amandeep.path.data.model.Alerts
+import ca.amandeep.path.data.model.AlertContainer
+import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.data.model.UpcomingTrains
 import com.github.ajalt.timberkt.Timber.d
@@ -9,14 +10,14 @@ import kotlinx.coroutines.withContext
 
 class PathRemoteDataSource(
     private val pathApi: PathRazzaApiService,
-    private val everbridgeApiService: PathEverbridgeApiService,
+    private val everbridgeApiService: PathAlertsApiService,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    suspend fun getAlerts(): Alerts =
+    suspend fun getAlerts(): AlertDatas =
         withContext(ioDispatcher) {
             d { "getAlerts" }
-            everbridgeApiService.getAlerts()
+            everbridgeApiService.getAlerts().alertDatas
         }
 
     suspend fun getStations(): Stations =

@@ -1,6 +1,7 @@
 package ca.amandeep.path.ui.alerts
 
 import android.content.res.Configuration
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -8,13 +9,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.theme.PATHTheme
+import java.util.Locale
 
 @Composable
 fun Alert(
@@ -23,19 +23,24 @@ fun Alert(
 ) {
     Column(modifier) {
         Text(
-            text = alert.incidentMessage.subject ?: stringResource(R.string.default_alert_title),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = MaterialTheme.typography.titleMedium.fontSize,
-            fontWeight = MaterialTheme.typography.titleMedium.fontWeight,
-            modifier = Modifier.padding(bottom = 4.dp),
-        )
-        Text(
-            text = alert.incidentMessage.preMessage.orEmpty(),
+            text = alert.text,
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = MaterialTheme.typography.bodyMedium.fontSize,
             fontWeight = MaterialTheme.typography.bodyMedium.fontWeight,
             lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
         )
+        if (alert.date != null)
+            Text(
+                text = DateUtils.getRelativeTimeSpanString(
+                    /* time = */ alert.date.time,
+                    /* now = */ System.currentTimeMillis(),
+                    /* minResolution = */ DateUtils.MINUTE_IN_MILLIS
+                ).toString().lowercase(Locale.US),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                fontWeight = MaterialTheme.typography.labelSmall.fontWeight,
+                lineHeight = MaterialTheme.typography.labelSmall.lineHeight,
+            )
     }
 }
 
@@ -67,6 +72,7 @@ private fun AlertPreview() {
         )
     }
 }
+
 @Preview(name = "Light")
 @Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -77,7 +83,7 @@ private fun AlertsPreview() {
             Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
-            alertsUiModel = listOf(
+            alerts = listOf(
                 SampleAlertsPreviewProvider.ALERT1,
                 SampleAlertsPreviewProvider.ALERT2,
             ),

@@ -77,6 +77,7 @@ dependencies {
     implementation Square.retrofit2
 
     implementation "dev.burnoo:compose-remember-preference:_"
+    implementation "org.jsoup:jsoup:_"
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber

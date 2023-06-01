@@ -33,7 +33,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
-import ca.amandeep.path.data.model.IncidentMessage
+import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.ui.collapsing.ExpandableContainerView
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
@@ -41,6 +41,8 @@ import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
 import java.util.Date
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToLong
 
 @Composable
 fun ExpandableAlerts(
@@ -74,7 +76,7 @@ fun ExpandableAlerts(
             expandableContent = {
                 Alerts(
                     modifier = Modifier.padding(horizontal = 5.dp),
-                    alertsUiModel = (alertsResult as? Result.Valid)?.data.orEmpty(),
+                    alerts = (alertsResult as? Result.Valid)?.data.orEmpty(),
                 )
             },
         )
@@ -188,7 +190,8 @@ private fun CollapsingAlertsPreview(
         Box(
             Modifier
                 .background(MaterialTheme.colorScheme.background)
-                .padding(10.dp)) {
+                .padding(10.dp),
+        ) {
             ExpandableAlerts(
                 connectivityState = ConnectionState.Unavailable,
                 alertsResult = alertsResult,
@@ -201,20 +204,12 @@ private fun CollapsingAlertsPreview(
 
 object SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiModel>> {
     val ALERT1 = AlertData(
-        createdDate = Date(),
-        modifiedDate = Date(),
-        incidentMessage = IncidentMessage(
-            subject = "Network Communication Failure",
-            preMessage = "JSQ-33 via HOB delayed. Train experiencing network communication problems at JSQ. An update will be issued in approx. 15 mins.",
-        ),
+        text = "JSQ-33 via HOB delayed. Train experiencing network communication problems at JSQ. An update will be issued in approx. 15 mins.",
+        date = Date().apply { time -= (TimeUnit.MINUTES.toMillis((50 * Math.random()).toLong())) },
     )
     val ALERT2 = AlertData(
-        createdDate = Date(),
-        modifiedDate = Date(),
-        incidentMessage = IncidentMessage(
-            subject = "Elevators",
-            preMessage = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. We regret this inconvenience.",
-        ),
+        date = Date().apply { time -= (TimeUnit.MINUTES.toMillis((50 * Math.random()).toLong())) },
+        text = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. We regret this inconvenience.",
     )
 
     override val values = sequenceOf(
