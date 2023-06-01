@@ -240,6 +240,8 @@ private fun <T : Any> foldWithLastGoodState(
     val currentStateAttribute = attribute(currentState)
     return if (currentStateAttribute is Result.Error<T> && lastGoodStateAttribute is Result.Valid<T>) {
         lastGoodStateAttribute.copy(hasError = true)
+    } else if (currentStateAttribute is Result.Loading<T> && lastGoodStateAttribute is Result.Valid<T>) {
+        lastGoodStateAttribute
     } else {
         currentStateAttribute
     }
@@ -324,7 +326,7 @@ private fun MainScreenContent(
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
 
-    if (uiModel.arrivals is Result.Error || uiModel.alerts is Result.Error) {
+    if (uiModel.arrivals is Result.Error) {
         ErrorScreen(
             connectivityState = connectivityState,
             forceUpdate = forceUpdate,
