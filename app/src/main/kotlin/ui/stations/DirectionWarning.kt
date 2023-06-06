@@ -61,7 +61,7 @@ fun DirectionWarning(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_info),
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.padding(5.dp).size(24.dp),
                     contentDescription = stringResource(R.string.error_icon),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
