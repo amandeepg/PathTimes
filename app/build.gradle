@@ -4,6 +4,7 @@ plugins {
     id 'kotlin-parcelize'
     id 'org.jmailen.kotlinter'
     id 'com.google.devtools.ksp'
+    id 'de.mannodermaus.android-junit5'
 }
 
 android {
@@ -83,4 +84,10 @@ dependencies {
 
     implementation AndroidX.compose.ui.tooling
     debugImplementation AndroidX.compose.ui.toolingPreview
+
+    testImplementation(Testing.junit.jupiter.api)
+    testRuntimeOnly(Testing.junit.jupiter.engine)
+    testImplementation(Testing.junit.jupiter.params)
+    testImplementation "com.google.truth:truth:_"
+    testImplementation "com.google.truth.extensions:truth-java8-extension:_"
 }
