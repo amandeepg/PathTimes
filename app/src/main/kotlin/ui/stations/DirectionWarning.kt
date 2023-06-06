@@ -30,7 +30,6 @@ import ca.amandeep.path.R
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
-import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,16 +38,10 @@ fun DirectionWarning(
     showOppositeDirection: Boolean,
     setShowingOppositeDirection: (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
+    setShowDirectionWarning: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
-        keyName = "showDirectionWarning",
-        initialValue = true,
-        defaultValue = true,
-    )
-
-    if (!showDirectionWarning) return
 
     Card3(
         modifier = modifier
@@ -148,6 +141,7 @@ private fun BothDirectionWarningSample() {
                 showOppositeDirection = true,
                 setShowingOppositeDirection = {},
                 snackbarState = SnackbarHostState(),
+                setShowDirectionWarning = {},
             )
         }
     }
@@ -168,6 +162,7 @@ private fun OneDirectionWarningSample() {
                 showOppositeDirection = false,
                 setShowingOppositeDirection = {},
                 snackbarState = SnackbarHostState(),
+                setShowDirectionWarning = {},
             )
         }
     }

@@ -323,6 +323,12 @@ private fun MainScreenContent(
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
 
+    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
+        keyName = "showDirectionWarning",
+        initialValue = true,
+        defaultValue = true,
+    )
+
     if (uiModel.arrivals is Result.Error) {
         ErrorScreen(
             connectivityState = connectivityState,
@@ -364,12 +370,13 @@ private fun MainScreenContent(
                             )
                         }
                         item {
-                            if (anyLocationPermissionsGranted) {
+                            if (anyLocationPermissionsGranted && showDirectionWarning) {
                                 DirectionWarning(
                                     isInNJ = userState.isInNJ,
                                     showOppositeDirection = userState.showOppositeDirection,
                                     setShowingOppositeDirection = setShowingOppositeDirection,
                                     snackbarState = snackbarState,
+                                    setShowDirectionWarning = setShowDirectionWarning,
                                 )
                             }
                         }
