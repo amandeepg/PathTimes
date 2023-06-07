@@ -21,3 +21,12 @@ plugins {
 tasks.register('clean') {
     delete rootProject.buildDir
 }
+
+if (hasProperty('buildScan')) {
+    gradleEnterprise {
+        buildScan {
+            termsOfServiceUrl = "https://gradle.com/terms-of-service"
+            termsOfServiceAgree = "yes"
+        }
+    }
+}
