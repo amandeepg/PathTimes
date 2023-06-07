@@ -1,6 +1,6 @@
 package ca.amandeep.path.ui.main
 
-import ca.amandeep.path.data.model.AlertData
+import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Station
@@ -13,7 +13,7 @@ sealed interface Result<T : Any> {
     data class Valid<T : Any>(
         val lastUpdated: Long,
         val data: T,
-        val hasError: Boolean,
+        val hasError: Boolean = false,
     ) : Result<T>
 
     class Error<T : Any> : Result<T>
@@ -26,7 +26,7 @@ data class MainUiModel(
 )
 
 typealias ArrivalsUiModel = List<Pair<Station, List<UiUpcomingTrain>>>
-typealias AlertsUiModel = List<AlertData>
+typealias AlertsUiModel = AlertDatas
 
 data class UiUpcomingTrain(
     val upcomingTrain: UpcomingTrain,

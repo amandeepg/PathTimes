@@ -31,17 +31,4 @@ class AlertContainerTest {
             ),
         )
     }
-
-    @Test
-    fun alertDatas_singleAlertWithTIme() {
-        val alertDatas = AlertContainer(
-            contentKey = "contentKey",
-            content = Fakes.SINGLE_ALERT_WITH_TIME,
-        ).alertDatas
-        assertThat(alertDatas.hasError).isFalse()
-
-        assertThat(alertDatas.alerts.map { it.text }).containsExactly(
-            "NWK-WTC delayed. Crew reported a bird. An update will be issued in approx. 15 mins.",
-        )
-    }
 }

@@ -33,6 +33,9 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
+import ca.amandeep.path.data.model.AlertDatas
+import ca.amandeep.path.data.model.GroupedAlertData
+import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.ui.collapsing.ExpandableContainerView
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
@@ -40,7 +43,7 @@ import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
 import java.util.Date
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun ExpandableAlerts(
@@ -74,7 +77,7 @@ fun ExpandableAlerts(
             expandableContent = {
                 Alerts(
                     modifier = Modifier.padding(horizontal = 5.dp),
-                    alertsUiModel = (alertsResult as? Result.Valid)?.data.orEmpty(),
+                    alertsUiModel = (alertsResult as? Result.Valid)?.data ?: AlertDatas(),
                 )
             },
         )
@@ -205,23 +208,60 @@ private fun CollapsingAlertsPreview(
 
 object SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiModel>> {
     val ALERT1 = AlertData(
+        date = Date().apply { time -= 7.minutes.inWholeMilliseconds },
         text = "JSQ-33 via HOB delayed. Train experiencing network communication problems at JSQ. An update will be issued in approx. 15 mins.",
-        date = Date().apply { time -= (TimeUnit.MINUTES.toMillis((50 * Math.random()).toLong())) },
     )
     val ALERT2 = AlertData(
-        date = Date().apply { time -= (TimeUnit.MINUTES.toMillis((50 * Math.random()).toLong())) },
+        date = Date().apply { time -= 12.minutes.inWholeMilliseconds },
         text = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. We regret this inconvenience.",
+    )
+    val GROUPED_ALERT1 = GroupedAlertData(
+        title = GroupedAlertData.Title.RouteTitle(Route.NWK_WTC, "delayed"),
+        alerts = listOf(
+            AlertData(
+                "Trains moving again.",
+                date = Date().apply { time -= 4.minutes.inWholeMilliseconds },
+            ),
+            AlertData(
+                "Bird has been saved. Update in 15 mins.",
+                date = Date().apply { time -= 16.minutes.inWholeMilliseconds },
+            ),
+            AlertData(
+                "Crew reported a bird. Update in 10 mins.",
+                date = Date().apply { time -= 24.minutes.inWholeMilliseconds },
+            ),
+        ),
+    )
+    val GROUPED_ALERT2 = GroupedAlertData(
+        title = GroupedAlertData.Title.FreeformTitle("Bird incident"),
+        alerts = listOf(
+            AlertData(
+                "Trains moving again.",
+                date = Date().apply { time -= 3.minutes.inWholeMilliseconds },
+            ),
+            AlertData(
+                "Bird has been saved. Update in 15 mins.",
+                date = Date().apply { time -= 17.minutes.inWholeMilliseconds },
+            ),
+            AlertData(
+                "Crew reported a bird. Update in 10 mins.",
+                date = Date().apply { time -= 23.minutes.inWholeMilliseconds },
+            ),
+        ),
     )
 
     override val values = sequenceOf(
         Result.Loading(),
         Result.Error(),
-        Result.Valid(lastUpdated = System.currentTimeMillis(), emptyList(), hasError = false),
-        Result.Valid(lastUpdated = System.currentTimeMillis(), emptyList(), hasError = true),
+        Result.Valid(lastUpdated = 0, AlertDatas()),
+        Result.Valid(lastUpdated = 0, AlertDatas(), hasError = true),
         Result.Valid(
             lastUpdated = System.currentTimeMillis(),
             hasError = false,
-            data = listOf(ALERT1, ALERT2),
+            data = AlertDatas(
+                groupedAlerts = listOf(GROUPED_ALERT1, GROUPED_ALERT2),
+                alerts = listOf(ALERT1, ALERT2),
+            ),
         ),
     )
 }

@@ -1,6 +1,9 @@
 package ca.amandeep.path.data.model
 
 import androidx.compose.runtime.Stable
+import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
+import ca.amandeep.path.data.model.AlertDatas.Companion.toAlertDatas
+import ca.amandeep.path.data.model.GroupedAlertData.Title.Companion.toTitle
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.jsoup.Jsoup
@@ -24,43 +27,126 @@ data class AlertContainer(
         } catch (_: Exception) {
             emptyList()
         }
+        val (regularAlerts, groupedAlerts) = alerts.getGroupedAlerts()
         AlertDatas(
             hasError = !noAlerts && alerts.isEmpty(),
-            alerts = alerts,
+            alerts = regularAlerts,
+            groupedAlerts = groupedAlerts,
         )
     }
 
     companion object {
-        private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US)
         private const val NO_ALERTS_HTML_TEXT = "There are no active PATHAlerts at this time"
 
-        private val TIME_PREFIX_REGEX = Regex("\\d{2}:\\d{2} [AP]M: ")
-
         private fun Document.toAlertDatas(): List<AlertData> =
-            select(".alertText").map { it.text() }
-                .zip(select(".stationName").map { it.text() })
-                .map {
-                    DATE_FORMATTER.timeZone = TimeZone.getDefault()
-                    val date = try {
-                        DATE_FORMATTER.parse(it.second.trim())
-                    } catch (_: Exception) {
-                        null
-                    }
-                    AlertData(it.first.removeUnnecessaryText(), date)
-                }.sortedBy { it.date }.distinctBy { it.text }
-
-        private fun String.removeUnnecessaryText(): String {
-            return replaceFirst(TIME_PREFIX_REGEX, "")
-        }
+            select(".stationName").map { it.text() }
+                .zip(select(".alertText").map { it.text() })
+                .toAlertDatas()
     }
 }
 
 data class AlertDatas(
+    val groupedAlerts: List<GroupedAlertData> = emptyList(),
     val alerts: List<AlertData> = emptyList(),
     val hasError: Boolean = false,
-)
+) {
+    val size = alerts.size + groupedAlerts.size
+
+    fun isEmpty(): Boolean = alerts.isEmpty() && groupedAlerts.isEmpty()
+
+    companion object {
+        private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US)
+        private val TIME_PREFIX_REGEX = Regex("\\d{2}:\\d{2} [AP]M: ")
+        private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
+        fun List<Pair<String, String>>.toAlertDatas(): List<AlertData> = this
+            .map {
+                DATE_FORMATTER.timeZone = TimeZone.getDefault()
+                val date = try {
+                    DATE_FORMATTER.parse(it.first.trim())
+                } catch (_: Exception) {
+                    null
+                }
+                AlertData(it.second.removeUnnecessaryText().trim(), date)
+            }
+            .sortedBy { it.date }
+            .reversed()
+            .distinctBy { it.text }
+
+        fun List<AlertData>.getGroupedAlerts(): Pair<List<AlertData>, List<GroupedAlertData>> {
+            val groups = groupBy { it.text.split(".").first() }
+            val groupedAlerts = groups.filter { it.value.size > 1 }
+                .map { group ->
+                    GroupedAlertData(
+                        group.key.toTitle(),
+                        group.value
+                            .mapIndexed { index, alert ->
+                                alert.copy(
+                                    text = alert.text
+                                        .dropBefore(".")
+                                        .let {
+                                            if (index == 0) {
+                                                it
+                                            } else {
+                                                it.replace(UPDATE_IN_MINS_REGEX, "")
+                                            }
+                                        }
+                                        .trim(),
+                                )
+                            }
+                            .distinctBy { it.text },
+                    )
+                }
+            val regularAlerts = groups.filter { it.value.size == 1 }.values.map { it.first() }
+
+            return regularAlerts to groupedAlerts
+        }
+
+        private fun String.removeUnnecessaryText(): String {
+            return replaceFirst(TIME_PREFIX_REGEX, "")
+                .replace("An update will be issued in approx.", "Update in")
+                .replace("We regret this inconvenience.", "")
+        }
+    }
+}
 
 data class AlertData(
     val text: String,
     val date: Date?,
 )
+
+data class GroupedAlertData(
+    val title: Title,
+    val alerts: List<AlertData> = emptyList(),
+) {
+    sealed interface Title {
+        data class RouteTitle(
+            val route: Route,
+            val text: String,
+        ) : Title
+
+        data class FreeformTitle(val text: String) : Title
+
+        companion object {
+            fun String.toTitle(): Title {
+                val route = when {
+                    startsWith("HOB-33") -> Route.HOB_33
+                    startsWith("JSQ-33") -> Route.JSQ_33
+                    startsWith("NWK-WTC") -> Route.NWK_WTC
+                    startsWith("WTC-NWK") -> Route.NWK_WTC
+                    startsWith("HOB-NWK") -> Route.HOB_WTC
+                    startsWith("NWK-HOB") -> Route.HOB_WTC
+                    startsWith("JSQ-33 via HOB") -> Route.JSQ_33_HOB
+                    else -> null
+                }
+                return if (route != null) {
+                    RouteTitle(route, dropBefore(" "))
+                } else {
+                    FreeformTitle(this)
+                }
+            }
+        }
+    }
+}
+
+private fun String.dropBefore(delimiter: String): String =
+    split(delimiter).drop(1).joinToString(delimiter).trim()

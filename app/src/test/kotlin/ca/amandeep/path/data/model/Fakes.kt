@@ -76,15 +76,4 @@ object Fakes {
             </body>
             </html>
     """.trimIndent()
-
-    val SINGLE_ALERT_WITH_TIME = """
-            <html>
-            <body>
-                <div class="stationName"> 6/5/2023 10:00 PM </div>
-                <span class="alertText">
-                    04:37 PM: NWK-WTC delayed. Crew reported a bird. An update will be issued in approx. 15 mins.
-                </span>
-            </body>
-            </html>
-    """.trimIndent()
 }

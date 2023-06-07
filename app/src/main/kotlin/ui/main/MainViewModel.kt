@@ -87,7 +87,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     Result.Valid(
                         lastUpdated = alertsResult.metadata.lastUpdated,
-                        data = alertsResult.alerts.alerts,
+                        data = alertsResult.alerts,
                         hasError = false,
                     )
                 }

@@ -37,6 +37,12 @@ import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.RouteStation
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.data.model.relativeArrivalMins
+import ca.amandeep.path.ui.HEADING_DARK_TEXT_COLOR
+import ca.amandeep.path.ui.HEADING_LIGHT_TEXT_COLOR
+import ca.amandeep.path.ui.HOB_33_COLOR
+import ca.amandeep.path.ui.HOB_WTC_COLOR
+import ca.amandeep.path.ui.JSQ_33_COLOR
+import ca.amandeep.path.ui.NWK_WTC_COLOR
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
@@ -102,6 +108,7 @@ fun Train(
                                 modifier = Modifier.alignByBaseline(),
                             )
                         }
+
                         else -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
@@ -139,14 +146,6 @@ private fun TrainHeading(
         }
     }
 }
-
-private val JSQ_33_COLOR = Color(240, 171, 67, 225)
-private val HOB_33_COLOR = Color(43, 133, 187, 225)
-private val HOB_WTC_COLOR = Color(70, 156, 35, 225)
-private val NWK_WTC_COLOR = Color(213, 61, 46, 225)
-
-private val HEADING_LIGHT_TEXT_COLOR = Color(0xFFEBEBEB)
-private val HEADING_DARK_TEXT_COLOR = Color(0xFF2C2C2C)
 
 @Composable
 private fun SingleTrainHeading(
@@ -254,7 +253,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.JSQ_33,
                 direction = Direction.TO_NY,
-                projectedArrival = Date(System.currentTimeMillis() + 0.minutes.inWholeMilliseconds),
+                projectedArrival = Date().apply { time += 0.minutes.inWholeMilliseconds },
             ),
             arrivalInMinutesFromNow = 0,
             isInOppositeDirection = false,
@@ -263,7 +262,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.NWK_WTC,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(System.currentTimeMillis() + 1.minutes.inWholeMilliseconds),
+                projectedArrival = Date().apply { time += 1.minutes.inWholeMilliseconds },
             ),
             arrivalInMinutesFromNow = 1,
             isInOppositeDirection = false,
@@ -272,7 +271,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.HOB_WTC,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(System.currentTimeMillis() + 33.minutes.inWholeMilliseconds),
+                projectedArrival = Date().apply { time += 33.minutes.inWholeMilliseconds },
             ),
             arrivalInMinutesFromNow = 33,
             isInOppositeDirection = false,
@@ -281,7 +280,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             UpcomingTrain(
                 route = Route.JSQ_33_HOB,
                 direction = Direction.TO_NJ,
-                projectedArrival = Date(System.currentTimeMillis() - 5.minutes.inWholeMilliseconds),
+                projectedArrival = Date().apply { time += 5.minutes.inWholeMilliseconds },
             ),
             arrivalInMinutesFromNow = 5,
             isInOppositeDirection = false,
