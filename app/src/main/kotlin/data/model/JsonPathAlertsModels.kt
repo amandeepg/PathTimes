@@ -73,21 +73,29 @@ data class AlertDatas(
             .distinctBy { it.text }
 
         fun List<AlertData>.getGroupedAlerts(): Pair<List<AlertData>, List<GroupedAlertData>> {
-            val groups = groupBy { it.text.split(".").first() }
+            val groups = groupBy {
+                when {
+                    it.text.startsWith("JSQ-33") -> "JSQ-33"
+                    it.text.startsWith("HOB-33") -> "HOB-33"
+                    it.text.startsWith("HOB-WTC") -> "HOB-WTC"
+                    it.text.startsWith("NWK-WTC") -> "NWK-WTC"
+                    it.text.startsWith("JSQ-33 via HOB") -> "JSQ-33 via HOB"
+                    else -> it.text.split(".").first()
+                }
+            }
             val groupedAlerts = groups.filter { it.value.size > 1 }
                 .map { group ->
                     GroupedAlertData(
-                        group.key.toTitle(),
+                        group.value.first().text.split(".").first().toTitle(),
                         group.value
                             .mapIndexed { index, alert ->
                                 alert.copy(
                                     text = alert.text
                                         .dropBefore(".")
                                         .let {
-                                            if (index == 0) {
-                                                it
-                                            } else {
-                                                it.replace(UPDATE_IN_MINS_REGEX, "")
+                                            when (index) {
+                                                0 -> it
+                                                else -> it.replace(UPDATE_IN_MINS_REGEX, "")
                                             }
                                         }
                                         .trim(),
@@ -104,7 +112,9 @@ data class AlertDatas(
         private fun String.removeUnnecessaryText(): String {
             return replaceFirst(TIME_PREFIX_REGEX, "")
                 .replace("An update will be issued in approx.", "Update in")
+                .replace("An update will be issued in approx", "Update in")
                 .replace("We regret this inconvenience.", "")
+                .replace("We apologize for the inconvenience this may have caused.", "")
         }
     }
 }

@@ -48,12 +48,12 @@ class AlertDatasTest {
         val alertDatas = listOf(
             "6/5/2023 04:37 PM" to "04:37 PM: NWK-WTC delayed. Bird has been saved. An update will be issued in approx. 15 mins.",
             "6/5/2023 01:01 PM" to "01:01 PM: NWK-WTC delayed. Crew reported a bird. An update will be issued in approx. 10 mins.",
-            "6/5/2023 01:02 PM" to "01:02 PM: NWK-WTC delayed. Crew reported a bird. An update will be issued in approx. 12 mins.",
-            "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC delayed. Trains almost moving again. An update will be issued in approx. 11 mins.",
+            "6/5/2023 01:02 PM" to "01:02 PM: NWK-WTC delays continue. Crew reported a bird. An update will be issued in approx. 12 mins.",
+            "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC almost done. Trains almost moving again. An update will be issued in approx. 11 mins.",
         ).toAlertDatas().getGroupedAlerts()
         assertThat(alertDatas.second).containsExactly(
             GroupedAlertData(
-                title = GroupedAlertData.Title.RouteTitle(Route.NWK_WTC, "delayed"),
+                title = GroupedAlertData.Title.RouteTitle(Route.NWK_WTC, "almost done"),
                 alerts = listOf(
                     AlertData(
                         "Trains almost moving again. Update in 11 mins.",

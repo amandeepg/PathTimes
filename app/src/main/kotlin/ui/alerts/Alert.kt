@@ -72,8 +72,8 @@ fun GroupedAlert(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(5.dp),
-        color = Color.Gray.copy(alpha = 0.05f),
-        border = BorderStroke(Dp.Hairline, Color.Gray.copy(alpha = 0.3f)),
+        color = Color.Gray.copy(alpha = 0.2f),
+        border = BorderStroke(Dp.Hairline, Color.Gray.copy(alpha = 0.4f)),
     ) {
         Column(
             modifier = Modifier.padding(10.dp),
