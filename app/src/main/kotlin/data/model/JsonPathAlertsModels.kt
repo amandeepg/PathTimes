@@ -55,12 +55,13 @@ data class AlertDatas(
     fun isEmpty(): Boolean = alerts.isEmpty() && groupedAlerts.isEmpty()
 
     companion object {
-        private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US)
+        private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("America/New_York")
+        }
         private val TIME_PREFIX_REGEX = Regex("\\d{2}:\\d{2} [AP]M: ")
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
         fun List<Pair<String, String>>.toAlertDatas(): List<AlertData> = this
             .map {
-                DATE_FORMATTER.timeZone = TimeZone.getDefault()
                 val date = try {
                     DATE_FORMATTER.parse(it.first.trim())
                 } catch (_: Exception) {
