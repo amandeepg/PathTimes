@@ -5,6 +5,7 @@ plugins {
     id 'org.jmailen.kotlinter'
     id 'com.google.devtools.ksp'
     id 'de.mannodermaus.android-junit5'
+    id 'app.cash.licensee'
 }
 
 android {
@@ -90,4 +91,14 @@ dependencies {
     testImplementation(Testing.junit.jupiter.params)
     testImplementation "com.google.truth:truth:_"
     testImplementation "com.google.truth.extensions:truth-java8-extension:_"
+}
+
+licensee {
+    allow 'Apache-2.0'
+    allowUrl('https://developer.android.com/studio/terms.html') {
+        because 'Android Software Development Kit License Agreement'
+    }
+    allowUrl('https://jsoup.org/license') {
+        because 'MIT, but self-hosted copy of the license'
+    }
 }

@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath "io.nlopez.compose.rules:ktlint:_"
+        classpath CashApp.licenseeGradlePlugin
     }
 }
 
@@ -14,6 +15,7 @@ plugins {
     id 'org.jetbrains.kotlin.android' apply false
     id 'org.jmailen.kotlinter' apply false
     id 'de.mannodermaus.android-junit5' apply false
+    id 'app.cash.licensee' apply false
 }
 
 tasks.register('clean') {
