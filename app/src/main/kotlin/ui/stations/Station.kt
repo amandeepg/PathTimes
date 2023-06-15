@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +27,6 @@ import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
-import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
 import java.util.Date
 import java.util.Locale
@@ -42,9 +42,8 @@ fun Station(
     userState: UserState,
     modifier: Modifier = Modifier,
 ) {
-    Card3(
+    ElevatedCard(
         modifier = modifier.padding(horizontal = 15.dp, vertical = 9.dp),
-        elevation = 10.dp,
     ) {
         Column {
             Box(

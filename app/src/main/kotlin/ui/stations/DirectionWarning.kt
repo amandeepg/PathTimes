@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -28,7 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.Direction
-import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
 import kotlinx.coroutines.launch
 
@@ -43,11 +43,10 @@ fun DirectionWarning(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Card3(
+    ElevatedCard(
         modifier = modifier
             .padding(horizontal = 15.dp, vertical = 9.dp)
             .fillMaxWidth(),
-        elevation = 10.dp,
     ) {
         val direction = if (isInNJ) Direction.TO_NY else Direction.TO_NJ
         val location = if (isInNJ) Direction.TO_NJ else Direction.TO_NY

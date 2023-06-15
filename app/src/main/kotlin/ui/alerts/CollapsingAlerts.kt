@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +43,6 @@ import ca.amandeep.path.ui.NWK_WTC_COLOR
 import ca.amandeep.path.ui.collapsing.ExpandableContainerView
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
-import ca.amandeep.path.ui.theme.Card3
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
 import java.util.Date
@@ -57,9 +57,8 @@ fun ExpandableAlerts(
     expanded: Boolean = false,
     setExpanded: (Boolean) -> Unit,
 ) {
-    Card3(
+    ElevatedCard(
         modifier = modifier.padding(horizontal = 15.dp, vertical = 9.dp),
-        elevation = 10.dp,
     ) {
         ExpandableContainerView(
             modifier = Modifier
