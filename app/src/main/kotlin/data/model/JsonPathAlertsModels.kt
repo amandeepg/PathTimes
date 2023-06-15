@@ -58,7 +58,7 @@ data class AlertDatas(
         private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("America/New_York")
         }
-        private val TIME_PREFIX_REGEX = Regex("\\d{2}:\\d{2} [AP]M: ")
+        private val TIME_PREFIX_REGEX = Regex("\\d{2}:\\d{2} [AP]M:")
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
         fun List<Pair<String, String>>.toAlertDatas(): List<AlertData> = this
             .map {
@@ -110,13 +110,15 @@ data class AlertDatas(
             return regularAlerts to groupedAlerts
         }
 
-        private fun String.removeUnnecessaryText(): String {
-            return replaceFirst(TIME_PREFIX_REGEX, "")
-                .replace("An update will be issued in approx.", "Update in")
-                .replace("An update will be issued in approx", "Update in")
-                .replace("We regret this inconvenience.", "")
-                .replace("We apologize for the inconvenience this may have caused.", "")
-        }
+        private fun String.removeUnnecessaryText(): String = replaceFirst(TIME_PREFIX_REGEX, "")
+            .replace("An update will be issued in approx.", "Update in")
+            .replace("An update will be issued in approx", "Update in")
+            .replace("We regret this inconvenience.", "")
+            .replace("We apologize for the inconvenience this may have caused.", "")
+            .replace("We apologize for the inconvenience.", "")
+            .replace("PATHAlert:", "")
+            .replace("PATHAlert Update:", "")
+            .replace("PATHAlert Final Update:", "")
     }
 }
 
