@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +71,7 @@ fun GroupedAlert(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(5.dp),
         color = Color.Gray.copy(alpha = 0.2f),
         border = BorderStroke(Dp.Hairline, Color.Gray.copy(alpha = 0.4f)),
