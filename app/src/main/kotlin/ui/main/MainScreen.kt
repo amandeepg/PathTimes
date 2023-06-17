@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -101,8 +100,7 @@ fun MainScreen(
 
     var anyLocationPermissionsGranted by remember {
         mutableStateOf(
-            context.checkPermission(ACCESS_COARSE_LOCATION) ||
-                context.checkPermission(ACCESS_FINE_LOCATION),
+            context.checkPermission(ACCESS_COARSE_LOCATION) || context.checkPermission(ACCESS_FINE_LOCATION),
         )
     }
 
@@ -323,12 +321,6 @@ private fun MainScreenContent(
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
 
-    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
-        keyName = "showDirectionWarning",
-        initialValue = true,
-        defaultValue = true,
-    )
-
     if (uiModel.arrivals is Result.Error) {
         ErrorScreen(
             connectivityState = connectivityState,
@@ -341,70 +333,104 @@ private fun MainScreenContent(
         ) { isLoading ->
             when (isLoading) {
                 true -> LoadingScreen()
-                false -> {
-                    uiModel.arrivals as Result.Valid
-
-                    val requireOptionalLocationItem = requireOptionalLocationItem(
-                        permissionsUpdated = locationPermissionsUpdated,
-                        navigateToSettingsScreen = {
-                            startActivity(
-                                it,
-                                Intent(
-                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                    Uri.fromParts("package", it.packageName, null),
-                                ),
-                                null,
-                            )
-                        },
-                    )
-                    val lastUpdatedState = rememberLastUpdatedState(uiModel.arrivals.lastUpdated)
-                    val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
-                    LazyColumn {
-                        item { requireOptionalLocationItem() }
-                        item {
-                            ExpandableAlerts(
-                                connectivityState = connectivityState,
-                                alertsResult = uiModel.alerts,
-                                expanded = alertsExpanded,
-                                setExpanded = setAlertsExpanded,
-                            )
-                        }
-                        item {
-                            if (anyLocationPermissionsGranted && showDirectionWarning) {
-                                DirectionWarning(
-                                    isInNJ = userState.isInNJ,
-                                    showOppositeDirection = userState.showOppositeDirection,
-                                    setShowingOppositeDirection = setShowingOppositeDirection,
-                                    snackbarState = snackbarState,
-                                    setShowDirectionWarning = setShowDirectionWarning,
-                                )
-                            }
-                        }
-                        item {
-                            AnimatedVisibility(
-                                visible = uiModel.arrivals.hasError,
-                                enter = expandVertically(),
-                                exit = shrinkVertically(),
-                            ) {
-                                ErrorBar(connectivityState = connectivityState)
-                            }
-                        }
-                        items(uiModel.arrivals.data) {
-                            Station(
-                                station = it,
-                                now = now,
-                                userState = userState,
-                            )
-                        }
-                        item {
-                            lastUpdatedState.KeepUpdatedEffect(uiModel.arrivals.lastUpdated, 1.seconds)
-                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                LastUpdatedInfoRow(lastUpdatedState.value)
-                            }
-                        }
-                    }
-                }
+                false -> LoadedScreen(
+                    uiModel = uiModel,
+                    locationPermissionsUpdated = locationPermissionsUpdated,
+                    arrivals = uiModel.arrivals as Result.Valid,
+                    connectivityState = connectivityState,
+                    anyLocationPermissionsGranted = anyLocationPermissionsGranted,
+                    userState = userState,
+                    setShowingOppositeDirection = setShowingOppositeDirection,
+                    snackbarState = snackbarState,
+                    now = now,
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun LoadedScreen(
+    uiModel: MainUiModel,
+    locationPermissionsUpdated: suspend (List<String>) -> Unit,
+    arrivals: Result.Valid<ArrivalsUiModel>,
+    connectivityState: ConnectionState,
+    anyLocationPermissionsGranted: Boolean,
+    userState: UserState,
+    setShowingOppositeDirection: (Boolean) -> Unit,
+    snackbarState: SnackbarHostState,
+    now: Long,
+) {
+    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
+        keyName = "showDirectionWarning",
+        initialValue = true,
+        defaultValue = true,
+    )
+
+    val requireOptionalLocationItem = requireOptionalLocationItem(
+        permissionsUpdated = locationPermissionsUpdated,
+        navigateToSettingsScreen = {
+            startActivity(
+                it,
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", it.packageName, null),
+                ),
+                null,
+            )
+        },
+    )
+    val lastUpdatedState = rememberLastUpdatedState(arrivals.lastUpdated)
+    lastUpdatedState.KeepUpdatedEffect(arrivals.lastUpdated, 1.seconds)
+
+    val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
+
+    val autoRefreshingNow = connectivityState != ConnectionState.Unavailable
+    LazyColumn {
+        item { requireOptionalLocationItem() }
+        item {
+            ExpandableAlerts(
+                connectivityState = connectivityState,
+                alertsResult = uiModel.alerts,
+                expanded = alertsExpanded,
+                setExpanded = setAlertsExpanded,
+            )
+        }
+        item {
+            if (anyLocationPermissionsGranted && showDirectionWarning) {
+                DirectionWarning(
+                    isInNJ = userState.isInNJ,
+                    showOppositeDirection = userState.showOppositeDirection,
+                    setShowingOppositeDirection = setShowingOppositeDirection,
+                    snackbarState = snackbarState,
+                    setShowDirectionWarning = setShowDirectionWarning,
+                )
+            }
+        }
+        item {
+            AnimatedVisibility(
+                visible = arrivals.hasError,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                ErrorBar(connectivityState = connectivityState)
+            }
+        }
+        item {
+            if (!autoRefreshingNow) {
+                LastUpdatedInfoRow(lastUpdatedState.value, thresholdSecs = 2)
+            }
+        }
+        items(arrivals.data) {
+            Station(
+                station = it,
+                now = now,
+                userState = userState,
+                autoRefreshingNow = autoRefreshingNow,
+            )
+        }
+        item {
+            LastUpdatedInfoRow(lastUpdatedState.value)
         }
     }
 }

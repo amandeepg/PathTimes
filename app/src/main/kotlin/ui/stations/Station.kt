@@ -41,6 +41,7 @@ fun Station(
     now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
+    autoRefreshingNow: Boolean = false,
 ) {
     ElevatedCard(
         modifier = modifier.padding(horizontal = 15.dp, vertical = 9.dp),
@@ -93,6 +94,7 @@ fun Station(
                         train = it,
                         now = now,
                         userState = userState,
+                        autoRefreshingNow = autoRefreshingNow,
                     )
                 }
             }

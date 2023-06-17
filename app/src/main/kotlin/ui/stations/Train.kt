@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -48,6 +50,7 @@ import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.ui.theme.surfaceColorAtElevation
 import java.util.Date
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.minutes
 
@@ -60,6 +63,7 @@ fun Train(
     now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
+    autoRefreshingNow: Boolean = false,
 ) {
     Row(
         modifier = modifier,
@@ -81,22 +85,39 @@ fun Train(
         Crossfade(
             targetState = train.upcomingTrain.relativeArrivalMins(now).roundToInt(),
             label = "Arrival time crossfade",
-        ) {
+        ) { arrivalTime ->
+            val oldTime = autoRefreshingNow && abs(arrivalTime - train.arrivalInMinutesFromNow) >= 2
             Row {
-                Text(
-                    when {
-                        it < 0 -> ""
-                        it == 0 -> stringResource(R.string.now)
-                        else -> it.toString()
-                    },
-                    fontWeight = FontWeight.Black,
-                    fontSize = 20.sp,
-                    modifier = Modifier.alignByBaseline(),
-                )
+                Crossfade(
+                    targetState = oldTime,
+                    label = "Arrival time crossfade",
+                ) { oldTime ->
+                    if (oldTime) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .align(Alignment.CenterVertically),
+                            strokeWidth = 1.dp,
+                            color = Color.Gray.copy(alpha = 0.7f),
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                    }
+                }
+                if (arrivalTime >= 0) {
+                    Text(
+                        when (arrivalTime) {
+                            0 -> stringResource(R.string.now)
+                            else -> arrivalTime.toString()
+                        },
+                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp,
+                        modifier = Modifier.alignByBaseline(),
+                    )
+                }
                 ProvideTextStyle(TextStyle(fontWeight = FontWeight.Light)) {
                     when {
-                        it <= 0 -> Unit
-                        it == 1 -> {
+                        arrivalTime <= 0 -> Unit
+                        arrivalTime == 1 -> {
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 stringResource(R.string.mins_singular),

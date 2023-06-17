@@ -6,7 +6,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -37,11 +40,13 @@ fun rememberLastUpdatedState(lastUpdated: Long): MutableState<LastUpdatedUiModel
     remember { mutableStateOf(computeLastUpdatedModel(lastUpdated)) }
 
 data class LastUpdatedUiModel(
-    @StringRes val unitResId: Int,
-    val value: Long,
+    @StringRes val unitDescriptionResId: Int,
+    val units: Long,
     val isNow: Boolean,
-    val isUnderAMinute: Boolean,
-)
+    val secondsAgo: Long,
+) {
+    val isUnderAMinute: Boolean = secondsAgo < 60
+}
 
 /**
  * Updates the [MutableState] with the time since [lastUpdated] in a human readable format.
@@ -64,19 +69,19 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
     val value = if (secondsAgo >= 60) secondsAgo / 60 else secondsAgo
     return if (secondsAgo == 0L) {
         LastUpdatedUiModel(
-            unitResId = R.string.just_now,
-            value = 0,
+            unitDescriptionResId = R.string.just_now,
+            units = 0,
             isNow = true,
-            isUnderAMinute = true,
+            secondsAgo = secondsAgo,
         )
     } else {
         LastUpdatedUiModel(
-            unitResId = if (value == 1L) {
+            unitDescriptionResId = if (value == 1L) {
                 if (secondsAgo >= 60) R.string.minute else R.string.second
             } else if (secondsAgo >= 60) R.string.minutes else R.string.seconds,
-            value = value,
+            units = value,
             isNow = false,
-            isUnderAMinute = secondsAgo < 60,
+            secondsAgo = secondsAgo,
         )
     }
 }
@@ -85,16 +90,14 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
  * Displays the time since [LastUpdatedUiModel] in a human readable format.
  */
 @Composable
-@OptIn(ExperimentalAnimationApi::class)
 fun LastUpdatedInfoRow(
     lastUpdatedState: LastUpdatedUiModel,
     modifier: Modifier = Modifier,
+    thresholdSecs: Int = -1,
 ) {
-    @Composable
-    fun AnimatedText(text: String) = AnimatedContent(
-        targetState = text,
-        transitionSpec = verticalSwapAnimation,
-    ) { Text(text = it) }
+    if (thresholdSecs > lastUpdatedState.secondsAgo) {
+        return
+    }
 
     ProvideTextStyle(
         TextStyle(
@@ -102,25 +105,39 @@ fun LastUpdatedInfoRow(
             color = MaterialTheme.colorScheme.outline,
         ),
     ) {
-        Row(
-            modifier = modifier
-                .wrapContentWidth()
-                .animateContentSize(animationSpec = tween(1000))
-                .padding(10.dp),
-        ) {
-            Text(stringResource(R.string.last_updated) + " ")
-            if (lastUpdatedState.isNow) {
-                AnimatedText(stringResource(R.string.just_now))
-            } else if (lastUpdatedState.isUnderAMinute) {
-                AnimatedText(stringResource(R.string.under_a_min_ago))
-            } else {
-                AnimatedText(lastUpdatedState.value.toString())
-                AnimatedText(" " + stringResource(lastUpdatedState.unitResId))
-                Text(" " + stringResource(R.string.ago))
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Row(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .animateContentSize(animationSpec = tween(1000))
+                    .padding(10.dp),
+            ) {
+                Text(stringResource(R.string.last_updated) + " ")
+                if (lastUpdatedState.isNow) {
+                    AnimatedText(stringResource(R.string.just_now))
+                } else if (lastUpdatedState.isUnderAMinute) {
+                    AnimatedText(stringResource(R.string.under_a_min_ago))
+                } else {
+                    AnimatedText(lastUpdatedState.units.toString())
+                    AnimatedText(" " + stringResource(lastUpdatedState.unitDescriptionResId))
+                    Text(" " + stringResource(R.string.ago))
+                }
             }
         }
     }
 }
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun AnimatedText(
+    text: String,
+    modifier: Modifier = Modifier,
+) = AnimatedContent(
+    modifier = modifier,
+    targetState = text,
+    transitionSpec = verticalSwapAnimation,
+    label = "animated $text",
+) { Text(it) }
 
 @Composable
 @Preview(name = "Light", showBackground = true)
@@ -133,8 +150,8 @@ private fun LastUpdatedInfoRowPreview(
 
 class SampleLastUpdatedProvider : PreviewParameterProvider<LastUpdatedUiModel> {
     override val values = sequenceOf(
-        LastUpdatedUiModel(R.string.seconds, 0L, isNow = true, isUnderAMinute = true),
-        LastUpdatedUiModel(R.string.seconds, 12L, isNow = false, isUnderAMinute = true),
-        LastUpdatedUiModel(R.string.minutes, 15L, isNow = false, isUnderAMinute = false),
+        LastUpdatedUiModel(R.string.seconds, 0L, isNow = true, secondsAgo = 0),
+        LastUpdatedUiModel(R.string.seconds, 12L, isNow = false, secondsAgo = 12),
+        LastUpdatedUiModel(R.string.minutes, 15L, isNow = false, secondsAgo = 12 * 15),
     )
 }
