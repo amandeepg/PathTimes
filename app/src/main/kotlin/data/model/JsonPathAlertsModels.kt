@@ -58,7 +58,8 @@ data class AlertDatas(
         private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("America/New_York")
         }
-        private val TIME_PREFIX_REGEX = Regex("\\d{2}:\\d{2} [AP]M:")
+        private val TIME_PREFIX_REGEX = Regex("\\d{1,2}:\\d{2} [ap]m:", RegexOption.IGNORE_CASE)
+        private val TIME_DATE_IN_DATE_REGEX = Regex("\\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat) \\d{2}-\\d{2}-\\d{4} ([01]\\d|2[0-3]):([0-5]\\d)[ap]m:", RegexOption.IGNORE_CASE)
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
         fun List<Pair<String, String>>.toAlertDatas(): List<AlertData> = this
             .map {
@@ -75,13 +76,17 @@ data class AlertDatas(
 
         fun List<AlertData>.getGroupedAlerts(): Pair<List<AlertData>, List<GroupedAlertData>> {
             val groups = groupBy {
-                when {
-                    it.text.startsWith("JSQ-33 via HOB") -> "JSQ-33 via HOB"
-                    it.text.startsWith("JSQ-33") -> "JSQ-33"
-                    it.text.startsWith("HOB-33") -> "HOB-33"
-                    it.text.startsWith("HOB-WTC") -> "HOB-WTC"
-                    it.text.startsWith("NWK-WTC") -> "NWK-WTC"
-                    else -> it.text.split(".").first()
+                if ("Service Advisory" in it.text) {
+                    it.text
+                } else {
+                    when {
+                        it.text.startsWith("JSQ-33 via HOB") -> "JSQ-33 via HOB"
+                        it.text.startsWith("JSQ-33") -> "JSQ-33"
+                        it.text.startsWith("HOB-33") -> "HOB-33"
+                        it.text.startsWith("HOB-WTC") -> "HOB-WTC"
+                        it.text.startsWith("NWK-WTC") -> "NWK-WTC"
+                        else -> it.text.split(".").first()
+                    }
                 }
             }
             val groupedAlerts = groups.filter { it.value.size > 1 }
@@ -110,7 +115,8 @@ data class AlertDatas(
             return regularAlerts to groupedAlerts
         }
 
-        private fun String.removeUnnecessaryText(): String = replaceFirst(TIME_PREFIX_REGEX, "")
+        private fun String.removeUnnecessaryText(): String = replace(TIME_DATE_IN_DATE_REGEX, "")
+            .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
             .replace("We apologize for the inconvenience this caused.", "")
@@ -131,6 +137,9 @@ data class AlertDatas(
             .replace("PATHAlert:", "")
             .replace("PATHAlert Update:", "")
             .replace("PATHAlert Final Update:", "")
+            .replace("  ", "")
+            .replace("  ", "")
+            .replace("  ", "")
     }
 }
 
