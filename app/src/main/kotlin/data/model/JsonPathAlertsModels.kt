@@ -76,11 +76,11 @@ data class AlertDatas(
         fun List<AlertData>.getGroupedAlerts(): Pair<List<AlertData>, List<GroupedAlertData>> {
             val groups = groupBy {
                 when {
+                    it.text.startsWith("JSQ-33 via HOB") -> "JSQ-33 via HOB"
                     it.text.startsWith("JSQ-33") -> "JSQ-33"
                     it.text.startsWith("HOB-33") -> "HOB-33"
                     it.text.startsWith("HOB-WTC") -> "HOB-WTC"
                     it.text.startsWith("NWK-WTC") -> "NWK-WTC"
-                    it.text.startsWith("JSQ-33 via HOB") -> "JSQ-33 via HOB"
                     else -> it.text.split(".").first()
                 }
             }
@@ -115,6 +115,11 @@ data class AlertDatas(
             .replace("An update will be issued in approx", "Update in")
             .replace("We regret this inconvenience.", "")
             .replace("We apologize for the inconvenience this may have caused.", "")
+            .replace("We apologize for the inconvenience this caused.", "")
+            .replace("We apologize for the inconvenience this has caused.", "")
+            .replace("We apologize for any inconvenience this may have caused.", "")
+            .replace("We apologize for any inconvenience this caused.", "")
+            .replace("We apologize for any inconvenience this has caused.", "")
             .replace("We apologize for the inconvenience.", "")
             .replace("PATHAlert:", "")
             .replace("PATHAlert Update:", "")
