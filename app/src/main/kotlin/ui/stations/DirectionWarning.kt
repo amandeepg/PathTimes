@@ -44,15 +44,13 @@ fun DirectionWarning(
     val coroutineScope = rememberCoroutineScope()
 
     ElevatedCard(
-        modifier = modifier
-            .padding(horizontal = 15.dp, vertical = 9.dp)
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         val direction = if (isInNJ) Direction.TO_NY else Direction.TO_NJ
         val location = if (isInNJ) Direction.TO_NJ else Direction.TO_NY
         Column(
             modifier = Modifier
-                .padding(5.dp)
+                .padding(top = 8.dp, start = 5.dp, end = 4.dp)
                 .alpha(0.6f),
         ) {
             Row(
@@ -60,7 +58,9 @@ fun DirectionWarning(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_info),
-                    modifier = Modifier.padding(5.dp).size(24.dp),
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .size(18.dp),
                     contentDescription = stringResource(R.string.error_icon),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )

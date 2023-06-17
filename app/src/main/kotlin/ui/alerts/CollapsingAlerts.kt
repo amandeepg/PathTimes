@@ -58,7 +58,7 @@ fun ExpandableAlerts(
     setExpanded: (Boolean) -> Unit,
 ) {
     ElevatedCard(
-        modifier = modifier.padding(horizontal = 15.dp, vertical = 9.dp),
+        modifier = modifier.fillMaxWidth(),
     ) {
         ExpandableContainerView(
             modifier = Modifier

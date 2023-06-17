@@ -93,12 +93,7 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
 fun LastUpdatedInfoRow(
     lastUpdatedState: LastUpdatedUiModel,
     modifier: Modifier = Modifier,
-    thresholdSecs: Int = -1,
 ) {
-    if (thresholdSecs > lastUpdatedState.secondsAgo) {
-        return
-    }
-
     ProvideTextStyle(
         TextStyle(
             fontSize = MaterialTheme.typography.labelSmall.fontSize,

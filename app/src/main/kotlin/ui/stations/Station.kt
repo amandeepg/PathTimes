@@ -44,7 +44,7 @@ fun Station(
     autoRefreshingNow: Boolean = false,
 ) {
     ElevatedCard(
-        modifier = modifier.padding(horizontal = 15.dp, vertical = 9.dp),
+        modifier = modifier,
     ) {
         Column {
             Box(

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,40 +37,44 @@ fun ErrorBar(
     connectivityState: ConnectionState,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(align = Alignment.CenterVertically)
-            .background(color = MaterialTheme.colorScheme.errorContainer)
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+    ElevatedCard(
+        modifier = modifier,
     ) {
-        Icon(
-            painter = painterResource(
-                id = when (connectivityState) {
-                    ConnectionState.Available -> R.drawable.ic_sync_error
-                    ConnectionState.Unavailable -> R.drawable.ic_wifi_off
-                },
-            ),
+        Row(
             modifier = Modifier
-                .size(20.dp)
-                .alignByBaseline(),
-            contentDescription = stringResource(R.string.error_icon),
-            tint = MaterialTheme.colorScheme.onErrorContainer,
-        )
-        Spacer(Modifier.width(10.dp))
-        Crossfade(targetState = connectivityState, label = "crossfade connectivity") {
-            val errorText = when (it) {
-                ConnectionState.Available -> stringResource(R.string.load_trains_error_long)
-                ConnectionState.Unavailable -> stringResource(R.string.no_internet_connection)
-            }
-            Text(
-                text = errorText + stringResource(R.string.stale_data_explanation),
-                fontSize = MaterialTheme.typography.labelSmall.fontSize,
-                lineHeight = MaterialTheme.typography.labelSmall.lineHeight,
-                color = MaterialTheme.colorScheme.onErrorContainer,
+                .fillMaxWidth()
+                .wrapContentHeight(align = Alignment.CenterVertically)
+                .background(color = MaterialTheme.colorScheme.errorContainer)
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(
+                    id = when (connectivityState) {
+                        ConnectionState.Available -> R.drawable.ic_sync_error
+                        ConnectionState.Unavailable -> R.drawable.ic_wifi_off
+                    },
+                ),
+                modifier = Modifier
+                    .size(20.dp)
+                    .alignByBaseline(),
+                contentDescription = stringResource(R.string.error_icon),
+                tint = MaterialTheme.colorScheme.onErrorContainer,
             )
+            Spacer(Modifier.width(10.dp))
+            Crossfade(targetState = connectivityState, label = "crossfade connectivity") {
+                val errorText = when (it) {
+                    ConnectionState.Available -> stringResource(R.string.load_trains_error_long)
+                    ConnectionState.Unavailable -> stringResource(R.string.no_internet_connection)
+                }
+                Text(
+                    text = errorText + stringResource(R.string.stale_data_explanation),
+                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
+                    lineHeight = MaterialTheme.typography.labelSmall.lineHeight,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            }
         }
     }
 }
@@ -80,7 +85,12 @@ fun ErrorBar(
 private fun ErrorBarPreview(
     @PreviewParameter(SampleConnectionStateProvider::class) connectivityState: ConnectionState,
 ) {
-    PATHTheme { ErrorBar(connectivityState) }
+    PATHTheme {
+        ErrorBar(
+            modifier = Modifier.padding(vertical = 5.dp),
+            connectivityState = connectivityState,
+        )
+    }
 }
 
 class SampleConnectionStateProvider : PreviewParameterProvider<ConnectionState> {

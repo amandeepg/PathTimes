@@ -45,7 +45,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 fun requireOptionalLocationItem(
     navigateToSettingsScreen: (Context) -> Unit,
     permissionsUpdated: suspend (List<String>) -> Unit,
-): @Composable (() -> Unit) {
+): @Composable ((Modifier) -> Unit) {
     val ctx = LocalContext.current
 
     var doNotShowRationale by rememberSaveable { mutableStateOf(false) }
@@ -65,13 +65,14 @@ fun requireOptionalLocationItem(
         permissionsUpdated(permissionsGranted)
     }
 
-    return {
+    return { modifier ->
         // TODO Upgrade to the new accompanist permissions API
         PermissionsRequired(
             locationStates,
             permissionsNotGrantedContent = {
                 if (!doNotShowRationale) {
                     PermissionsUi(
+                        modifier = modifier,
                         rationaleText = if (coarseLocationState.hasPermission) {
                             stringResource(R.string.precise_location_rationale)
                         } else {
@@ -87,6 +88,7 @@ fun requireOptionalLocationItem(
             permissionsNotAvailableContent = {
                 if (!doNotShowSettingsRationale) {
                     PermissionsUi(
+                        modifier = modifier,
                         rationaleText = (
                             if (coarseLocationState.hasPermission) {
                                 stringResource(R.string.precise_location_rationale)
@@ -113,9 +115,10 @@ private fun PermissionsUi(
     allowButtonText: String,
     allowButtonAction: () -> Unit,
     denyButtonText: String,
+    modifier: Modifier = Modifier,
     denyButtonAction: () -> Unit,
 ) {
-    Column(modifier = Modifier.padding(10.dp)) {
+    Column(modifier = modifier) {
         Text(
             rationaleText,
             fontSize = MaterialTheme.typography.bodyLarge.fontSize,

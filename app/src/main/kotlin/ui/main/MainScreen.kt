@@ -386,19 +386,26 @@ private fun LoadedScreen(
     val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
 
     val autoRefreshingNow = connectivityState != ConnectionState.Unavailable
-    LazyColumn {
-        item { requireOptionalLocationItem() }
+
+    val spacingModifier = Modifier.padding(vertical = 4.dp)
+
+    LazyColumn(
+        modifier = Modifier.padding(horizontal = 10.dp),
+    ) {
+        item { requireOptionalLocationItem(spacingModifier) }
         item {
             ExpandableAlerts(
+                modifier = spacingModifier,
                 connectivityState = connectivityState,
                 alertsResult = uiModel.alerts,
                 expanded = alertsExpanded,
                 setExpanded = setAlertsExpanded,
             )
         }
-        item {
-            if (anyLocationPermissionsGranted && showDirectionWarning) {
+        if (anyLocationPermissionsGranted && showDirectionWarning) {
+            item {
                 DirectionWarning(
+                    modifier = spacingModifier,
                     isInNJ = userState.isInNJ,
                     showOppositeDirection = userState.showOppositeDirection,
                     setShowingOppositeDirection = setShowingOppositeDirection,
@@ -413,16 +420,30 @@ private fun LoadedScreen(
                 enter = expandVertically(),
                 exit = shrinkVertically(),
             ) {
-                ErrorBar(connectivityState = connectivityState)
+                ErrorBar(
+                    modifier = spacingModifier,
+                    connectivityState = connectivityState,
+                )
             }
         }
         item {
-            if (!autoRefreshingNow) {
-                LastUpdatedInfoRow(lastUpdatedState.value, thresholdSecs = 2)
+            Spacer(modifier = spacingModifier)
+        }
+        item {
+            AnimatedVisibility(
+                visible = !autoRefreshingNow && lastUpdatedState.value.secondsAgo > TOP_LAST_UPDATED_THRESHOLD_SECS,
+                enter = expandVertically(),
+                exit = shrinkVertically(),
+            ) {
+                LastUpdatedInfoRow(
+                    modifier = spacingModifier,
+                    lastUpdatedState = lastUpdatedState.value,
+                )
             }
         }
-        items(arrivals.data) {
+        items(arrivals.data, contentType = { "station" }) {
             Station(
+                modifier = spacingModifier,
                 station = it,
                 now = now,
                 userState = userState,
@@ -430,7 +451,10 @@ private fun LoadedScreen(
             )
         }
         item {
-            LastUpdatedInfoRow(lastUpdatedState.value)
+            LastUpdatedInfoRow(
+                modifier = spacingModifier,
+                lastUpdatedState = lastUpdatedState.value,
+            )
         }
     }
 }
@@ -453,3 +477,5 @@ data class UserState(
     val showOppositeDirection: Boolean,
     val isInNJ: Boolean,
 )
+
+const val TOP_LAST_UPDATED_THRESHOLD_SECS: Long = 60 * 2
