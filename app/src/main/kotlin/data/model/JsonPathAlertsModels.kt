@@ -167,8 +167,8 @@ data class GroupedAlertData(
                     startsWith("JSQ-33") -> Route.JSQ_33
                     startsWith("NWK-WTC") -> Route.NWK_WTC
                     startsWith("WTC-NWK") -> Route.NWK_WTC
-                    startsWith("HOB-NWK") -> Route.HOB_WTC
-                    startsWith("NWK-HOB") -> Route.HOB_WTC
+                    startsWith("HOB-WTC") -> Route.HOB_WTC
+                    startsWith("WTC-HOB") -> Route.HOB_WTC
                     startsWith("JSQ-33 via HOB") -> Route.JSQ_33_HOB
                     else -> null
                 }
