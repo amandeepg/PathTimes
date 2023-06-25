@@ -82,7 +82,8 @@ data class AlertDatas(
                 }
             }
             .map { group ->
-                if (group.value.size == 1) {
+                val title = group.value.first().text.split(".").first().toTitle()
+                if (group.value.size == 1 && title !is AlertData.Grouped.Title.RouteTitle) {
                     group.value.single()
                 } else {
                     val alerts = group.value
@@ -100,7 +101,7 @@ data class AlertDatas(
                         }
                         .distinctBy { it.text }
                     AlertData.Grouped(
-                        title = group.value.first().text.split(".").first().toTitle(),
+                        title = title,
                         main = alerts.first(),
                         history = alerts.drop(1),
                     )

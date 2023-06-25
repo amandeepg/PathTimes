@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -115,7 +116,7 @@ fun Alert(
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 style = timeTextStyle,
             )
-            if (alert is AlertData.Grouped) {
+            if (alert is AlertData.Grouped && alert.history.isNotEmpty()) {
                 val (expanded, setExpanded) = remember { mutableStateOf(false) }
                 val arrowRotationDegree by animateExpandingArrow(expanded)
 
@@ -238,6 +239,7 @@ fun Alerts(
                 Divider(
                     modifier = Modifier.padding(vertical = 6.dp),
                     thickness = Dp.Hairline,
+                    color = DividerDefaults.color.copy(alpha = 0.5f)
                 )
             } else {
                 Spacer(Modifier.height(4.dp))
