@@ -59,7 +59,6 @@ data class AlertDatas(
             timeZone = TimeZone.getTimeZone("America/New_York")
         }
         private val TIME_PREFIX_REGEX = Regex("\\d{1,2}:\\d{2} [ap]m:", RegexOption.IGNORE_CASE)
-        private val TIME_DATE_IN_DATE_REGEX = Regex("\\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat) \\d{2}-\\d{2}-\\d{4} ([01]\\d|2[0-3]):([0-5]\\d)[ap]m:", RegexOption.IGNORE_CASE)
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
         fun List<Pair<String, String>>.toAlertDatas(): List<AlertData> = this
             .map {
@@ -115,7 +114,7 @@ data class AlertDatas(
             return regularAlerts to groupedAlerts
         }
 
-        private fun String.removeUnnecessaryText(): String = replace(TIME_DATE_IN_DATE_REGEX, "")
+        private fun String.removeUnnecessaryText(): String = this
             .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
@@ -163,13 +162,13 @@ data class GroupedAlertData(
         companion object {
             fun String.toTitle(): Title {
                 val route = when {
+                    startsWith("JSQ-33 via HOB") -> Route.JSQ_33_HOB
                     startsWith("HOB-33") -> Route.HOB_33
                     startsWith("JSQ-33") -> Route.JSQ_33
                     startsWith("NWK-WTC") -> Route.NWK_WTC
                     startsWith("WTC-NWK") -> Route.NWK_WTC
                     startsWith("HOB-WTC") -> Route.HOB_WTC
                     startsWith("WTC-HOB") -> Route.HOB_WTC
-                    startsWith("JSQ-33 via HOB") -> Route.JSQ_33_HOB
                     else -> null
                 }
                 return if (route != null) {
