@@ -165,7 +165,7 @@ private fun StationPreview() {
 @Composable
 @Preview(name = "Light")
 @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
-fun EmptyStationPreview() {
+private fun EmptyStationPreview() {
     PATHTheme {
         Station(
             station = Station(

@@ -1,3 +1,5 @@
+import de.fayard.refreshVersions.core.StabilityLevel
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -7,8 +9,14 @@ pluginManagement {
 }
 
 plugins {
-    // See https://jmfayard.github.io/refreshVersions
-    id 'de.fayard.refreshVersions' version '0.51.0'
+    // See https://splitties.github.io/refreshVersions
+    id("de.fayard.refreshVersions") version "0.51.0"
+}
+
+refreshVersions {
+    rejectVersionIf {
+        candidate.stabilityLevel != StabilityLevel.Stable
+    }
 }
 
 dependencyResolutionManagement {
@@ -19,4 +27,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "PATH"
-include ':app'
+include(":app")
