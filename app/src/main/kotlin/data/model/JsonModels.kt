@@ -90,6 +90,15 @@ enum class Route(
     ),
 }
 
+val Route.displayName
+    get() = when (this) {
+        Route.JSQ_33 -> "JSQ-33"
+        Route.HOB_33 -> "HOB-33"
+        Route.HOB_WTC -> "HOB-WTC"
+        Route.NWK_WTC -> "NWK-WTC"
+        Route.JSQ_33_HOB -> "JSQ-33 via HOB"
+    }
+
 @Stable
 enum class RouteStation {
     JSQ, NWK, WTC, HOB, THIRTY_THIRD,

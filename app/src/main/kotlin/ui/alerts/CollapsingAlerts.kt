@@ -1,8 +1,6 @@
 package ca.amandeep.path.ui.alerts
 
 import android.content.res.Configuration
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,6 +20,8 @@ import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -36,11 +36,11 @@ import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.AlertDatas
-import ca.amandeep.path.data.model.GroupedAlertData
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.ui.HEADING_LIGHT_TEXT_COLOR
 import ca.amandeep.path.ui.NWK_WTC_COLOR
 import ca.amandeep.path.ui.collapsing.ExpandableContainerView
+import ca.amandeep.path.ui.collapsing.animateExpandingArrow
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
 import ca.amandeep.path.ui.theme.PATHTheme
@@ -130,11 +130,7 @@ private fun BoxScope.Icon(
     connectivityState: ConnectionState,
     expanded: Boolean,
 ) {
-    val arrowRotationDegree by animateFloatAsState(
-        animationSpec = tween(),
-        targetValue = if (expanded) 0f else 180f,
-        label = "Animate collapse icon",
-    )
+    val arrowRotationDegree by animateExpandingArrow(expanded)
 
     Modifier.size(24.dp)
         .align(Alignment.CenterStart)
@@ -213,11 +209,13 @@ private fun CollapsingAlertsPreview(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
         ) {
+            val defaultExpanded = (alertsResult as? Result.Valid)?.data?.alerts.orEmpty().size > 1
+            val (expanded, setExpanded) = remember { mutableStateOf<Boolean?>(null) }
             ExpandableAlerts(
                 connectivityState = ConnectionState.Unavailable,
                 alertsResult = alertsResult,
-                expanded = (alertsResult as? Result.Valid)?.data?.alerts.orEmpty().size > 1,
-                setExpanded = {},
+                expanded = expanded ?: defaultExpanded,
+                setExpanded = setExpanded,
             )
         }
     }
@@ -225,43 +223,43 @@ private fun CollapsingAlertsPreview(
 
 class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiModel>> {
     companion object {
-        val ALERT1 = AlertData(
+        val ALERT1 = AlertData.Single(
             date = Date().apply { time -= 7.minutes.inWholeMilliseconds },
             text = "JSQ-33 via HOB delayed. Train experiencing network communication problems at JSQ. An update will be issued in approx. 15 mins.",
         )
-        val ALERT2 = AlertData(
+        val ALERT2 = AlertData.Single(
             date = Date().apply { time -= 12.minutes.inWholeMilliseconds },
             text = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. We regret this inconvenience.",
         )
-        val GROUPED_ALERT1 = GroupedAlertData(
-            title = GroupedAlertData.Title.RouteTitle(Route.NWK_WTC, "delayed"),
-            alerts = listOf(
-                AlertData(
-                    "Trains moving again.",
-                    date = Date().apply { time -= 4.minutes.inWholeMilliseconds },
-                ),
-                AlertData(
+        val GROUPED_ALERT1 = AlertData.Grouped(
+            title = AlertData.Grouped.Title.RouteTitle(Route.NWK_WTC, "delayed"),
+            main = AlertData.Single(
+                "Trains moving again.",
+                date = Date().apply { time -= 4.minutes.inWholeMilliseconds },
+            ),
+            history = listOf(
+                AlertData.Single(
                     "Bird has been saved. Update in 15 mins.",
                     date = Date().apply { time -= 16.minutes.inWholeMilliseconds },
                 ),
-                AlertData(
+                AlertData.Single(
                     "Crew reported a bird. Update in 10 mins.",
                     date = Date().apply { time -= 24.minutes.inWholeMilliseconds },
                 ),
             ),
         )
-        val GROUPED_ALERT2 = GroupedAlertData(
-            title = GroupedAlertData.Title.FreeformTitle("Bird incident"),
-            alerts = listOf(
-                AlertData(
-                    "Trains moving again.",
-                    date = Date().apply { time -= 3.minutes.inWholeMilliseconds },
-                ),
-                AlertData(
+        val GROUPED_ALERT2 = AlertData.Grouped(
+            title = AlertData.Grouped.Title.FreeformTitle("Bird incident"),
+            main = AlertData.Single(
+                "Trains moving again.",
+                date = Date().apply { time -= 3.minutes.inWholeMilliseconds },
+            ),
+            history = listOf(
+                AlertData.Single(
                     "Bird has been saved. Update in 15 mins.",
                     date = Date().apply { time -= 17.minutes.inWholeMilliseconds },
                 ),
-                AlertData(
+                AlertData.Single(
                     "Crew reported a bird. Update in 10 mins.",
                     date = Date().apply { time -= 23.minutes.inWholeMilliseconds },
                 ),
@@ -276,15 +274,12 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
         Result.Valid(lastUpdated = 0, AlertDatas(), hasError = true),
         Result.Valid(
             lastUpdated = System.currentTimeMillis(),
-            hasError = false,
             data = AlertDatas(
-                groupedAlerts = listOf(GROUPED_ALERT1, GROUPED_ALERT2),
-                alerts = listOf(ALERT1, ALERT2),
+                alerts = listOf(ALERT1, GROUPED_ALERT1, ALERT2, GROUPED_ALERT2),
             ),
         ),
         Result.Valid(
             lastUpdated = System.currentTimeMillis(),
-            hasError = false,
             data = AlertDatas(
                 alerts = listOf(ALERT1),
             ),

@@ -51,19 +51,19 @@ class AlertDatasTest {
             "6/5/2023 01:02 PM" to "01:02 PM: NWK-WTC delays continue. Crew reported a bird. An update will be issued in approx. 12 mins.",
             "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC almost done. Trains almost moving again. An update will be issued in approx. 11 mins.",
         ).toAlertDatas().getGroupedAlerts()
-        assertThat(alertDatas.second).containsExactly(
-            GroupedAlertData(
-                title = GroupedAlertData.Title.RouteTitle(Route.NWK_WTC, "almost done"),
-                alerts = listOf(
-                    AlertData(
-                        "Trains almost moving again. Update in 11 mins.",
-                        date = Date(1686017280000L),
-                    ),
-                    AlertData(
+        assertThat(alertDatas).containsExactly(
+            AlertData.Grouped(
+                title = AlertData.Grouped.Title.RouteTitle(Route.NWK_WTC, "almost done"),
+                main = AlertData.Single(
+                    "Trains almost moving again. Update in 11 mins.",
+                    date = Date(1686017280000L),
+                ),
+                history = listOf(
+                    AlertData.Single(
                         "Bird has been saved.",
                         date = Date(1685997420000L),
                     ),
-                    AlertData(
+                    AlertData.Single(
                         "Crew reported a bird.",
                         date = Date(1685984520000L),
                     ),
@@ -79,19 +79,19 @@ class AlertDatasTest {
             "6/5/2023 01:02 PM" to "01:02 PM: Bird incident. Crew reported a bird. An update will be issued in approx. 10 mins.",
             "6/5/2023 10:08 PM" to "10:08 PM: Bird incident. Trains moving again.",
         ).toAlertDatas().getGroupedAlerts()
-        assertThat(alertDatas.second).containsExactly(
-            GroupedAlertData(
-                title = GroupedAlertData.Title.FreeformTitle("Bird incident"),
-                alerts = listOf(
-                    AlertData(
-                        "Trains moving again.",
-                        date = Date(1686017280000L),
-                    ),
-                    AlertData(
+        assertThat(alertDatas).containsExactly(
+            AlertData.Grouped(
+                title = AlertData.Grouped.Title.FreeformTitle("Bird incident"),
+                main = AlertData.Single(
+                    "Trains moving again.",
+                    date = Date(1686017280000L),
+                ),
+                history = listOf(
+                    AlertData.Single(
                         "Bird has been saved.",
                         date = Date(1685997420000L),
                     ),
-                    AlertData(
+                    AlertData.Single(
                         "Crew reported a bird.",
                         date = Date(1685984520000L),
                     ),

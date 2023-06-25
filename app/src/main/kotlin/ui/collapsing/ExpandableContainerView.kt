@@ -2,6 +2,8 @@ package ca.amandeep.path.ui.collapsing
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 
 @Composable
 fun ExpandableContainerView(
@@ -43,17 +46,13 @@ private fun HeaderView(
 ) {
     Box(
         modifier = Modifier
-            .clickable(
-                indication = null, // Removes the ripple effect on tap
-                interactionSource = remember { MutableInteractionSource() }, // Removes the ripple effect on tap
-                onClick = onClick,
-            ),
+            .expandableClickable(onClick = onClick),
         content = content,
     )
 }
 
 @Composable
-private fun ExpandableView(
+fun ExpandableView(
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
     content: @Composable AnimatedVisibilityScope.() -> Unit,
@@ -72,3 +71,20 @@ private fun ExpandableView(
         content = content,
     )
 }
+
+fun Modifier.expandableClickable(
+    onClick: () -> Unit,
+) = composed {
+    clickable(
+        indication = null, // Removes the ripple effect on tap
+        interactionSource = remember { MutableInteractionSource() }, // Removes the ripple effect on tap
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun animateExpandingArrow(expanded: Boolean) = animateFloatAsState(
+    animationSpec = tween(),
+    targetValue = if (expanded) 0f else 180f,
+    label = "Animate collapse icon",
+)

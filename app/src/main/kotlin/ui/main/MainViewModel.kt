@@ -76,7 +76,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     Result.Valid(
                         lastUpdated = arrivalsResult.metadata.lastUpdated,
                         data = closestArrivals,
-                        hasError = false,
                     )
                 }
             val alertsUiModel =
@@ -88,7 +87,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     Result.Valid(
                         lastUpdated = alertsResult.metadata.lastUpdated,
                         data = alertsResult.alerts,
-                        hasError = false,
                     )
                 }
 

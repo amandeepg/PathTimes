@@ -25,7 +25,7 @@ class AlertContainerTest {
         assertThat(alertDatas.hasError).isFalse()
 
         assertThat(alertDatas.alerts).containsExactly(
-            AlertData(
+            AlertData.Single(
                 text = "9 St and 23 St stations closed nightly from approximately 11:59pm until 5am the following morning for maintenance-related activity and periodic cleaning. Christopher St, 14 St, and 33 St entrances remain open.",
                 date = Date(1_686_016_800_000L),
             ),

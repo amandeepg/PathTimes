@@ -331,12 +331,12 @@ private fun MainScreenContent(
             targetState = uiModel.arrivals is Result.Loading,
             label = "loading crossfade",
         ) { isLoading ->
-            when (isLoading) {
+            when (isLoading || uiModel.arrivals !is Result.Valid) {
                 true -> LoadingScreen()
                 false -> LoadedScreen(
                     uiModel = uiModel,
                     locationPermissionsUpdated = locationPermissionsUpdated,
-                    arrivals = uiModel.arrivals as Result.Valid,
+                    arrivals = uiModel.arrivals,
                     connectivityState = connectivityState,
                     anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                     userState = userState,
