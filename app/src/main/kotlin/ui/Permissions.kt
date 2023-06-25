@@ -121,8 +121,7 @@ private fun PermissionsUi(
     Column(modifier = modifier) {
         Text(
             rationaleText,
-            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight,
+            style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.secondary,

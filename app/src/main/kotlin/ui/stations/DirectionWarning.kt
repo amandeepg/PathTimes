@@ -66,8 +66,7 @@ fun DirectionWarning(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    fontSize = MaterialTheme.typography.labelLarge.fontSize,
-                    lineHeight = MaterialTheme.typography.labelLarge.lineHeight,
+                    style = MaterialTheme.typography.labelLarge,
                     text = if (showOppositeDirection) {
                         stringResource(
                             R.string.all_trains_shown_warning,

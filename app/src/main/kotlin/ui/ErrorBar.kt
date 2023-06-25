@@ -70,8 +70,7 @@ fun ErrorBar(
                 }
                 Text(
                     text = errorText + stringResource(R.string.stale_data_explanation),
-                    fontSize = MaterialTheme.typography.labelSmall.fontSize,
-                    lineHeight = MaterialTheme.typography.labelSmall.lineHeight,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
             }

@@ -60,8 +60,7 @@ fun ErrorScreen(
                 Spacer(Modifier.height(30.dp))
                 Text(
                     text = stringResource(R.string.no_internet_connection),
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    lineHeight = MaterialTheme.typography.headlineMedium.lineHeight,
+                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                 )
@@ -69,16 +68,14 @@ fun ErrorScreen(
             ConnectionState.Available -> {
                 Text(
                     stringResource(R.string.load_trains_error),
-                    fontSize = MaterialTheme.typography.headlineMedium.fontSize,
-                    lineHeight = MaterialTheme.typography.headlineMedium.lineHeight,
+                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(5.dp))
                 Text(
                     stringResource(R.string.try_again_later_body_text),
-                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                    lineHeight = MaterialTheme.typography.titleMedium.lineHeight,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                 )

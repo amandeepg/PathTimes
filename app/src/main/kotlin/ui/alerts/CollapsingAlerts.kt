@@ -109,8 +109,7 @@ private fun AlertsTitle(alertsResults: Result<AlertsUiModel>) {
     Text(
         textAlign = TextAlign.Center,
         color = MaterialTheme.colorScheme.onBackground,
-        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-        fontWeight = MaterialTheme.typography.titleMedium.fontWeight,
+        style = MaterialTheme.typography.titleMedium,
         text = when (alertsResults) {
             is Result.Error -> stringResource(R.string.couldn_t_load_path_alerts)
             is Result.Loading -> stringResource(R.string.loading_path_alerts)

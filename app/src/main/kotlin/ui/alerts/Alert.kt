@@ -89,9 +89,8 @@ fun Alert(
                             Text(
                                 text = route.displayName,
                                 color = textColor,
-                                fontSize = alertTextStyle.fontSize,
+                                style = alertTextStyle,
                                 fontWeight = FontWeight.Bold,
-                                lineHeight = alertTextStyle.lineHeight,
                                 modifier = Modifier
                                     .align(Alignment.CenterVertically)
                                     .padding(vertical = 0.5.dp, horizontal = 5.dp),
@@ -101,9 +100,7 @@ fun Alert(
                         Text(
                             text = alert.title.text,
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = alertTextStyle.fontSize,
-                            fontWeight = alertTextStyle.fontWeight,
-                            lineHeight = alertTextStyle.lineHeight,
+                            style = alertTextStyle,
                             modifier = Modifier
                                 .padding(start = 5.dp)
                                 .align(Alignment.CenterVertically),
@@ -114,9 +111,7 @@ fun Alert(
                     Text(
                         text = alert.title.text,
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = alertTextStyle.fontSize,
-                        fontWeight = alertTextStyle.fontWeight,
-                        lineHeight = alertTextStyle.lineHeight,
+                        style = alertTextStyle,
                     )
 
                 else -> Unit
@@ -125,9 +120,7 @@ fun Alert(
         Text(
             text = singleAlert.text,
             color = MaterialTheme.colorScheme.onBackground,
-            fontSize = alertTextStyle.fontSize,
-            fontWeight = alertTextStyle.fontWeight,
-            lineHeight = alertTextStyle.lineHeight,
+            style = alertTextStyle,
         )
         if (singleAlert.date != null) {
             @Composable
@@ -141,9 +134,7 @@ fun Alert(
                     DateUtils.MINUTE_IN_MILLIS,
                 ).toString().lowercase(Locale.US),
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                fontSize = timeTextStyle.fontSize,
-                fontWeight = timeTextStyle.fontWeight,
-                lineHeight = timeTextStyle.lineHeight,
+                style = timeTextStyle,
             )
             if (alert is AlertData.Grouped) {
                 val (expanded, setExpanded) = remember { mutableStateOf(false) }
@@ -154,9 +145,7 @@ fun Alert(
                     Text(
                         text = " · ",
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                        fontSize = timeTextStyle.fontSize,
-                        fontWeight = timeTextStyle.fontWeight,
-                        lineHeight = timeTextStyle.lineHeight,
+                        style = timeTextStyle,
                     )
                     Text(
                         modifier = Modifier
@@ -172,9 +161,7 @@ fun Alert(
                                 stringResource(R.string.view_older)
                         },
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = timeTextStyle.fontSize,
-                        fontWeight = timeTextStyle.fontWeight,
-                        lineHeight = timeTextStyle.lineHeight,
+                        style = timeTextStyle,
                     )
                     Icon(
                         modifier = Modifier
