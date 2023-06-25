@@ -5,10 +5,12 @@ import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -67,34 +69,11 @@ fun Alert(
             when (alert.title) {
                 is AlertData.Grouped.Title.RouteTitle ->
                     Row(modifier = Modifier.padding(bottom = 3.dp)) {
-                        val route = alert.title.route
-                        val pillColor = when (route) {
-                            Route.JSQ_33 -> JSQ_33_COLOR
-                            Route.HOB_33 -> HOB_33_COLOR
-                            Route.HOB_WTC -> HOB_WTC_COLOR
-                            Route.NWK_WTC -> NWK_WTC_COLOR
-                            Route.JSQ_33_HOB -> JSQ_33_COLOR
-                        }
-                        val textColor = when (route) {
-                            Route.JSQ_33 -> HEADING_DARK_TEXT_COLOR
-                            Route.HOB_33 -> HEADING_LIGHT_TEXT_COLOR
-                            Route.HOB_WTC -> HEADING_LIGHT_TEXT_COLOR
-                            Route.NWK_WTC -> HEADING_LIGHT_TEXT_COLOR
-                            Route.JSQ_33_HOB -> HEADING_DARK_TEXT_COLOR
-                        }
-                        Surface(
-                            shape = RoundedCornerShape(5.dp),
-                            color = pillColor,
-                        ) {
-                            Text(
-                                text = route.displayName,
-                                color = textColor,
-                                style = alertTextStyle,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .align(Alignment.CenterVertically)
-                                    .padding(vertical = 0.5.dp, horizontal = 5.dp),
-                            )
+                        alert.title.routes.forEachIndexed { index, route ->
+                            SingleRoute(route, alertTextStyle)
+                            if (index != alert.title.routes.size - 1) {
+                                Spacer(Modifier.width(2.dp))
+                            }
                         }
 
                         Text(
@@ -155,7 +134,7 @@ fun Alert(
                             is AlertData.Grouped.Title.RouteTitle ->
                                 stringResource(
                                     R.string.view_older_route,
-                                    alert.title.route.displayName,
+                                    alert.title.routes.first().displayName,
                                 )
                             else ->
                                 stringResource(R.string.view_older)
@@ -205,6 +184,41 @@ fun Alert(
                 DateText()
             }
         }
+    }
+}
+
+@Composable
+private fun RowScope.SingleRoute(
+    route: Route,
+    style: TextStyle,
+) {
+    val pillColor = when (route) {
+        Route.JSQ_33 -> JSQ_33_COLOR
+        Route.HOB_33 -> HOB_33_COLOR
+        Route.HOB_WTC -> HOB_WTC_COLOR
+        Route.NWK_WTC -> NWK_WTC_COLOR
+        Route.JSQ_33_HOB -> JSQ_33_COLOR
+    }
+    val textColor = when (route) {
+        Route.JSQ_33 -> HEADING_DARK_TEXT_COLOR
+        Route.HOB_33 -> HEADING_LIGHT_TEXT_COLOR
+        Route.HOB_WTC -> HEADING_LIGHT_TEXT_COLOR
+        Route.NWK_WTC -> HEADING_LIGHT_TEXT_COLOR
+        Route.JSQ_33_HOB -> HEADING_DARK_TEXT_COLOR
+    }
+    Surface(
+        shape = RoundedCornerShape(5.dp),
+        color = pillColor,
+    ) {
+        Text(
+            text = route.displayName,
+            color = textColor,
+            style = style,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .padding(vertical = 0.5.dp, horizontal = 5.dp),
+        )
     }
 }
 

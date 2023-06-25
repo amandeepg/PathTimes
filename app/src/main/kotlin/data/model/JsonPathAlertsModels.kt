@@ -1,6 +1,7 @@
 package ca.amandeep.path.data.model
 
 import androidx.compose.runtime.Stable
+import ca.amandeep.path.data.model.AlertData.Grouped.Title.Companion.extractRoutesTitle
 import ca.amandeep.path.data.model.AlertData.Grouped.Title.Companion.toTitle
 import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
 import ca.amandeep.path.data.model.AlertDatas.Companion.toAlertDatas
@@ -76,14 +77,8 @@ data class AlertDatas(
                 if ("Service Advisory" in it.text) {
                     it.text
                 } else {
-                    when {
-                        it.text.startsWith("JSQ-33 via HOB") -> "JSQ-33 via HOB"
-                        it.text.startsWith("JSQ-33") -> "JSQ-33"
-                        it.text.startsWith("HOB-33") -> "HOB-33"
-                        it.text.startsWith("HOB-WTC") -> "HOB-WTC"
-                        it.text.startsWith("NWK-WTC") -> "NWK-WTC"
-                        else -> it.text.split(".").first()
-                    }
+                    it.text.extractRoutesTitle()?.routes?.joinToString()
+                        ?: it.text.split(".").first()
                 }
             }
             .map { group ->
@@ -141,7 +136,7 @@ sealed interface AlertData {
     ) : AlertData {
         sealed interface Title {
             data class RouteTitle(
-                val route: Route,
+                val routes: List<Route>,
                 val text: String,
             ) : Title
 
@@ -158,13 +153,22 @@ sealed interface AlertData {
                     "WTC-HOB" to Route.HOB_WTC,
                 )
 
-                fun String.toTitle(): Title {
-                    val routeInText = ROUTE_STRINGS.firstOrNull { startsWith(it.first) }?.first
-                    val route = ROUTE_STRINGS.firstOrNull { startsWith(it.first) }?.second
-                    return if (route != null) {
-                        RouteTitle(route, replaceFirst(routeInText!!, "").trim())
+                fun String.toTitle(): Title =
+                    extractRoutesTitle() ?: FreeformTitle(this)
+
+                fun String.extractRoutesTitle(): RouteTitle? {
+                    val routes = split(", ").mapNotNull { candidateStr ->
+                        ROUTE_STRINGS.firstOrNull { candidateStr.trim().startsWith(it.first) }
+                    }
+                    return if (routes.isNotEmpty()) {
+                        RouteTitle(
+                            routes = routes.map { it.second },
+                            text = routes.fold(this) { str, route ->
+                                str.removePrefix(route.first).removePrefix(", ").trim()
+                            },
+                        )
                     } else {
-                        FreeformTitle(this)
+                        null
                     }
                 }
             }

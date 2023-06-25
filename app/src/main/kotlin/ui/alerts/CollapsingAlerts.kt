@@ -231,7 +231,10 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
             text = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. We regret this inconvenience.",
         )
         val GROUPED_ALERT1 = AlertData.Grouped(
-            title = AlertData.Grouped.Title.RouteTitle(Route.NWK_WTC, "delayed"),
+            title = AlertData.Grouped.Title.RouteTitle(
+                listOf(Route.NWK_WTC, Route.HOB_WTC),
+                "delayed",
+            ),
             main = AlertData.Single(
                 "Trains moving again.",
                 date = Date().apply { time -= 4.minutes.inWholeMilliseconds },
