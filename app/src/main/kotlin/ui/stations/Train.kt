@@ -82,61 +82,59 @@ fun Train(
         TrainHeading(train.upcomingTrain, userState)
         Spacer(modifier = Modifier.weight(1f))
 
-        Crossfade(
-            targetState = train.upcomingTrain.relativeArrivalMins(now).roundToInt(),
-            label = "Arrival time crossfade",
-        ) { arrivalTime ->
-            val oldTime = autoRefreshingNow && abs(arrivalTime - train.arrivalInMinutesFromNow) >= 2
-            Row {
-                Crossfade(
-                    targetState = oldTime,
-                    label = "Arrival time crossfade",
-                ) { oldTime ->
-                    if (oldTime) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(20.dp)
-                                .align(Alignment.CenterVertically),
-                            strokeWidth = 1.dp,
-                            color = Color.Gray.copy(alpha = 0.7f),
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                    }
-                }
-                if (arrivalTime >= 0) {
-                    Text(
-                        when (arrivalTime) {
-                            0 -> stringResource(R.string.now)
-                            else -> arrivalTime.toString()
-                        },
-                        fontWeight = FontWeight.Black,
-                        fontSize = 20.sp,
-                        modifier = Modifier.alignByBaseline(),
+        val arrivalTime = train.upcomingTrain.relativeArrivalMins(now).roundToInt()
+        val oldTime = autoRefreshingNow && abs(arrivalTime - train.arrivalInMinutesFromNow) >= 2
+        Row {
+            Crossfade(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(end = 4.dp),
+                targetState = oldTime,
+                label = "Arrival time crossfade",
+            ) { oldTime ->
+                if (oldTime) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.Gray.copy(alpha = 0.3f),
                     )
+                    Spacer(modifier = Modifier.width(5.dp))
                 }
-                ProvideTextStyle(TextStyle(fontWeight = FontWeight.Light)) {
-                    when {
-                        arrivalTime <= 0 -> Unit
-                        arrivalTime == 1 -> {
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                stringResource(R.string.mins_singular),
-                                modifier = Modifier.alignByBaseline(),
-                            )
-                            Text(
-                                stringResource(R.string.mins_plural_part),
-                                color = Color.Transparent,
-                                modifier = Modifier.alignByBaseline(),
-                            )
-                        }
+            }
+            if (arrivalTime >= 0) {
+                Text(
+                    when (arrivalTime) {
+                        0 -> stringResource(R.string.now)
+                        else -> arrivalTime.toString()
+                    },
+                    fontWeight = FontWeight.Black,
+                    fontSize = 20.sp,
+                    modifier = Modifier.alignByBaseline(),
+                )
+            }
+            ProvideTextStyle(TextStyle(fontWeight = FontWeight.Light)) {
+                when {
+                    arrivalTime <= 0 -> Unit
+                    arrivalTime == 1 -> {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            stringResource(R.string.mins_singular),
+                            modifier = Modifier.alignByBaseline(),
+                        )
+                        Text(
+                            stringResource(R.string.mins_plural_part),
+                            color = Color.Transparent,
+                            modifier = Modifier.alignByBaseline(),
+                        )
+                    }
 
-                        else -> {
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                stringResource(R.string.mins_plural),
-                                modifier = Modifier.alignByBaseline(),
-                            )
-                        }
+                    else -> {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            stringResource(R.string.mins_plural),
+                            modifier = Modifier.alignByBaseline(),
+                        )
                     }
                 }
             }
