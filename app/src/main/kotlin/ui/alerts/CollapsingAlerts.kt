@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.SignalWifiOff
+import androidx.compose.material.icons.filled.SyncProblem
 import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -26,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -144,12 +148,10 @@ private fun BoxScope.Icon(
                 )
 
                 is Result.Error -> Icon(
-                    painter = painterResource(
-                        id = when (connectivityState) {
-                            ConnectionState.Available -> R.drawable.ic_sync_error
-                            ConnectionState.Unavailable -> R.drawable.ic_wifi_off
-                        },
-                    ),
+                    imageVector = when (connectivityState) {
+                        ConnectionState.Available -> Icons.Filled.SyncProblem
+                        ConnectionState.Unavailable -> Icons.Filled.SignalWifiOff
+                    },
                     modifier = modifier.padding(2.dp),
                     contentDescription = stringResource(R.string.error_icon),
                     tint = MaterialTheme.colorScheme.onBackground,
@@ -157,7 +159,7 @@ private fun BoxScope.Icon(
 
                 is Result.Valid -> if (alertsResults.data.isEmpty()) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_check),
+                        imageVector = Icons.Filled.Check,
                         modifier = modifier,
                         contentDescription = stringResource(R.string.no_alerts_icon),
                         tint = MaterialTheme.colorScheme.onBackground,
@@ -192,7 +194,7 @@ private fun ArrowIcon(
 ) {
     Icon(
         modifier = modifier.rotate(degrees),
-        painter = painterResource(id = R.drawable.ic_expand_less),
+        imageVector = Icons.Filled.ExpandLess,
         tint = MaterialTheme.colorScheme.onBackground,
         contentDescription = stringResource(R.string.expandable_arrow_content_description),
     )

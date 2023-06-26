@@ -8,13 +8,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,13 +71,46 @@ fun Train(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (userState.showOppositeDirection) {
-            Icon(
-                when (train.upcomingTrain.direction) {
-                    Direction.TO_NJ -> Icons.Filled.ArrowBack
-                    Direction.TO_NY -> Icons.Filled.ArrowForward
-                },
-                contentDescription = stringResource(R.string.to) + train.upcomingTrain.direction.stateName,
-            )
+            Box(
+                modifier = Modifier
+//                    .size(20.dp)
+                    .align(Alignment.CenterVertically)
+                    .offset(x = (-4).dp),
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .align(
+                            when (train.upcomingTrain.direction) {
+                                Direction.TO_NJ -> Alignment.CenterStart
+                                Direction.TO_NY -> Alignment.CenterEnd
+                            },
+                        )
+                        .offset(
+                            x = when (train.upcomingTrain.direction) {
+                                Direction.TO_NJ -> (-6).dp
+                                Direction.TO_NY -> (6).dp
+                            },
+                        ),
+                    imageVector = when (train.upcomingTrain.direction) {
+                        Direction.TO_NJ -> Icons.Filled.ArrowBackIosNew
+                        Direction.TO_NY -> Icons.Filled.ArrowForwardIos
+                    },
+                    contentDescription = stringResource(R.string.to) + train.upcomingTrain.direction.stateName,
+                )
+                Text(
+                    modifier = when (train.upcomingTrain.direction) {
+                        Direction.TO_NJ -> Modifier.align(Alignment.CenterEnd)
+                        Direction.TO_NY -> Modifier.align(Alignment.CenterStart)
+                    },
+                    text = when (train.upcomingTrain.direction) {
+                        Direction.TO_NJ -> "NJ"
+                        Direction.TO_NY -> "NY"
+                    },
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
             Spacer(Modifier.width(5.dp))
         }
         TrainHeading(train.upcomingTrain, userState)

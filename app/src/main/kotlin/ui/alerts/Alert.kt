@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.Icon
@@ -27,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -155,7 +156,8 @@ fun Alert(
                             )
                             .align(Alignment.CenterVertically)
                             .rotate(arrowRotationDegree),
-                        painter = painterResource(id = R.drawable.ic_expand_less),
+
+                        imageVector = Icons.Filled.ExpandLess,
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = stringResource(R.string.expandable_arrow_content_description),
                     )
