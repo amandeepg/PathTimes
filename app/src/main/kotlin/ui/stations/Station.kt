@@ -155,6 +155,7 @@ private fun StationPreview() {
             userState = UserState(
                 shortenNames = true,
                 showOppositeDirection = true,
+                showElevatorAlerts = true,
                 isInNJ = true,
             ),
         )
@@ -177,6 +178,7 @@ private fun EmptyStationPreview() {
             userState = UserState(
                 shortenNames = false,
                 showOppositeDirection = true,
+                showElevatorAlerts = true,
                 isInNJ = true,
             ),
         )

@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +54,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.amandeep.path.R
+import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.ui.ErrorBar
 import ca.amandeep.path.ui.ErrorScreen
 import ca.amandeep.path.ui.KeepUpdatedEffect
@@ -77,6 +81,7 @@ import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -88,6 +93,9 @@ fun MainScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val snackbarState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     var refreshing by remember { mutableStateOf(false) }
     LaunchedEffect(refreshing) {
         if (refreshing) {
@@ -120,8 +128,29 @@ fun MainScreen(
     ) {
         derivedStateOf { showOppositeDirectionPref || !anyLocationPermissionsGranted }
     }
-
-    val snackbarState = remember { SnackbarHostState() }
+    val (showElevatorAlertsPref, setShowElevatorAlertsPref) = rememberBooleanPreference(
+        keyName = "showElevatorAlerts",
+        initialValue = true,
+        defaultValue = true,
+    )
+    val setShowElevatorAlertsWithUndo = run {
+        val snackbarMessage = stringResource(R.string.change_dir_in_options)
+        val snackbarActionLabel = stringResource(R.string.undo)
+        return@run { newValue: Boolean ->
+            setShowElevatorAlertsPref(newValue)
+            if (!newValue) {
+                coroutineScope.launch {
+                    val snackbarResult = snackbarState.showSnackbar(
+                        message = snackbarMessage,
+                        actionLabel = snackbarActionLabel,
+                    )
+                    if (snackbarResult == SnackbarResult.ActionPerformed) {
+                        setShowElevatorAlertsPref(true)
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -136,6 +165,8 @@ fun MainScreen(
                         setShortenNamesPref = setShortenNamesPref,
                         showOppositeDirectionPref = showOppositeDirectionPref,
                         setShowOppositeDirectionPref = setShowOppositeDirectionPref,
+                        showElevatorAlertsPref = showElevatorAlertsPref,
+                        setShowElevatorAlertsPref = setShowElevatorAlertsPref,
                         anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                     )
                 },
@@ -175,6 +206,7 @@ fun MainScreen(
                 userState = UserState(
                     shortenNames = shortenNamesPref,
                     showOppositeDirection = showOppositeDirection,
+                    showElevatorAlerts = showElevatorAlertsPref,
                     isInNJ = isInNJ,
                 ),
                 forceUpdate = forceRefresh,
@@ -184,6 +216,7 @@ fun MainScreen(
                 },
                 snackbarState = snackbarState,
                 setShowingOppositeDirection = setShowOppositeDirectionPref,
+                setShowElevatorAlerts = setShowElevatorAlertsWithUndo,
                 anyLocationPermissionsGranted = anyLocationPermissionsGranted,
             )
             PullRefreshIndicator(
@@ -250,6 +283,8 @@ private fun RowScope.OverflowItems(
     setShortenNamesPref: (Boolean) -> Unit,
     showOppositeDirectionPref: Boolean,
     setShowOppositeDirectionPref: (Boolean) -> Unit,
+    showElevatorAlertsPref: Boolean,
+    setShowElevatorAlertsPref: (Boolean) -> Unit,
     anyLocationPermissionsGranted: Boolean,
 ) {
     IconButton(onClick = forceRefresh) {
@@ -272,9 +307,11 @@ private fun RowScope.OverflowItems(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                setShortenNamesPref(!shortenNamesPref)
-            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    setShortenNamesPref(!shortenNamesPref)
+                },
         ) {
             Checkbox(
                 checked = shortenNamesPref,
@@ -289,9 +326,11 @@ private fun RowScope.OverflowItems(
         if (anyLocationPermissionsGranted) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
-                    setShowOppositeDirectionPref(!showOppositeDirectionPref)
-                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        setShowOppositeDirectionPref(!showOppositeDirectionPref)
+                    },
             ) {
                 Checkbox(
                     checked = showOppositeDirectionPref,
@@ -302,6 +341,24 @@ private fun RowScope.OverflowItems(
                     modifier = Modifier.padding(end = 10.dp),
                 )
             }
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    setShowElevatorAlertsPref(!showElevatorAlertsPref)
+                },
+        ) {
+            Checkbox(
+                checked = showElevatorAlertsPref,
+                onCheckedChange = setShowElevatorAlertsPref,
+            )
+            Text(
+                text = stringResource(R.string.show_elevator_alerts),
+                modifier = Modifier.padding(end = 10.dp),
+            )
         }
     }
 }
@@ -317,6 +374,7 @@ private fun MainScreenContent(
     snackbarState: SnackbarHostState,
     anyLocationPermissionsGranted: Boolean,
     setShowingOppositeDirection: (Boolean) -> Unit,
+    setShowElevatorAlerts: (Boolean) -> Unit,
 ) {
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
@@ -341,6 +399,7 @@ private fun MainScreenContent(
                     anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                     userState = userState,
                     setShowingOppositeDirection = setShowingOppositeDirection,
+                    setShowElevatorAlerts = setShowElevatorAlerts,
                     snackbarState = snackbarState,
                     now = now,
                 )
@@ -358,6 +417,7 @@ private fun LoadedScreen(
     anyLocationPermissionsGranted: Boolean,
     userState: UserState,
     setShowingOppositeDirection: (Boolean) -> Unit,
+    setShowElevatorAlerts: (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
     now: Long,
 ) {
@@ -394,12 +454,28 @@ private fun LoadedScreen(
     ) {
         item { requireOptionalLocationItem(spacingModifier) }
         item {
+            val alertsModel = when (uiModel.alerts) {
+                is Result.Valid -> uiModel.alerts.copy(
+                    data = uiModel.alerts.data.copy(
+                        alerts = uiModel.alerts.data.alerts.filter {
+                            when {
+                                userState.showElevatorAlerts -> true
+                                it is AlertData.Single -> !it.isElevator
+                                else -> true
+                            }
+                        },
+                    ),
+                )
+                else -> uiModel.alerts
+            }
+            uiModel.alerts
             ExpandableAlerts(
                 modifier = spacingModifier,
                 connectivityState = connectivityState,
-                alertsResult = uiModel.alerts,
+                alertsResult = alertsModel,
                 expanded = alertsExpanded,
                 setExpanded = setAlertsExpanded,
+                setShowElevatorAlerts = setShowElevatorAlerts,
             )
         }
         if (anyLocationPermissionsGranted && showDirectionWarning) {
@@ -475,6 +551,7 @@ private fun LoadingScreen() {
 data class UserState(
     val shortenNames: Boolean,
     val showOppositeDirection: Boolean,
+    val showElevatorAlerts: Boolean,
     val isInNJ: Boolean,
 )
 

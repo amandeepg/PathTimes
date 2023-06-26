@@ -234,6 +234,7 @@ private fun TrainShortNamesPreview(
                 userState = UserState(
                     shortenNames = true,
                     showOppositeDirection = true,
+                    showElevatorAlerts = true,
                     isInNJ = true,
                 ),
             )
@@ -259,6 +260,7 @@ private fun TrainLongNamesPreview(
                 userState = UserState(
                     shortenNames = false,
                     showOppositeDirection = true,
+                    showElevatorAlerts = true,
                     isInNJ = true,
                 ),
             )

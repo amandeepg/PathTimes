@@ -113,14 +113,14 @@ data class AlertDatas(
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
             .replace(APOLOGIZE_REGEX, "")
-            .replace("PATHAlert:", "")
-            .replace("PATHAlert Update:", "")
-            .replace("PATHAlert Final Update:", "")
-            .replace("  ", "")
-            .replace("  ", "")
-            .replace("  ", "")
-            .replace("..", ".")
-            .replace("..", ".")
+            .remove("PATHAlert:")
+            .remove("PATHAlert Update:")
+            .remove("PATHAlert Final Update:")
+            .remove("Real-Time Train Departures on: - RidePATH app: - PATH website:")
+            .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
+            .replace("..", ".").replace("..", ".")
+
+        private fun String.remove(str: String): String = replace(str, "")
     }
 }
 
@@ -128,7 +128,9 @@ sealed interface AlertData {
     data class Single(
         val text: String,
         val date: Date?,
-    ) : AlertData
+    ) : AlertData {
+        val isElevator: Boolean = text.contains("elevator", ignoreCase = true)
+    }
 
     data class Grouped(
         val title: Title,

@@ -53,9 +53,10 @@ import kotlin.time.Duration.Companion.minutes
 fun ExpandableAlerts(
     connectivityState: ConnectionState,
     alertsResult: Result<AlertsUiModel>,
+    setExpanded: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
-    setExpanded: (Boolean) -> Unit,
+    setShowElevatorAlerts: (Boolean) -> Unit,
 ) {
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
@@ -98,6 +99,7 @@ fun ExpandableAlerts(
                 Alerts(
                     modifier = Modifier.padding(horizontal = 5.dp),
                     alertsUiModel = (alertsResult as? Result.Valid)?.data ?: AlertDatas(),
+                    setShowElevatorAlerts = setShowElevatorAlerts,
                 )
             },
         )
@@ -215,6 +217,7 @@ private fun CollapsingAlertsPreview(
                 alertsResult = alertsResult,
                 expanded = expanded ?: defaultExpanded,
                 setExpanded = setExpanded,
+                setShowElevatorAlerts = {},
             )
         }
     }

@@ -52,4 +52,6 @@
     <string name="dismiss">Dismiss</string>
     <string name="view_older">View older</string>
     <string name="view_older_route">View older %1$s alerts</string>
+    <string name="hide_elevator_alerts">⦸ Hide elevator alerts »</string>
+    <string name="show_elevator_alerts">Show elevator alerts</string>
 </resources>

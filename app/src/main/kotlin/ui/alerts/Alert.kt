@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
@@ -57,6 +56,7 @@ fun Alert(
     alert: AlertData,
     alertTextStyle: TextStyle,
     timeTextStyle: TextStyle,
+    setShowElevatorAlerts: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val singleAlert = when (alert) {
@@ -116,17 +116,20 @@ fun Alert(
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 style = timeTextStyle,
             )
+
+            @Composable
+            fun Dot() = Text(
+                text = " · ",
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                style = timeTextStyle,
+            )
             if (alert is AlertData.Grouped && alert.history.isNotEmpty()) {
                 val (expanded, setExpanded) = remember { mutableStateOf(false) }
                 val arrowRotationDegree by animateExpandingArrow(expanded)
 
                 Row {
                     DateText()
-                    Text(
-                        text = " · ",
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-                        style = timeTextStyle,
-                    )
+                    Dot()
                     Text(
                         modifier = Modifier
                             .expandableClickable(onClick = { setExpanded(!expanded) })
@@ -174,12 +177,26 @@ fun Alert(
                                 },
                                 timeTextStyle = timeTextStyle
                                     .let { it.copy(fontSize = it.fontSize * 0.85f) },
+                                setShowElevatorAlerts = setShowElevatorAlerts,
                             )
                             if (index != alert.history.size - 1) {
                                 Spacer(Modifier.height(4.dp))
                             }
                         }
                     }
+                }
+            } else if (alert is AlertData.Single && alert.isElevator) {
+                Row {
+                    DateText()
+                    Dot()
+                    Text(
+                        modifier = Modifier
+                            .expandableClickable(onClick = { setShowElevatorAlerts(false) })
+                            .alpha(0.6f),
+                        text = stringResource(R.string.hide_elevator_alerts),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = timeTextStyle,
+                    )
                 }
             } else {
                 DateText()
@@ -227,24 +244,26 @@ private fun RowScope.SingleRoute(
 fun Alerts(
     alertsUiModel: AlertsUiModel,
     modifier: Modifier = Modifier,
+    setShowElevatorAlerts: (Boolean) -> Unit,
 ) {
     Column(modifier) {
-        alertsUiModel.alerts.forEachIndexed { index, alert ->
-            Alert(
-                alert = alert,
-                alertTextStyle = MaterialTheme.typography.bodyMedium,
-                timeTextStyle = MaterialTheme.typography.labelSmall,
-            )
-            if (index != alertsUiModel.size - 1) {
-                Divider(
-                    modifier = Modifier.padding(vertical = 6.dp),
-                    thickness = Dp.Hairline,
-                    color = DividerDefaults.color.copy(alpha = 0.5f)
+        alertsUiModel.alerts
+            .forEachIndexed { index, alert ->
+                Alert(
+                    alert = alert,
+                    alertTextStyle = MaterialTheme.typography.bodyMedium,
+                    timeTextStyle = MaterialTheme.typography.labelSmall,
+                    setShowElevatorAlerts = setShowElevatorAlerts,
                 )
-            } else {
-                Spacer(Modifier.height(4.dp))
+                if (index != alertsUiModel.size - 1) {
+                    Divider(
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        color = DividerDefaults.color.copy(alpha = 0.5f),
+                    )
+                } else {
+                    Spacer(Modifier.height(4.dp))
+                }
             }
-        }
     }
 }
 
@@ -260,6 +279,7 @@ private fun AlertPreview() {
                 .padding(5.dp),
             alertTextStyle = MaterialTheme.typography.bodyMedium,
             timeTextStyle = MaterialTheme.typography.labelSmall,
+            setShowElevatorAlerts = {},
         )
     }
 }
@@ -281,6 +301,7 @@ private fun AlertsPreview() {
                     SampleAlertsPreviewProvider.GROUPED_ALERT2,
                 ),
             ),
+            setShowElevatorAlerts = {},
         )
     }
 }
