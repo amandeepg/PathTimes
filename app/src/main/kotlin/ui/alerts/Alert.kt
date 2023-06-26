@@ -98,11 +98,13 @@ fun Alert(
                 else -> Unit
             }
         }
-        Text(
-            text = singleAlert.text,
-            color = MaterialTheme.colorScheme.onBackground,
-            style = alertTextStyle,
-        )
+        if (singleAlert.text.isNotEmpty()) {
+            Text(
+                text = singleAlert.text,
+                color = MaterialTheme.colorScheme.onBackground,
+                style = alertTextStyle,
+            )
+        }
         if (singleAlert.date != null) {
             @Composable
             fun DateText() = Text(
@@ -200,7 +202,7 @@ fun Alert(
                         style = timeTextStyle,
                     )
                 }
-            } else {
+            } else if (singleAlert.text.isNotEmpty() || alert is AlertData.Grouped) {
                 DateText()
             }
         }
