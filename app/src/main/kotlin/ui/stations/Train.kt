@@ -73,13 +73,12 @@ fun Train(
         if (userState.showOppositeDirection) {
             Box(
                 modifier = Modifier
-//                    .size(20.dp)
                     .align(Alignment.CenterVertically)
                     .offset(x = (-4).dp),
             ) {
                 Icon(
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(22.dp)
                         .align(
                             when (train.upcomingTrain.direction) {
                                 Direction.TO_NJ -> Alignment.CenterStart
