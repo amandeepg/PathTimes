@@ -112,6 +112,7 @@ data class AlertDatas(
             .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
+            .replace("mins.", "  mins.")
             .replace(APOLOGIZE_REGEX, "")
             .remove("PATHAlert:")
             .remove("PATHAlert Update:")
