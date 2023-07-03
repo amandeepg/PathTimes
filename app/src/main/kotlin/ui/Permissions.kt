@@ -34,6 +34,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionsRequired
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 /**
  * A composable that will show a [PermissionsRequired] composable if the user has not granted
@@ -44,7 +46,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 @CheckResult
 fun requireOptionalLocationItem(
     navigateToSettingsScreen: (Context) -> Unit,
-    permissionsUpdated: suspend (List<String>) -> Unit,
+    permissionsUpdated: suspend (ImmutableList<String>) -> Unit,
 ): @Composable ((Modifier) -> Unit) {
     val ctx = LocalContext.current
 
@@ -60,7 +62,10 @@ fun requireOptionalLocationItem(
     )
 
     val permissionsGranted =
-        locationStates.permissions.filter { it.hasPermission }.map { it.permission }
+        locationStates.permissions
+            .filter { it.hasPermission }
+            .map { it.permission }
+            .toImmutableList()
     LaunchedEffect(permissionsGranted) {
         permissionsUpdated(permissionsGranted)
     }

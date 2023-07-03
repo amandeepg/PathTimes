@@ -7,6 +7,9 @@ import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
 import ca.amandeep.path.data.model.AlertDatas.Companion.toAlertDatas
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.text.SimpleDateFormat
@@ -37,7 +40,7 @@ data class AlertContainer(
     companion object {
         private const val NO_ALERTS_HTML_TEXT = "There are no active PATHAlerts at this time"
 
-        private fun Document.toAlertDatas(): List<AlertData.Single> =
+        private fun Document.toAlertDatas(): ImmutableList<AlertData.Single> =
             select(".stationName").map { it.text() }
                 .zip(select(".alertText").map { it.text() })
                 .toAlertDatas()
@@ -45,7 +48,7 @@ data class AlertContainer(
 }
 
 data class AlertDatas(
-    val alerts: List<AlertData> = emptyList(),
+    val alerts: ImmutableList<AlertData> = persistentListOf(),
     val hasError: Boolean = false,
 ) {
     val size = alerts.size
@@ -59,7 +62,7 @@ data class AlertDatas(
         private val TIME_PREFIX_REGEX = Regex("\\d{1,2}:\\d{2} [ap]m:", RegexOption.IGNORE_CASE)
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
         private val APOLOGIZE_REGEX = Regex("We (apologize|regret) (for )?(the|this|any)?( )?(inconvenience)( )?(this )?(may )?(have|has)?( )?(caused)?(.*\\.)")
-        fun List<Pair<String, String>>.toAlertDatas(): List<AlertData.Single> = this
+        fun Iterable<Pair<String, String>>.toAlertDatas(): ImmutableList<AlertData.Single> = this
             .map {
                 val date = try {
                     DATE_FORMATTER.parse(it.first.trim())
@@ -71,8 +74,9 @@ data class AlertDatas(
             .sortedBy { it.date }
             .reversed()
             .distinctBy { it.text }
+            .toImmutableList()
 
-        fun List<AlertData.Single>.getGroupedAlerts(): List<AlertData> = this
+        fun Iterable<AlertData.Single>.getGroupedAlerts(): ImmutableList<AlertData> = this
             .groupBy {
                 if ("Service Advisory" in it.text) {
                     it.text
@@ -103,10 +107,11 @@ data class AlertDatas(
                     AlertData.Grouped(
                         title = title,
                         main = alerts.first(),
-                        history = alerts.drop(1),
+                        history = alerts.drop(1).toImmutableList(),
                     )
                 }
             }
+            .toImmutableList()
 
         private fun String.removeUnnecessaryText(): String = this
             .replaceFirst(TIME_PREFIX_REGEX, "")
@@ -125,7 +130,9 @@ data class AlertDatas(
     }
 }
 
+@Stable
 sealed interface AlertData {
+    @Stable
     data class Single(
         val text: String,
         val date: Date?,
@@ -133,17 +140,21 @@ sealed interface AlertData {
         val isElevator: Boolean = text.contains("elevator", ignoreCase = true)
     }
 
+    @Stable
     data class Grouped(
         val title: Title,
         val main: Single,
-        val history: List<Single> = emptyList(),
+        val history: ImmutableList<Single> = persistentListOf(),
     ) : AlertData {
+        @Stable
         sealed interface Title {
+            @Stable
             data class RouteTitle(
-                val routes: List<Route>,
+                val routes: ImmutableList<Route>,
                 val text: String,
             ) : Title
 
+            @Stable
             data class FreeformTitle(val text: String) : Title
 
             companion object {
@@ -166,7 +177,7 @@ sealed interface AlertData {
                     }
                     return if (routes.isNotEmpty()) {
                         RouteTitle(
-                            routes = routes.map { it.second },
+                            routes = routes.map { it.second }.toImmutableList(),
                             text = routes.fold(this) { str, route ->
                                 str.removePrefix(route.first).removePrefix(", ").trim()
                             },

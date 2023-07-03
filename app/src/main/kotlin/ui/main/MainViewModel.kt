@@ -13,6 +13,8 @@ import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
 import com.github.ajalt.timberkt.d
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -65,7 +67,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         now = System.currentTimeMillis(),
                     )
                     ?.sortedByDirectionAndTime(currentLocation)
-            }
+                    ?.toImmutableList()
+            }.toImmutableList()
 
             val arrivalsUiModel =
                 if (arrivalsResult.metadata.lastUpdated < 0) {
@@ -111,7 +114,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     suspend fun refreshTrainsFromNetwork() = pathRepository.refresh()
 
-    suspend fun locationPermissionsUpdated(currentPermissions: List<String>) =
+    suspend fun locationPermissionsUpdated(currentPermissions: ImmutableList<String>) =
         locationUseCase.permissionsUpdated(currentPermissions)
 
     companion object {

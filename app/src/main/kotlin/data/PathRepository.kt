@@ -7,6 +7,11 @@ import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.util.tickFlow
 import ca.amandeep.path.util.zip
 import com.github.ajalt.timberkt.d
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -52,7 +57,10 @@ class PathRepository(
                     // Gets arrivals for all stations
                     .flatMapLatest { fetchArrivals(it.stations.orEmpty()) }
                     .map {
-                        ArrivalsResult(Metadata(System.currentTimeMillis()), it).also {
+                        ArrivalsResult(
+                            metadata = Metadata(System.currentTimeMillis()),
+                            arrivals = it.mapValues { it.value.toImmutableList() }.toImmutableMap(),
+                        ).also {
                             d { "new arrivals wallTime: ${it.metadata.lastUpdated}" }
                         }
                     }
@@ -85,7 +93,7 @@ class PathRepository(
 
     data class ArrivalsResult(
         val metadata: Metadata = Metadata(),
-        val arrivals: Map<Station, List<UpcomingTrain>> = emptyMap(),
+        val arrivals: ImmutableMap<Station, ImmutableList<UpcomingTrain>> = persistentMapOf(),
     )
 
     data class AlertsResult(

@@ -40,7 +40,12 @@ android {
     kotlinOptions {
         jvmTarget = '11'
         freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs += "-P"
+        freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
+        freeCompilerArgs += "-P"
+        freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
     }
+
     buildFeatures {
         compose true
     }
@@ -56,6 +61,7 @@ android {
 }
 
 dependencies {
+    implementation(KotlinX.collections.immutable)
     implementation AndroidX.activity.compose
     implementation AndroidX.compose.material3
     implementation AndroidX.compose.material

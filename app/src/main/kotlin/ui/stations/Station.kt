@@ -28,6 +28,8 @@ import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import java.util.Date
 import java.util.Locale
 import kotlin.time.Duration.Companion.minutes
@@ -37,7 +39,7 @@ private val PATH_ON_BLUE = Color(0xeeeeeeee)
 
 @Composable
 fun Station(
-    station: Pair<Station, List<UiUpcomingTrain>>,
+    station: Pair<Station, ImmutableList<UiUpcomingTrain>>,
     now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
@@ -113,7 +115,7 @@ private fun StationPreview() {
                 station = "WTC",
                 name = "World Trade Center",
                 coordinates = Coordinates(0.0, 0.0),
-            ) to listOf(
+            ) to persistentListOf(
                 UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.JSQ_33,
@@ -173,7 +175,7 @@ private fun EmptyStationPreview() {
                 station = "HOB",
                 name = "Hoboken",
                 coordinates = Coordinates(0.0, 0.0),
-            ) to emptyList(),
+            ) to persistentListOf(),
             now = System.currentTimeMillis(),
             userState = UserState(
                 shortenNames = false,

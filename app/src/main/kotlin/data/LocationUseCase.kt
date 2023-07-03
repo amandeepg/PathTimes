@@ -11,6 +11,7 @@ import ca.amandeep.path.data.model.Coordinates
 import com.github.ajalt.timberkt.d
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -59,7 +60,7 @@ class LocationUseCase constructor(
         location.map { Coordinates(it.latitude, it.longitude) }
     }
 
-    suspend fun permissionsUpdated(currentPermissions: List<String>) {
+    suspend fun permissionsUpdated(currentPermissions: ImmutableList<String>) {
         permissionsUpdatedFlow.emit(currentPermissions)
     }
 }

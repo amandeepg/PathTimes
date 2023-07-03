@@ -1,5 +1,6 @@
 package ca.amandeep.path.ui.main
 
+import androidx.compose.runtime.Stable
 import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
@@ -7,16 +8,23 @@ import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.util.isInNJ
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.math.roundToInt
 
+@Stable
 sealed interface Result<T : Any> {
+    @Stable
     data class Valid<T : Any>(
         val lastUpdated: Long,
         val data: T,
         val hasError: Boolean = false,
     ) : Result<T>
 
+    @Stable
     class Error<T : Any> : Result<T>
+
+    @Stable
     class Loading<T : Any> : Result<T>
 }
 
@@ -25,7 +33,7 @@ data class MainUiModel(
     val alerts: Result<AlertsUiModel> = Result.Loading(),
 )
 
-typealias ArrivalsUiModel = List<Pair<Station, List<UiUpcomingTrain>>>
+typealias ArrivalsUiModel = ImmutableList<Pair<Station, ImmutableList<UiUpcomingTrain>>>
 typealias AlertsUiModel = AlertDatas
 
 data class UiUpcomingTrain(
@@ -38,7 +46,7 @@ data class UiUpcomingTrain(
 fun Iterable<UpcomingTrain>.toUiTrains(
     currentLocation: Coordinates,
     now: Long,
-): List<UiUpcomingTrain> = map { it.toUiTrain(currentLocation, now) }
+): ImmutableList<UiUpcomingTrain> = map { it.toUiTrain(currentLocation, now) }.toImmutableList()
 
 fun UpcomingTrain.toUiTrain(
     currentLocation: Coordinates,

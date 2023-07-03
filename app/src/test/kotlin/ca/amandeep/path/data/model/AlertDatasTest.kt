@@ -3,6 +3,7 @@ package ca.amandeep.path.data.model
 import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
 import ca.amandeep.path.data.model.AlertDatas.Companion.toAlertDatas
 import com.google.common.truth.Truth.assertThat
+import kotlinx.collections.immutable.persistentListOf
 import org.junit.jupiter.api.Test
 import java.util.Date
 
@@ -53,12 +54,12 @@ class AlertDatasTest {
         ).toAlertDatas().getGroupedAlerts()
         assertThat(alertDatas).containsExactly(
             AlertData.Grouped(
-                title = AlertData.Grouped.Title.RouteTitle(listOf(Route.NWK_WTC), "almost done"),
+                title = AlertData.Grouped.Title.RouteTitle(persistentListOf(Route.NWK_WTC), "almost done"),
                 main = AlertData.Single(
                     "Trains almost moving again. Update in 11 mins.",
                     date = Date(1686017280000L),
                 ),
-                history = listOf(
+                history = persistentListOf(
                     AlertData.Single(
                         "Bird has been saved.",
                         date = Date(1685997420000L),
@@ -83,14 +84,14 @@ class AlertDatasTest {
         assertThat(alertDatas).containsExactly(
             AlertData.Grouped(
                 title = AlertData.Grouped.Title.RouteTitle(
-                    listOf(Route.NWK_WTC, Route.HOB_33),
+                    persistentListOf(Route.NWK_WTC, Route.HOB_33),
                     "almost done",
                 ),
                 main = AlertData.Single(
                     "Trains almost moving again. Update in 11 mins.",
                     date = Date(1686017280000L),
                 ),
-                history = listOf(
+                history = persistentListOf(
                     AlertData.Single(
                         "Bird has been saved.",
                         date = Date(1685997420000L),
@@ -118,7 +119,7 @@ class AlertDatasTest {
                     "Trains moving again.",
                     date = Date(1686017280000L),
                 ),
-                history = listOf(
+                history = persistentListOf(
                     AlertData.Single(
                         "Bird has been saved.",
                         date = Date(1685997420000L),

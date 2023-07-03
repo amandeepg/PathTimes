@@ -49,6 +49,7 @@ import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
+import kotlinx.collections.immutable.persistentListOf
 import java.util.Date
 import kotlin.time.Duration.Companion.minutes
 
@@ -237,14 +238,14 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
         )
         val GROUPED_ALERT1 = AlertData.Grouped(
             title = AlertData.Grouped.Title.RouteTitle(
-                listOf(Route.NWK_WTC, Route.HOB_WTC),
+                persistentListOf(Route.NWK_WTC, Route.HOB_WTC),
                 "delayed",
             ),
             main = AlertData.Single(
                 "Trains moving again.",
                 date = Date().apply { time -= 4.minutes.inWholeMilliseconds },
             ),
-            history = listOf(
+            history = persistentListOf(
                 AlertData.Single(
                     "Bird has been saved. Update in 15 mins.",
                     date = Date().apply { time -= 16.minutes.inWholeMilliseconds },
@@ -261,7 +262,7 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
                 "Trains moving again.",
                 date = Date().apply { time -= 3.minutes.inWholeMilliseconds },
             ),
-            history = listOf(
+            history = persistentListOf(
                 AlertData.Single(
                     "Bird has been saved. Update in 15 mins.",
                     date = Date().apply { time -= 17.minutes.inWholeMilliseconds },
@@ -282,13 +283,13 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
         Result.Valid(
             lastUpdated = System.currentTimeMillis(),
             data = AlertDatas(
-                alerts = listOf(ALERT1, GROUPED_ALERT1, ALERT2, GROUPED_ALERT2),
+                alerts = persistentListOf(ALERT1, GROUPED_ALERT1, ALERT2, GROUPED_ALERT2),
             ),
         ),
         Result.Valid(
             lastUpdated = System.currentTimeMillis(),
             data = AlertDatas(
-                alerts = listOf(ALERT1),
+                alerts = persistentListOf(ALERT1),
             ),
         ),
     )

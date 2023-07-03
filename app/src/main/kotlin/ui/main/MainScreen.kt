@@ -78,6 +78,8 @@ import ca.amandeep.path.util.ConnectionState
 import ca.amandeep.path.util.checkPermission
 import ca.amandeep.path.util.observeConnectivity
 import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -370,7 +372,7 @@ private fun MainScreenContent(
     now: Long,
     userState: UserState,
     forceUpdate: () -> Unit,
-    locationPermissionsUpdated: suspend (List<String>) -> Unit,
+    locationPermissionsUpdated: suspend (ImmutableList<String>) -> Unit,
     snackbarState: SnackbarHostState,
     anyLocationPermissionsGranted: Boolean,
     setShowingOppositeDirection: (Boolean) -> Unit,
@@ -411,7 +413,7 @@ private fun MainScreenContent(
 @Composable
 private fun LoadedScreen(
     uiModel: MainUiModel,
-    locationPermissionsUpdated: suspend (List<String>) -> Unit,
+    locationPermissionsUpdated: suspend (ImmutableList<String>) -> Unit,
     arrivals: Result.Valid<ArrivalsUiModel>,
     connectivityState: ConnectionState,
     anyLocationPermissionsGranted: Boolean,
@@ -463,7 +465,7 @@ private fun LoadedScreen(
                                 it is AlertData.Single -> !it.isElevator
                                 else -> true
                             }
-                        },
+                        }.toImmutableList(),
                     ),
                 )
                 else -> uiModel.alerts

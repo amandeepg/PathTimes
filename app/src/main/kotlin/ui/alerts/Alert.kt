@@ -50,6 +50,7 @@ import ca.amandeep.path.ui.collapsing.animateExpandingArrow
 import ca.amandeep.path.ui.collapsing.expandableClickable
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.theme.PATHTheme
+import kotlinx.collections.immutable.persistentListOf
 import java.util.Locale
 
 @Composable
@@ -298,7 +299,7 @@ private fun AlertsPreview() {
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
             alertsUiModel = AlertDatas(
-                alerts = listOf(
+                alerts = persistentListOf(
                     SampleAlertsPreviewProvider.ALERT1,
                     SampleAlertsPreviewProvider.GROUPED_ALERT1,
                     SampleAlertsPreviewProvider.ALERT2,
