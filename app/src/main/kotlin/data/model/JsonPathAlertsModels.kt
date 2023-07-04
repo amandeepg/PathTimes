@@ -1,6 +1,6 @@
 package ca.amandeep.path.data.model
 
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
 import ca.amandeep.path.data.model.AlertData.Grouped.Title.Companion.extractRoutesTitle
 import ca.amandeep.path.data.model.AlertData.Grouped.Title.Companion.toTitle
 import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
@@ -17,7 +17,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-@Stable
+@Immutable
 @JsonClass(generateAdapter = true)
 data class AlertContainer(
     @Json(name = "ContentKey") val contentKey: String?,
@@ -130,9 +130,9 @@ data class AlertDatas(
     }
 }
 
-@Stable
+@Immutable
 sealed interface AlertData {
-    @Stable
+    @Immutable
     data class Single(
         val text: String,
         val date: Date?,
@@ -140,21 +140,21 @@ sealed interface AlertData {
         val isElevator: Boolean = text.contains("elevator", ignoreCase = true)
     }
 
-    @Stable
+    @Immutable
     data class Grouped(
         val title: Title,
         val main: Single,
         val history: ImmutableList<Single> = persistentListOf(),
     ) : AlertData {
-        @Stable
+        @Immutable
         sealed interface Title {
-            @Stable
+            @Immutable
             data class RouteTitle(
                 val routes: ImmutableList<Route>,
                 val text: String,
             ) : Title
 
-            @Stable
+            @Immutable
             data class FreeformTitle(val text: String) : Title
 
             companion object {

@@ -1,6 +1,6 @@
 package ca.amandeep.path.data.model
 
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import java.util.Date
@@ -10,13 +10,13 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-@Stable
+@Immutable
 @JsonClass(generateAdapter = true)
 data class Stations(
     @field:Json(name = "stations") val stations: List<Station>?,
 )
 
-@Stable
+@Immutable
 @JsonClass(generateAdapter = true)
 data class Station(
     @field:Json(name = "station") val station: String,
@@ -24,20 +24,20 @@ data class Station(
     @field:Json(name = "coordinates") val coordinates: Coordinates,
 )
 
-@Stable
+@Immutable
 @JsonClass(generateAdapter = true)
 data class Coordinates(
     @field:Json(name = "latitude") val latitude: Double,
     @field:Json(name = "longitude") val longitude: Double,
 )
 
-@Stable
+@Immutable
 @JsonClass(generateAdapter = true)
 data class UpcomingTrains(
     @field:Json(name = "upcomingTrains") val upcomingTrains: List<UpcomingTrain>?,
 )
 
-@Stable
+@Immutable
 @JsonClass(generateAdapter = true)
 data class UpcomingTrain(
     @field:Json(name = "route") val route: Route,
@@ -52,7 +52,7 @@ fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
     return seconds / 60.0
 }
 
-@Stable
+@Immutable
 enum class Direction(
     val stateName: String,
     val stateNameShort: String,
@@ -61,7 +61,7 @@ enum class Direction(
     TO_NY("New York", "NY"),
 }
 
-@Stable
+@Immutable
 enum class Route(
     val njTerminus: RouteStation,
     val nyTerminus: RouteStation,
@@ -99,7 +99,7 @@ val Route.displayName
         Route.JSQ_33_HOB -> "JSQ-33 via HOB"
     }
 
-@Stable
+@Immutable
 enum class RouteStation {
     JSQ, NWK, WTC, HOB, THIRTY_THIRD,
 }

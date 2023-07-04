@@ -1,6 +1,6 @@
 package ca.amandeep.path.ui.main
 
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
 import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
@@ -12,19 +12,19 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlin.math.roundToInt
 
-@Stable
+@Immutable
 sealed interface Result<T : Any> {
-    @Stable
+    @Immutable
     data class Valid<T : Any>(
         val lastUpdated: Long,
         val data: T,
         val hasError: Boolean = false,
     ) : Result<T>
 
-    @Stable
+    @Immutable
     class Error<T : Any> : Result<T>
 
-    @Stable
+    @Immutable
     class Loading<T : Any> : Result<T>
 }
 
