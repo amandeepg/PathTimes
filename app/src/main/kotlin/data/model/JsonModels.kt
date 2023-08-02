@@ -40,10 +40,26 @@ data class UpcomingTrains(
 @Immutable
 @JsonClass(generateAdapter = true)
 data class UpcomingTrain(
-    @field:Json(name = "route") val route: Route,
+    @field:Json(name = "route") val _route: Route,
     @field:Json(name = "direction") val direction: Direction,
     @field:Json(name = "projectedArrival") val projectedArrival: Date,
-)
+    @field:Json(name = "lineColors") val lineColors: List<String> = listOf("", ""),
+)  {
+    val route = when (_route) {
+        Route.JSQ_33_HOB ->
+            if (lineColors.size > 1) {
+                _route
+            } else if ("#FF9900" in lineColors) {
+                Route.JSQ_33
+            } else if ("#4D92FB" in lineColors) {
+                Route.HOB_33
+            } else {
+                Route.HOB_33
+            }
+
+        else -> _route
+    }
+}
 
 fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
     val diff = projectedArrival.time - now
