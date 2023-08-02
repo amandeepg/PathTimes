@@ -177,7 +177,10 @@ sealed interface AlertData {
                     }
                     return if (routes.isNotEmpty()) {
                         RouteTitle(
-                            routes = routes.map { it.second }.toImmutableList(),
+                            routes = routes
+                                .sortedBy { it.first }
+                                .map { it.second }
+                                .toImmutableList(),
                             text = routes.fold(this) { str, route ->
                                 str.removePrefix(route.first).removePrefix(", ").trim()
                             },

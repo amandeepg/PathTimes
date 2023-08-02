@@ -84,7 +84,7 @@ class AlertDatasTest {
         assertThat(alertDatas).containsExactly(
             AlertData.Grouped(
                 title = AlertData.Grouped.Title.RouteTitle(
-                    persistentListOf(Route.NWK_WTC, Route.HOB_33),
+                    persistentListOf(Route.HOB_33, Route.NWK_WTC),
                     "almost done",
                 ),
                 main = AlertData.Single(
