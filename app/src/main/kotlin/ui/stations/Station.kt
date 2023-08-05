@@ -91,12 +91,13 @@ fun Station(
                     )
                 }
 
-                trains.forEach {
+                trains.forEachIndexed { idx, train ->
                     Train(
-                        train = it,
+                        train = train,
                         now = now,
                         userState = userState,
                         autoRefreshingNow = autoRefreshingNow,
+                        isLastInStation = idx == trains.size - 1,
                     )
                 }
             }

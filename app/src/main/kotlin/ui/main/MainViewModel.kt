@@ -65,6 +65,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     ?.toUiTrains(
                         currentLocation = currentLocation,
                         now = System.currentTimeMillis(),
+                        alertsResult = alertsResult,
                     )
                     ?.sortedByDirectionAndTime(currentLocation)
                     ?.toImmutableList()

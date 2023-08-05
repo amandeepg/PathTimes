@@ -175,6 +175,9 @@ private fun BoxScope.Icon(
         }
 }
 
+val NO_ALERTS_COLOR = Color(0, 200, 83).copy(alpha = 0.5f)
+val HAS_ALERTS_COLOR = Color(253, 216, 53).copy(alpha = 0.3f)
+
 @Composable
 private fun Result<AlertsUiModel>.backgroundColor() =
     when (this) {
@@ -182,9 +185,9 @@ private fun Result<AlertsUiModel>.backgroundColor() =
         is Result.Loading -> Color.Transparent
         is Result.Valid ->
             if (data.isEmpty()) {
-                Color(0, 200, 83).copy(alpha = 0.5f)
+                NO_ALERTS_COLOR
             } else {
-                Color(253, 216, 53).copy(alpha = 0.3f)
+                HAS_ALERTS_COLOR
             }
     }
 

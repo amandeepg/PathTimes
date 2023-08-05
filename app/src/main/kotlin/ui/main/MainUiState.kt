@@ -1,6 +1,8 @@
 package ca.amandeep.path.ui.main
 
 import androidx.compose.runtime.Immutable
+import ca.amandeep.path.data.PathRepository
+import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
@@ -9,6 +11,7 @@ import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.util.isInNJ
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlin.math.roundToInt
 
@@ -41,16 +44,21 @@ data class UiUpcomingTrain(
     val arrivalInMinutesFromNow: Int,
     val isDepartedTrain: Boolean = false,
     val isInOppositeDirection: Boolean = false,
+    val alerts: ImmutableList<AlertData.Grouped> = persistentListOf(),
 )
 
 fun Iterable<UpcomingTrain>.toUiTrains(
     currentLocation: Coordinates,
     now: Long,
-): ImmutableList<UiUpcomingTrain> = map { it.toUiTrain(currentLocation, now) }.toImmutableList()
+    alertsResult: PathRepository.AlertsResult,
+): ImmutableList<UiUpcomingTrain> = this
+    .map { it.toUiTrain(currentLocation, now, alertsResult) }
+    .toImmutableList()
 
 fun UpcomingTrain.toUiTrain(
     currentLocation: Coordinates,
     now: Long,
+    alertsResult: PathRepository.AlertsResult,
 ): UiUpcomingTrain {
     val minsFromNow = relativeArrivalMins(now).roundToInt()
     return UiUpcomingTrain(
@@ -61,6 +69,11 @@ fun UpcomingTrain.toUiTrain(
             Direction.TO_NJ -> !currentLocation.isInNJ
             Direction.TO_NY -> currentLocation.isInNJ
         },
+        alerts = alertsResult.alerts.alerts
+            .filterIsInstance<AlertData.Grouped>()
+            .filter { it.title is AlertData.Grouped.Title.RouteTitle }
+            .filter { route in (it.title as AlertData.Grouped.Title.RouteTitle).routes }
+            .toImmutableList()
     )
 }
 
