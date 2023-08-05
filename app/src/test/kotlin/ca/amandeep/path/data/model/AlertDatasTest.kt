@@ -68,6 +68,43 @@ class AlertDatasTest {
                         "Crew reported a bird.",
                         date = Date(1685984520000L),
                     ),
+                    AlertData.Single(
+                        "Crew reported a bird.",
+                        date = Date(1685984520000L - 60000L),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun groupRouteAlertsWithBlankItems() {
+        val alertDatas = listOf(
+            "6/5/2023 04:37 PM" to "04:37 PM: NWK-WTC delayed. Bird has been saved. An update will be issued in approx. 15 mins.",
+            "6/5/2023 01:01 PM" to "01:01 PM: NWK-WTC delayed. Crew reported a bird. An update will be issued in approx. 10 mins.",
+            "6/5/2023 01:02 PM" to "01:02 PM: NWK-WTC delays continue. We apologize for the inconvenience.",
+            "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC almost done. Trains almost moving again. An update will be issued in approx. 11 mins.",
+        ).toAlertDatas().getGroupedAlerts()
+        assertThat(alertDatas).containsExactly(
+            AlertData.Grouped(
+                title = AlertData.Grouped.Title.RouteTitle(persistentListOf(Route.NWK_WTC), "almost done"),
+                main = AlertData.Single(
+                    "Trains almost moving again. Update in 11 mins.",
+                    date = Date(1686017280000L),
+                ),
+                history = persistentListOf(
+                    AlertData.Single(
+                        "Bird has been saved.",
+                        date = Date(1685997420000L),
+                    ),
+                    AlertData.Single(
+                        "Delays continue.",
+                        date = Date(1685984520000L),
+                    ),
+                    AlertData.Single(
+                        "Crew reported a bird.",
+                        date = Date(1685984520000L - 60000L),
+                    ),
                 ),
             ),
         )
@@ -99,6 +136,10 @@ class AlertDatasTest {
                     AlertData.Single(
                         "Crew reported a bird.",
                         date = Date(1685984520000L),
+                    ),
+                    AlertData.Single(
+                        "Crew reported a bird.",
+                        date = Date(1685984520000L - 60000L),
                     ),
                 ),
             ),

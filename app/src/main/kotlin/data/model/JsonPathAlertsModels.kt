@@ -61,7 +61,9 @@ data class AlertDatas(
         }
         private val TIME_PREFIX_REGEX = Regex("\\d{1,2}:\\d{2} [ap]m:", RegexOption.IGNORE_CASE)
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
-        private val APOLOGIZE_REGEX = Regex("We (apologize|regret) (for )?(the|this|any)?( )?(inconvenience)( )?(this )?(may )?(have|has)?( )?(caused)?(.*\\.)")
+        private val APOLOGIZE_REGEX =
+            Regex("We (apologize|regret) (for )?(the|this|any)?( )?(inconvenience)( )?(this )?(may )?(have|has)?( )?(caused)?(.*\\.)")
+
         fun Iterable<Pair<String, String>>.toAlertDatas(): ImmutableList<AlertData.Single> = this
             .map {
                 val date = try {
@@ -86,24 +88,38 @@ data class AlertDatas(
                 }
             }
             .map { group ->
-                val title = group.value.first().text.split(".").first().toTitle()
+                val title = group.value.first().text.getBefore(".").toTitle()
                 if (group.value.size == 1 && title !is AlertData.Grouped.Title.RouteTitle) {
                     group.value.single()
                 } else {
-                    val alerts = group.value
-                        .mapIndexed { index, alert ->
-                            val newText = alert.text
-                                .dropBefore(".")
-                                .let {
-                                    when (index) {
-                                        0 -> it
-                                        else -> it.replace(UPDATE_IN_MINS_REGEX, "")
-                                    }
+                    val alertsWithBlanks = group.value.mapIndexed { index, alert ->
+                        val newText = alert.text
+                            .dropBefore(".")
+                            .let {
+                                when (index) {
+                                    0 -> it
+                                    else -> it.replace(UPDATE_IN_MINS_REGEX, "")
                                 }
-                                .trim()
-                            alert.copy(text = newText)
+                            }
+                            .trim()
+                        alert.copy(text = newText)
+                    }
+                    val alerts = alertsWithBlanks.mapIndexed { index, alert ->
+                        if (alert.text.isBlank() && index != 0) {
+                            alert.copy(
+                                text = group.value[index].text.getBefore(".").toTitle().text
+                                    .replaceFirstChar {
+                                        if (it.isLowerCase()) {
+                                            it.titlecase(Locale.US)
+                                        } else {
+                                            it.toString()
+                                        }
+                                    }.plus("."),
+                            )
+                        } else {
+                            alert
                         }
-                        .distinctBy { it.text }
+                    }
                     AlertData.Grouped(
                         title = title,
                         main = alerts.first(),
@@ -148,14 +164,16 @@ sealed interface AlertData {
     ) : AlertData {
         @Immutable
         sealed interface Title {
+            val text: String
+
             @Immutable
             data class RouteTitle(
                 val routes: ImmutableList<Route>,
-                val text: String,
+                override val text: String,
             ) : Title
 
             @Immutable
-            data class FreeformTitle(val text: String) : Title
+            data class FreeformTitle(override val text: String) : Title
 
             companion object {
                 val ROUTE_STRINGS = listOf(
@@ -196,3 +214,6 @@ sealed interface AlertData {
 
 private fun String.dropBefore(delimiter: String): String =
     split(delimiter).drop(1).joinToString(delimiter).trim()
+
+private fun String.getBefore(delimiter: String): String =
+    split(delimiter).firstOrNull().orEmpty()
