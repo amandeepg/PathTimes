@@ -88,7 +88,7 @@ data class AlertDatas(
                 }
             }
             .map { group ->
-                val title = group.value.first().text.getBefore(".").toTitle()
+                val title = group.value.first().toTitle()
                 if (group.value.size == 1 && title !is AlertData.Grouped.Title.RouteTitle) {
                     group.value.single()
                 } else {
@@ -107,17 +107,10 @@ data class AlertDatas(
                     val alerts = alertsWithBlanks.mapIndexed { index, alert ->
                         if (alert.text.isBlank() && index != 0) {
                             alert.copy(
-                                text = group.value[index].text.getBefore(".").toTitle().text
-                                    .replaceFirstChar {
-                                        if (it.isLowerCase()) {
-                                            it.titlecase(Locale.US)
-                                        } else {
-                                            it.toString()
-                                        }
-                                    }.plus("."),
+                                text = group.value[index].toTitle().text.capitalize().addPeriod()
                             )
                         } else {
-                            alert
+                            alert.copy(text = alert.text.capitalize().addPeriod())
                         }
                     }
                     AlertData.Grouped(
@@ -128,6 +121,9 @@ data class AlertDatas(
                 }
             }
             .toImmutableList()
+
+        private fun AlertData.Single.toTitle(): AlertData.Grouped.Title =
+            text.getBefore(".").toTitle()
 
         private fun String.removeUnnecessaryText(): String = this
             .replaceFirst(TIME_PREFIX_REGEX, "")
@@ -217,3 +213,15 @@ private fun String.dropBefore(delimiter: String): String =
 
 private fun String.getBefore(delimiter: String): String =
     split(delimiter).firstOrNull().orEmpty()
+
+private fun String.capitalize(): String = replaceFirstChar {
+    if (it.isLowerCase()) {
+        it.titlecase(Locale.US)
+    } else {
+        it.toString()
+    }
+}
+
+private fun String.addPeriod(): String = trim().let {
+    if (it.endsWith(".")) it else "$it."
+}
