@@ -108,7 +108,7 @@ fun Train(
                 isExpanded = alertsExpanded,
             ) {
                 Surface(
-                    shape = RoundedCornerShape(5.dp),
+                    shape = RoundedCornerShape(10.dp),
                     color = HAS_ALERTS_COLOR,
                     modifier = Modifier
                         .padding(
@@ -117,7 +117,7 @@ fun Train(
                         )
                         .fillMaxWidth(),
                 ) {
-                    Column(modifier = Modifier.padding(5.dp),) {
+                    Column(modifier = Modifier.padding(8.dp)) {
                         ExpandableTrainAlerts(train.alerts)
                     }
                 }
@@ -199,15 +199,17 @@ private fun RowScope.TrainMainRowContent(
     if (train.alerts.isNotEmpty()) {
         val arrowRotationDegree by animateExpandingArrow(alertsExpanded)
         Surface(
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .padding(end = 3.dp)
+                .padding(end = 5.dp)
                 .expandableClickable { setAlertsExpanded(!alertsExpanded) },
             color = HAS_ALERTS_COLOR,
             contentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
         ) {
-            Row {
+            Row(
+                modifier = Modifier.padding(horizontal = 3.dp)
+            ) {
                 Icon(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)

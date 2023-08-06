@@ -13,7 +13,12 @@ import ca.amandeep.path.util.isInNJ
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import java.time.Instant
+import java.util.Date
 import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.toJavaDuration
 
 @Immutable
 sealed interface Result<T : Any> {
@@ -72,8 +77,31 @@ fun UpcomingTrain.toUiTrain(
         alerts = alertsResult.alerts.alerts
             .filterIsInstance<AlertData.Grouped>()
             .filter { it.title is AlertData.Grouped.Title.RouteTitle }
-            .filter { route in (it.title as AlertData.Grouped.Title.RouteTitle).routes }
-            .toImmutableList()
+            .filter {
+                val title = it.title
+                if (title is AlertData.Grouped.Title.RouteTitle) {
+                    val matchingRoute = route in title.routes
+                    if (matchingRoute) {
+                        // If the alert is a "resuming" type, i.e. it's been resolved then we 
+                        // only want to see it if it's within an hour
+                        val isResuming = title.text.startsWith("Resuming", ignoreCase = true)
+                        if (isResuming) {
+                            it.main.date?.isWithin(1.hours) ?: true
+                        } else {
+                            // If it's not a "resuming" type, i.e. it's ongoing then we want to
+                            // see it
+                            true
+                        }
+                    } else {
+                        // If it doesn't match the route, it's not for this route
+                        false
+                    }
+                } else {
+                    // If it's not a route type, it's not for this route
+                    false
+                }
+            }
+            .toImmutableList(),
     )
 }
 
@@ -95,3 +123,14 @@ fun UiUpcomingTrain.directionFromCurrentLocation(coords: Coordinates): Int =
         Direction.TO_NJ -> if (coords.isInNJ) -1 else 1
         Direction.TO_NY -> if (coords.isInNJ) 1 else -1
     }
+
+infix fun Date.isWithin(duration: Duration): Boolean {
+    val currentDate = Instant.now()
+    val endTime = currentDate + duration.toJavaDuration()
+
+    // Convert the input Date to Instant for comparison
+    val inputInstant = toInstant()
+
+    // Check if the input date falls between the current date and the end time
+    return inputInstant.isAfter(currentDate) && inputInstant.isBefore(endTime)
+}
