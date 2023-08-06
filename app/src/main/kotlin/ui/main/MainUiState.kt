@@ -35,7 +35,7 @@ sealed interface Result<T : Any> {
     class Loading<T : Any> : Result<T>
 }
 
-fun <T:Any> Result<T>.asValid(): Result.Valid<T>? = this as? Result.Valid<T>
+fun <T : Any> Result<T>.asValid(): Result.Valid<T>? = this as? Result.Valid<T>
 
 data class MainUiModel(
     val arrivals: Result<ArrivalsUiModel> = Result.Loading(),
@@ -83,7 +83,7 @@ fun UpcomingTrain.toUiTrain(
                 if (title is AlertData.Grouped.Title.RouteTitle) {
                     val matchingRoute = route in title.routes
                     if (matchingRoute) {
-                        // If the alert is a "resuming" type, i.e. it's been resolved then we 
+                        // If the alert is a "resuming" type, i.e. it's been resolved then we
                         // only want to see it if it's within an hour
                         val isResuming = title.text.startsWith("Resuming", ignoreCase = true)
                         if (isResuming) {

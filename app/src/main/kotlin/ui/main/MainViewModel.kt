@@ -56,7 +56,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
-                delay((attempt  * attempt).seconds + 1.seconds)
+                delay((attempt * attempt).seconds + 1.seconds)
                 d { "Retrying Stations chain after error: $cause (attempt $attempt)" }
                 true
             }
@@ -72,7 +72,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
-                delay((attempt  * attempt).seconds + 1.seconds)
+                delay((attempt * attempt).seconds + 1.seconds)
                 d { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
                 true
             }
@@ -86,7 +86,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
-                delay((attempt  * attempt).seconds + 1.seconds)
+                delay((attempt * attempt).seconds + 1.seconds)
                 d { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
                 true
             }
@@ -148,7 +148,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     alerts = Result.Error(),
                 ),
             )
-            delay((attempt  * attempt).seconds + 1.seconds)
+            delay((attempt * attempt).seconds + 1.seconds)
             d { "Retrying entire chain after error: $cause (attempt $attempt)" }
             true
         }

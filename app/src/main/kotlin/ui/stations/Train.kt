@@ -113,7 +113,7 @@ fun Train(
                     modifier = Modifier
                         .padding(
                             top = 8.dp,
-                            bottom = if (isLastInStation) 0.dp else 8.dp
+                            bottom = if (isLastInStation) 0.dp else 8.dp,
                         )
                         .fillMaxWidth(),
                 ) {
@@ -208,7 +208,7 @@ private fun RowScope.TrainMainRowContent(
             contentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 3.dp)
+                modifier = Modifier.padding(horizontal = 3.dp),
             ) {
                 Icon(
                     modifier = Modifier

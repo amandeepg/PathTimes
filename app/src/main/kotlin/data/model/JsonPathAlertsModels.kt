@@ -107,7 +107,7 @@ data class AlertDatas(
                     val alerts = alertsWithBlanks.mapIndexed { index, alert ->
                         if (alert.text.isBlank() && index != 0) {
                             alert.copy(
-                                text = group.value[index].toTitle().text.capitalize().addPeriod()
+                                text = group.value[index].toTitle().text.capitalize().addPeriod(),
                             )
                         } else {
                             alert.copy(text = alert.text.capitalize().addPeriod())

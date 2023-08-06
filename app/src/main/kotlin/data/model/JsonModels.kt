@@ -44,7 +44,7 @@ data class UpcomingTrain(
     @field:Json(name = "direction") val direction: Direction,
     @field:Json(name = "projectedArrival") val projectedArrival: Date,
     @field:Json(name = "lineColors") val lineColors: List<String> = listOf("", ""),
-)  {
+) {
     val route = when (_route) {
         Route.JSQ_33_HOB ->
             if (lineColors.size > 1) {
