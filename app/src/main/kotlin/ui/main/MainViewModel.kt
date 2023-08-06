@@ -9,11 +9,13 @@ import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.SortPlaces
+import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
 import com.github.ajalt.timberkt.d
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -45,12 +47,49 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             emit(DEFAULT_WTC_COORDS)
         }
         val stationsFlow = pathRepository.stations
+            .map<Stations, Result<Stations>> {
+                Result.Valid(
+                    lastUpdated = System.currentTimeMillis(),
+                    data = it,
+                )
+            }
+            .onStart { emit(Result.Loading()) }
+            .retryWhen { cause, attempt ->
+                emit(Result.Error())
+                delay((attempt  * attempt).seconds + 1.seconds)
+                d { "Retrying Stations chain after error: $cause (attempt $attempt)" }
+                true
+            }
         val arrivalsFlow = pathRepository
             .arrivals
             .repeat(UI_UPDATE_INTERVAL)
-            .onStart { emit(PathRepository.ArrivalsResult()) }
+            .map<PathRepository.ArrivalsResult, Result<PathRepository.ArrivalsResult>> {
+                Result.Valid(
+                    lastUpdated = it.metadata.lastUpdated,
+                    data = it,
+                )
+            }
+            .onStart { emit(Result.Loading()) }
+            .retryWhen { cause, attempt ->
+                emit(Result.Error())
+                delay((attempt  * attempt).seconds + 1.seconds)
+                d { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
+                true
+            }
         val alertsFlow = pathRepository.alerts
-            .onStart { emit(PathRepository.AlertsResult()) }
+            .map<PathRepository.AlertsResult, Result<PathRepository.AlertsResult>> {
+                Result.Valid(
+                    lastUpdated = it.metadata.lastUpdated,
+                    data = it,
+                )
+            }
+            .onStart { emit(Result.Loading()) }
+            .retryWhen { cause, attempt ->
+                emit(Result.Error())
+                delay((attempt  * attempt).seconds + 1.seconds)
+                d { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
+                true
+            }
 
         combine(
             currentLocationFlow,
@@ -58,56 +97,59 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             arrivalsFlow,
             alertsFlow,
         ) { currentLocation, stations, arrivalsResult, alertsResult ->
-            val closestStations =
-                stations.stations?.sortedWith(SortPlaces(currentLocation)).orEmpty()
+            val arrivals = arrivalsResult.asValid()?.data?.arrivals.orEmpty()
+            val closestStations = stations.asValid()?.data?.stations
+                ?.sortedWith(SortPlaces(currentLocation)).orEmpty()
             val closestArrivals = closestStations.mapToNotNullPairs {
-                it to arrivalsResult.arrivals[it]
+                it to arrivals[it]
                     ?.toUiTrains(
                         currentLocation = currentLocation,
                         now = System.currentTimeMillis(),
-                        alertsResult = alertsResult,
+                        alerts = alertsResult.asValid()?.data?.alerts?.alerts ?: persistentListOf(),
                     )
                     ?.sortedByDirectionAndTime(currentLocation)
                     ?.toImmutableList()
             }.toImmutableList()
 
             val arrivalsUiModel =
-                if (arrivalsResult.metadata.lastUpdated < 0) {
-                    Result.Loading()
-                } else if (closestArrivals.isEmpty()) {
-                    Result.Error()
-                } else {
-                    Result.Valid(
-                        lastUpdated = arrivalsResult.metadata.lastUpdated,
-                        data = closestArrivals,
-                    )
+                when (arrivalsResult) {
+                    is Result.Valid -> when {
+                        arrivalsResult.lastUpdated < 0 -> Result.Loading()
+                        closestArrivals.isEmpty() -> Result.Error()
+                        else -> Result.Valid(
+                            lastUpdated = arrivalsResult.lastUpdated,
+                            data = closestArrivals,
+                        )
+                    }
+                    is Result.Error -> Result.Error()
+                    is Result.Loading -> Result.Loading()
                 }
             val alertsUiModel =
-                if (alertsResult.metadata.lastUpdated < 0) {
-                    Result.Loading()
-                } else if (alertsResult.alerts.hasError) {
-                    Result.Error()
-                } else {
-                    Result.Valid(
-                        lastUpdated = alertsResult.metadata.lastUpdated,
-                        data = alertsResult.alerts,
-                    )
+                when (alertsResult) {
+                    is Result.Valid -> when {
+                        alertsResult.lastUpdated < 0 -> Result.Loading()
+                        alertsResult.data.alerts.hasError -> Result.Error()
+                        else -> Result.Valid(
+                            lastUpdated = alertsResult.lastUpdated,
+                            data = alertsResult.data.alerts,
+                        )
+                    }
+                    is Result.Error -> Result.Error()
+                    is Result.Loading -> Result.Loading()
                 }
-
             MainUiModel(
                 arrivals = arrivalsUiModel,
                 alerts = alertsUiModel,
             )
         }.retryWhen { cause, attempt ->
-            // Retry all errors with a 1 second delay
             emit(
                 MainUiModel(
                     arrivals = Result.Error(),
                     alerts = Result.Error(),
                 ),
             )
-            delay(1.seconds)
-            d { "Retrying after error: $cause (attempt $attempt)" }
+            delay((attempt  * attempt).seconds + 1.seconds)
+            d { "Retrying entire chain after error: $cause (attempt $attempt)" }
             true
         }
     }

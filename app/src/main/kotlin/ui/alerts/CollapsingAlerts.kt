@@ -47,6 +47,7 @@ import ca.amandeep.path.ui.collapsing.ExpandableContainerView
 import ca.amandeep.path.ui.collapsing.animateExpandingArrow
 import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.main.Result
+import ca.amandeep.path.ui.main.asValid
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
 import kotlinx.collections.immutable.persistentListOf
@@ -103,7 +104,7 @@ fun ExpandableAlerts(
             expandableContent = {
                 Alerts(
                     modifier = Modifier.padding(horizontal = 5.dp),
-                    alertsUiModel = (alertsResult as? Result.Valid)?.data ?: AlertDatas(),
+                    alertsUiModel = alertsResult.asValid()?.data ?: AlertDatas(),
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
             },
@@ -216,7 +217,7 @@ private fun CollapsingAlertsPreview(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
         ) {
-            val defaultExpanded = (alertsResult as? Result.Valid)?.data?.alerts.orEmpty().size > 1
+            val defaultExpanded = alertsResult.asValid()?.data?.alerts.orEmpty().size > 1
             val (expanded, setExpanded) = remember { mutableStateOf<Boolean?>(null) }
             ExpandableAlerts(
                 connectivityState = ConnectionState.Unavailable,

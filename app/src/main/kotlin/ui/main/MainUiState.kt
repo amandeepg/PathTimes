@@ -1,7 +1,6 @@
 package ca.amandeep.path.ui.main
 
 import androidx.compose.runtime.Immutable
-import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
@@ -36,6 +35,8 @@ sealed interface Result<T : Any> {
     class Loading<T : Any> : Result<T>
 }
 
+fun <T:Any> Result<T>.asValid(): Result.Valid<T>? = this as? Result.Valid<T>
+
 data class MainUiModel(
     val arrivals: Result<ArrivalsUiModel> = Result.Loading(),
     val alerts: Result<AlertsUiModel> = Result.Loading(),
@@ -55,15 +56,15 @@ data class UiUpcomingTrain(
 fun Iterable<UpcomingTrain>.toUiTrains(
     currentLocation: Coordinates,
     now: Long,
-    alertsResult: PathRepository.AlertsResult,
+    alerts: ImmutableList<AlertData>,
 ): ImmutableList<UiUpcomingTrain> = this
-    .map { it.toUiTrain(currentLocation, now, alertsResult) }
+    .map { it.toUiTrain(currentLocation, now, alerts) }
     .toImmutableList()
 
 fun UpcomingTrain.toUiTrain(
     currentLocation: Coordinates,
     now: Long,
-    alertsResult: PathRepository.AlertsResult,
+    alerts: ImmutableList<AlertData>,
 ): UiUpcomingTrain {
     val minsFromNow = relativeArrivalMins(now).roundToInt()
     return UiUpcomingTrain(
@@ -74,7 +75,7 @@ fun UpcomingTrain.toUiTrain(
             Direction.TO_NJ -> !currentLocation.isInNJ
             Direction.TO_NY -> currentLocation.isInNJ
         },
-        alerts = alertsResult.alerts.alerts
+        alerts = alerts
             .filterIsInstance<AlertData.Grouped>()
             .filter { it.title is AlertData.Grouped.Title.RouteTitle }
             .filter {
