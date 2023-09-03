@@ -56,6 +56,8 @@
     <string name="show_elevator_alerts">Show elevator alerts</string>
     <string name="alerts_on_this_route">Alerts on this route</string>
     <string name="arrow_pointing_to_direction_indicator">Arrow pointing to direction indicator</string>
-    <string name="east_bound_help_text">This right indicator means this is an East-bound train heading towards New%1$sYork%1$sCity starting from New%1$sJersey</string>
-    <string name="west_bound_help_text">This left indicator means this is a West-bound train heading towards New%1$sJersey starting from New%1$sYork%1$sCity</string>
+    <string name="east_bound_help_text">This right indicator means this is an east-bound train heading towards New%1$sYork%1$sCity starting from New%1$sJersey.</string>
+    <string name="west_bound_help_text">This left indicator means this is a west-bound train heading towards New%1$sJersey starting from New%1$sYork%1$sCity.</string>
+    <string name="show_help_guide">Show help guides</string>
+    <string name="got_it_hide_this">" Got%1$sit,%1$shide%1$sthis%1$s»"</string>
 </resources>

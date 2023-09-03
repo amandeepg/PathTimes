@@ -44,6 +44,7 @@ fun Station(
     userState: UserState,
     modifier: Modifier = Modifier,
     autoRefreshingNow: Boolean = false,
+    setShowHelpGuide: (Boolean) -> Unit,
 ) {
     ElevatedCard(
         modifier = modifier,
@@ -98,6 +99,7 @@ fun Station(
                         userState = userState,
                         autoRefreshingNow = autoRefreshingNow,
                         isLastInStation = idx == trains.size - 1,
+                        setShowHelpGuide = setShowHelpGuide,
                     )
                 }
             }
@@ -161,8 +163,10 @@ private fun StationPreview() {
                 shortenNames = true,
                 showOppositeDirection = true,
                 showElevatorAlerts = true,
+                showHelpGuide = true,
                 isInNJ = true,
             ),
+            setShowHelpGuide = {},
         )
     }
 }
@@ -184,8 +188,10 @@ private fun EmptyStationPreview() {
                 shortenNames = false,
                 showOppositeDirection = true,
                 showElevatorAlerts = true,
+                showHelpGuide = true,
                 isInNJ = true,
             ),
+            setShowHelpGuide = {},
         )
     }
 }

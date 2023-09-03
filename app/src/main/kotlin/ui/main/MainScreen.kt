@@ -130,6 +130,7 @@ fun MainScreen(
     ) {
         derivedStateOf { showOppositeDirectionPref || !anyLocationPermissionsGranted }
     }
+
     val (showElevatorAlertsPref, setShowElevatorAlertsPref) = rememberBooleanPreference(
         keyName = "showElevatorAlerts",
         initialValue = true,
@@ -154,6 +155,30 @@ fun MainScreen(
         }
     }
 
+    val (showHelpGuidePref, setShowHelpGuidePref) = rememberBooleanPreference(
+        keyName = "showHelpGuide",
+        initialValue = true,
+        defaultValue = true,
+    )
+    val setShowHelpGuideWithUndo = run {
+        val snackbarMessage = stringResource(R.string.change_dir_in_options)
+        val snackbarActionLabel = stringResource(R.string.undo)
+        return@run { newValue: Boolean ->
+            setShowHelpGuidePref(newValue)
+            if (!newValue) {
+                coroutineScope.launch {
+                    val snackbarResult = snackbarState.showSnackbar(
+                        message = snackbarMessage,
+                        actionLabel = snackbarActionLabel,
+                    )
+                    if (snackbarResult == SnackbarResult.ActionPerformed) {
+                        setShowHelpGuidePref(true)
+                    }
+                }
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarState) },
@@ -168,7 +193,9 @@ fun MainScreen(
                         showOppositeDirectionPref = showOppositeDirectionPref,
                         setShowOppositeDirectionPref = setShowOppositeDirectionPref,
                         showElevatorAlertsPref = showElevatorAlertsPref,
+                        showHelpGuidePref = showHelpGuidePref,
                         setShowElevatorAlertsPref = setShowElevatorAlertsPref,
+                        setShowHelpGuidePref = setShowHelpGuidePref,
                         anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                     )
                 },
@@ -209,6 +236,7 @@ fun MainScreen(
                     shortenNames = shortenNamesPref,
                     showOppositeDirection = showOppositeDirection,
                     showElevatorAlerts = showElevatorAlertsPref,
+                    showHelpGuide = showHelpGuidePref,
                     isInNJ = isInNJ,
                 ),
                 forceUpdate = forceRefresh,
@@ -219,6 +247,7 @@ fun MainScreen(
                 snackbarState = snackbarState,
                 setShowingOppositeDirection = setShowOppositeDirectionPref,
                 setShowElevatorAlerts = setShowElevatorAlertsWithUndo,
+                setShowHelpGuide = setShowHelpGuideWithUndo,
                 anyLocationPermissionsGranted = anyLocationPermissionsGranted,
             )
             PullRefreshIndicator(
@@ -286,7 +315,9 @@ private fun RowScope.OverflowItems(
     showOppositeDirectionPref: Boolean,
     setShowOppositeDirectionPref: (Boolean) -> Unit,
     showElevatorAlertsPref: Boolean,
+    showHelpGuidePref: Boolean,
     setShowElevatorAlertsPref: (Boolean) -> Unit,
+    setShowHelpGuidePref: (Boolean) -> Unit,
     anyLocationPermissionsGranted: Boolean,
 ) {
     IconButton(onClick = forceRefresh) {
@@ -311,9 +342,7 @@ private fun RowScope.OverflowItems(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    setShortenNamesPref(!shortenNamesPref)
-                },
+                .clickable { setShortenNamesPref(!shortenNamesPref) },
         ) {
             Checkbox(
                 checked = shortenNamesPref,
@@ -330,9 +359,7 @@ private fun RowScope.OverflowItems(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        setShowOppositeDirectionPref(!showOppositeDirectionPref)
-                    },
+                    .clickable { setShowOppositeDirectionPref(!showOppositeDirectionPref) },
             ) {
                 Checkbox(
                     checked = showOppositeDirectionPref,
@@ -349,9 +376,7 @@ private fun RowScope.OverflowItems(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    setShowElevatorAlertsPref(!showElevatorAlertsPref)
-                },
+                .clickable { setShowElevatorAlertsPref(!showElevatorAlertsPref) },
         ) {
             Checkbox(
                 checked = showElevatorAlertsPref,
@@ -359,6 +384,22 @@ private fun RowScope.OverflowItems(
             )
             Text(
                 text = stringResource(R.string.show_elevator_alerts),
+                modifier = Modifier.padding(end = 10.dp),
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { setShowHelpGuidePref(!showHelpGuidePref) },
+        ) {
+            Checkbox(
+                checked = showHelpGuidePref,
+                onCheckedChange = setShowHelpGuidePref,
+            )
+            Text(
+                text = stringResource(R.string.show_help_guide),
                 modifier = Modifier.padding(end = 10.dp),
             )
         }
@@ -377,6 +418,7 @@ private fun MainScreenContent(
     anyLocationPermissionsGranted: Boolean,
     setShowingOppositeDirection: (Boolean) -> Unit,
     setShowElevatorAlerts: (Boolean) -> Unit,
+    setShowHelpGuide: (Boolean) -> Unit,
 ) {
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
@@ -402,6 +444,7 @@ private fun MainScreenContent(
                     userState = userState,
                     setShowingOppositeDirection = setShowingOppositeDirection,
                     setShowElevatorAlerts = setShowElevatorAlerts,
+                    setShowHelpGuide = setShowHelpGuide,
                     snackbarState = snackbarState,
                     now = now,
                 )
@@ -420,6 +463,7 @@ private fun LoadedScreen(
     userState: UserState,
     setShowingOppositeDirection: (Boolean) -> Unit,
     setShowElevatorAlerts: (Boolean) -> Unit,
+    setShowHelpGuide: (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
     now: Long,
 ) {
@@ -526,6 +570,7 @@ private fun LoadedScreen(
                 now = now,
                 userState = userState,
                 autoRefreshingNow = autoRefreshingNow,
+                setShowHelpGuide = setShowHelpGuide,
             )
         }
         item {
@@ -554,6 +599,7 @@ data class UserState(
     val shortenNames: Boolean,
     val showOppositeDirection: Boolean,
     val showElevatorAlerts: Boolean,
+    val showHelpGuide: Boolean,
     val isInNJ: Boolean,
 )
 

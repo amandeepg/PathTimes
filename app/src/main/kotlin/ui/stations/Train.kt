@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowForwardIos
@@ -27,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
@@ -41,8 +43,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -89,6 +94,7 @@ fun Train(
     modifier: Modifier = Modifier,
     autoRefreshingNow: Boolean = false,
     isLastInStation: Boolean = false,
+    setShowHelpGuide: (Boolean) -> Unit,
 ) {
     val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
     Column(
@@ -126,10 +132,34 @@ fun Train(
                 }
             }
         }
-        if (train.showDirectionHelpText) {
+        if (train.showDirectionHelpText && userState.showHelpGuide && userState.showOppositeDirection) {
+            val helpTextAnnotatedString = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = LocalContentColor.current,
+                        fontWeight = FontWeight.Light,
+                    ),
+                ) {
+                    append(
+                        when (train.upcomingTrain.direction) {
+                            Direction.TO_NY -> stringResource(R.string.east_bound_help_text, nbsp)
+                            Direction.TO_NJ -> stringResource(R.string.west_bound_help_text, nbsp)
+                        },
+                    )
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                ) {
+                    pushStringAnnotation(tag = LINK_TAG, annotation = LINK_TAG)
+                    append(stringResource(R.string.got_it_hide_this, nbsp))
+                }
+            }
             Row(
                 Modifier
-                    .alpha(0.75f)
+                    .alpha(0.8f)
                     .padding(top = 2.dp, bottom = if (isLastInStation) 0.dp else 4.dp),
             ) {
                 Icon(
@@ -141,18 +171,20 @@ fun Train(
                     imageVector = Icons.Rounded.SubdirectoryArrowLeft,
                     contentDescription = stringResource(R.string.arrow_pointing_to_direction_indicator),
                 )
-                Text(
-                    modifier =
-                    Modifier.align(Alignment.CenterVertically),
-                    text = when (train.upcomingTrain.direction) {
-                        Direction.TO_NY -> stringResource(R.string.east_bound_help_text, nbsp)
-                        Direction.TO_NJ -> stringResource(R.string.west_bound_help_text, nbsp)
-                    },
+                ClickableText(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = helpTextAnnotatedString,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Light,
                         fontSize = MaterialTheme.typography.labelSmall.fontSize.times(0.95f),
                         lineHeight = MaterialTheme.typography.labelSmall.lineHeight.times(0.9f),
                     ),
+                    onClick = { offset ->
+                        helpTextAnnotatedString
+                            .getStringAnnotations(offset, offset)
+                            .firstOrNull()
+                            ?.takeIf { it.item == LINK_TAG }
+                            ?.also { setShowHelpGuide(false) }
+                    },
                 )
             }
         }
@@ -418,8 +450,10 @@ private fun TrainShortNamesPreview(
                     shortenNames = true,
                     showOppositeDirection = true,
                     showElevatorAlerts = true,
+                    showHelpGuide = true,
                     isInNJ = true,
                 ),
+                setShowHelpGuide = {},
             )
         }
     }
@@ -444,8 +478,10 @@ private fun TrainLongNamesPreview(
                     shortenNames = false,
                     showOppositeDirection = true,
                     showElevatorAlerts = true,
+                    showHelpGuide = true,
                     isInNJ = true,
                 ),
+                setShowHelpGuide = {},
             )
         }
     }
@@ -502,3 +538,5 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         ),
     )
 }
+
+const val LINK_TAG = "link_tag"
