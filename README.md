@@ -5,14 +5,16 @@ An Android app for riding [the PATH](https://en.wikipedia.org/wiki/PATH_(rail_sy
 
 
 Some features of the app:
-* Much nicer looking than the official app.
-* Shows next trains at every PATH station.
-* Color-coded and styled using the same styles as on PATH signage and trains, so it should look familiar to new and old riders.
-* Ordered by your closest station so you don't need to scroll.
-* Optionally only show you the trains headed into NYC if you're in NJ, or into NJ if you're in NYC, so you only see the trains you actually care about.
-* Optionally use short names like "WTC" or longer names like "World Trade Center". If you've lived here for a while the abbreviations are faster to read.
-* When you lose WiFi/data signal, the ETAs will continue to count down based on the last information the app knows.
+* Modern design, more visually pleasing than the official app.
+* Real-time display of upcoming trains at every PATH station.
+* Utilizes authentic color-coding and styling, mirroring PATH signage and train visuals for a familiar experience to both new and seasoned commuters.
+* Arranges listings based on proximity, eliminating the need for scrolling.
+* Optional filtering to exclusively view trains bound for NYC when in NJ, or vice versa, so you only see the trains you actually care about.
+* Flexibility in display naming, from concise "WTC" to extended "World Trade Center," accommodating varied levels of local familiarity.
+* Functioning countdowns during WiFi/data signal loss, referencing the most recent app data.
 * Uses [Matt Razza's API](https://github.com/mrazza/path-data), the same source of data used in Citymapper and Transit.
+* Presents comprehensive PATH alerts, intelligently grouped to provide an up-to-date status overview for each incident and train line.
+* Show PATH alerts specific to each line when seeing a train's ETA, so you know right away if your train is delayed.
 
 ## Development
 Built with:
