@@ -88,7 +88,7 @@ fun UpcomingTrain.toUiTrain(
                         // only want to see it if it's within an hour
                         val isResuming = title.text.startsWith("Resuming", ignoreCase = true)
                         if (isResuming) {
-                            it.main.date?.isWithin(1.hours) ?: true
+                            it.main.date?.lessThanDurationAgo(1.hours) ?: true
                         } else {
                             // If it's not a "resuming" type, i.e. it's ongoing then we want to
                             // see it
@@ -126,13 +126,13 @@ fun UiUpcomingTrain.directionFromCurrentLocation(coords: Coordinates): Int =
         Direction.TO_NY -> if (coords.isInNJ) 1 else -1
     }
 
-infix fun Date.isWithin(duration: Duration): Boolean {
+infix fun Date.lessThanDurationAgo(duration: Duration): Boolean {
     val currentDate = Instant.now()
-    val endTime = currentDate + duration.toJavaDuration()
+    val timeDurationAgo = currentDate - duration.toJavaDuration()
 
     // Convert the input Date to Instant for comparison
     val inputInstant = toInstant()
 
     // Check if the input date falls between the current date and the end time
-    return inputInstant.isAfter(currentDate) && inputInstant.isBefore(endTime)
+    return inputInstant.isBefore(currentDate) && inputInstant.isAfter(timeDurationAgo)
 }

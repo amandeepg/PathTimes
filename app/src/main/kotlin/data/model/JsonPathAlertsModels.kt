@@ -59,7 +59,7 @@ data class AlertDatas(
         private val DATE_FORMATTER = SimpleDateFormat("MM/dd/yyyy hh:mm a", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("America/New_York")
         }
-        private val TIME_PREFIX_REGEX = Regex("\\d{1,2}:\\d{2} [ap]m:", RegexOption.IGNORE_CASE)
+        private val TIME_PREFIX_REGEX = Regex("^\\d{1,2}[: ]\\d{1,2} ?[apAP][mM][: ]?", RegexOption.IGNORE_CASE)
         private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
         private val APOLOGIZE_REGEX =
             Regex("We (apologize|regret) (for )?(the|this|any)?( )?(inconvenience)( )?(this )?(may )?(have|has)?( )?(caused)?(.*\\.)")
@@ -126,6 +126,7 @@ data class AlertDatas(
             text.getBefore(".").toTitle()
 
         private fun String.removeUnnecessaryText(): String = this
+            .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
             .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
@@ -134,6 +135,8 @@ data class AlertDatas(
             .remove("PATHAlert:")
             .remove("PATHAlert Update:")
             .remove("PATHAlert Final Update:")
+            .remove("Final Update:")
+            .remove("Update:")
             .remove("Real-Time Train Departures on: - RidePATH app: - PATH website:")
             .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
             .replace("..", ".").replace("..", ".")
