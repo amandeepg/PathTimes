@@ -8,7 +8,9 @@ import ca.amandeep.path.data.PathRazzaApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.Coordinates
+import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.SortPlaces
+import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
@@ -109,7 +111,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     ?.sortedByDirectionAndTime(currentLocation)
                     ?.toImmutableList()
-            }.toImmutableList()
+            }
+                .addHelpTextIndicator()
+                .toImmutableList()
 
             val arrivalsUiModel =
                 when (arrivalsResult) {
@@ -165,5 +169,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private val ALERTS_NETWORK_UPDATE_INTERVAL = 2.minutes
         private val UI_UPDATE_INTERVAL = 5.seconds
         private val DEFAULT_WTC_COORDS = Coordinates(40.713056, -74.013333)
+    }
+}
+
+private fun List<Pair<Station, ImmutableList<UiUpcomingTrain>>>.addHelpTextIndicator(): List<Pair<Station, ImmutableList<UiUpcomingTrain>>> {
+    val allTrains = flatMap { it.second }
+    val firstNjTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.TO_NJ }
+    val firstNycTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.TO_NY }
+
+    return map {
+        it.copy(
+            second = it.second.map { train ->
+                if (train == firstNjTrain || train == firstNycTrain) {
+                    train.copy(showDirectionHelpText = true)
+                } else {
+                    train
+                }
+            }.toImmutableList(),
+        )
     }
 }

@@ -50,6 +50,7 @@ data class UiUpcomingTrain(
     val arrivalInMinutesFromNow: Int,
     val isDepartedTrain: Boolean = false,
     val isInOppositeDirection: Boolean = false,
+    val showDirectionHelpText: Boolean = false,
     val alerts: ImmutableList<AlertData.Grouped> = persistentListOf(),
 )
 

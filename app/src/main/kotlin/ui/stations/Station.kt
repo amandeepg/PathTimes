@@ -125,6 +125,7 @@ private fun StationPreview() {
                     ),
                     arrivalInMinutesFromNow = 0,
                     isInOppositeDirection = false,
+                    showDirectionHelpText = true,
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
@@ -134,6 +135,7 @@ private fun StationPreview() {
                     ),
                     arrivalInMinutesFromNow = 1,
                     isInOppositeDirection = false,
+                    showDirectionHelpText = true,
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(

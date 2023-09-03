@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.rounded.SubdirectoryArrowLeft
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -73,6 +75,7 @@ import kotlinx.collections.immutable.persistentListOf
 import java.util.Date
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.text.Typography.nbsp
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -121,6 +124,36 @@ fun Train(
                         ExpandableTrainAlerts(train.alerts)
                     }
                 }
+            }
+        }
+        if (train.showDirectionHelpText) {
+            Row(
+                Modifier
+                    .alpha(0.75f)
+                    .padding(top = 2.dp, bottom = if (isLastInStation) 0.dp else 4.dp),
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .rotate(90f)
+                        .align(Alignment.Top)
+                        .offset(x = (-3.5).dp),
+                    imageVector = Icons.Rounded.SubdirectoryArrowLeft,
+                    contentDescription = stringResource(R.string.arrow_pointing_to_direction_indicator),
+                )
+                Text(
+                    modifier =
+                    Modifier.align(Alignment.CenterVertically),
+                    text = when (train.upcomingTrain.direction) {
+                        Direction.TO_NY -> stringResource(R.string.east_bound_help_text, nbsp)
+                        Direction.TO_NJ -> stringResource(R.string.west_bound_help_text, nbsp)
+                    },
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Light,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize.times(0.95f),
+                        lineHeight = MaterialTheme.typography.labelSmall.lineHeight.times(0.9f),
+                    ),
+                )
             }
         }
     }
@@ -428,6 +461,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             ),
             arrivalInMinutesFromNow = 0,
             isInOppositeDirection = false,
+            showDirectionHelpText = true,
         ),
         UiUpcomingTrain(
             UpcomingTrain(
@@ -446,6 +480,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                     main = AlertData.Single(text = "Where is this train going", date = null),
                 ),
             ),
+            showDirectionHelpText = true,
         ),
         UiUpcomingTrain(
             UpcomingTrain(

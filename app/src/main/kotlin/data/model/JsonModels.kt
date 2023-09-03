@@ -9,6 +9,7 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlin.text.Typography.nbsp
 
 @Immutable
 @JsonClass(generateAdapter = true)
@@ -73,8 +74,8 @@ enum class Direction(
     val stateName: String,
     val stateNameShort: String,
 ) {
-    TO_NJ("New Jersey", "NJ"),
-    TO_NY("New York", "NY"),
+    TO_NJ("New${nbsp}Jersey", "NJ"),
+    TO_NY("New${nbsp}York", "NY"),
 }
 
 @Immutable
