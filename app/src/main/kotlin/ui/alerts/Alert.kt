@@ -139,7 +139,7 @@ fun Alert(
                             is AlertData.Grouped.Title.RouteTitle ->
                                 stringResource(
                                     R.string.view_older_route,
-                                    alert.title.routes.first().displayName,
+                                    alert.title.routes.joinToString { it.displayName },
                                 )
                             else ->
                                 stringResource(R.string.view_older)

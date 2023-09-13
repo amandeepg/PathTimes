@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath "io.nlopez.compose.rules:ktlint:_"
+        classpath 'app.cash.paparazzi:paparazzi-gradle-plugin:_'
         classpath CashApp.licenseeGradlePlugin
     }
 }
@@ -16,6 +17,7 @@ plugins {
     id 'org.jmailen.kotlinter' apply false
     id 'de.mannodermaus.android-junit5' apply false
     id 'app.cash.licensee' apply false
+    id 'app.cash.paparazzi' apply false
 }
 
 tasks.register('clean') {
@@ -27,6 +29,26 @@ if (hasProperty('buildScan')) {
         buildScan {
             termsOfServiceUrl = "https://gradle.com/terms-of-service"
             termsOfServiceAgree = "yes"
+        }
+    }
+}
+
+subprojects {
+    plugins.withId("app.cash.paparazzi") {
+        // Defer until afterEvaluate so that testImplementation is created by Android plugin.
+        afterEvaluate {
+            dependencies.constraints {
+                add("testImplementation", "com.google.guava:guava") {
+                    attributes {
+                        attribute(
+                                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+                                objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM)
+                        )
+                    }
+                    because("LayoutLib and sdk-common depend on Guava's -jre published variant." +
+                            "See https://github.com/cashapp/paparazzi/issues/906.")
+                }
+            }
         }
     }
 }

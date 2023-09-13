@@ -47,18 +47,27 @@ data class UpcomingTrain(
     @field:Json(name = "lineColors") val lineColors: List<String> = listOf("", ""),
 ) {
     val route = when (_route) {
-        Route.JSQ_33_HOB ->
-            if (lineColors.size > 1) {
-                _route
-            } else if ("#FF9900" in lineColors) {
-                Route.JSQ_33
-            } else if ("#4D92FB" in lineColors) {
-                Route.HOB_33
-            } else {
-                Route.HOB_33
-            }
-
+        Route.JSQ_33_HOB -> when {
+            lineColors.size > 1 -> _route
+            "#FF9900" in lineColors -> Route.JSQ_33
+            "#4D92FB" in lineColors -> Route.HOB_33
+            else -> Route.HOB_33
+        }
         else -> _route
+    }
+
+    companion object {
+        operator fun invoke(
+            route: Route,
+            direction: Direction,
+            projectedArrival: Date,
+            lineColors: List<String> = listOf("", ""),
+        ) = UpcomingTrain(
+            _route = route,
+            direction = direction,
+            projectedArrival = projectedArrival,
+            lineColors = lineColors,
+        )
     }
 }
 

@@ -15,7 +15,7 @@ import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
-import com.github.ajalt.timberkt.d
+import com.github.ajalt.timberkt.w
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -29,7 +29,23 @@ import kotlinx.coroutines.flow.retryWhen
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+interface MainViewModel {
+    val uiState: Flow<MainUiModel>
+    val isInNJ: Flow<Boolean>
+
+    suspend fun refreshTrainsFromNetwork()
+
+    suspend fun locationPermissionsUpdated(currentPermissions: ImmutableList<String>)
+
+    companion object {
+        val ARRIVALS_NETWORK_UPDATE_INTERVAL = 30.seconds
+        val ALERTS_NETWORK_UPDATE_INTERVAL = 2.minutes
+        val UI_UPDATE_INTERVAL = 5.seconds
+        val DEFAULT_WTC_COORDS = Coordinates(40.713056, -74.013333)
+    }
+}
+
+class MainViewModelImpl(application: Application) : AndroidViewModel(application), MainViewModel {
     private val locationUseCase = LocationUseCase(application)
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
@@ -37,15 +53,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             everbridgeApiService = PathAlertsApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
         ),
-        arrivalsUpdateInterval = ARRIVALS_NETWORK_UPDATE_INTERVAL,
-        alertsUpdateInterval = ALERTS_NETWORK_UPDATE_INTERVAL,
+        arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
+        alertsUpdateInterval = MainViewModel.ALERTS_NETWORK_UPDATE_INTERVAL,
     )
 
-    val uiState: Flow<MainUiModel> by lazy {
+    override val uiState: Flow<MainUiModel> by lazy {
         val currentLocationFlow = locationUseCase.coordinates.onStart {
             // Emit a default location if we don't have one yet
             // Start with the WTC
-            emit(DEFAULT_WTC_COORDS)
+            emit(MainViewModel.DEFAULT_WTC_COORDS)
         }
         val stationsFlow = pathRepository.stations
             .map<Stations, Result<Stations>> {
@@ -58,12 +74,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
                 delay((attempt * attempt).seconds + 1.seconds)
-                d { "Retrying Stations chain after error: $cause (attempt $attempt)" }
+                w(cause) { "Retrying Stations chain after error: $cause (attempt $attempt)" }
                 true
             }
         val arrivalsFlow = pathRepository
             .arrivals
-            .repeat(UI_UPDATE_INTERVAL)
+            .repeat(MainViewModel.UI_UPDATE_INTERVAL)
             .map<PathRepository.ArrivalsResult, Result<PathRepository.ArrivalsResult>> {
                 Result.Valid(
                     lastUpdated = it.metadata.lastUpdated,
@@ -74,7 +90,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
                 delay((attempt * attempt).seconds + 1.seconds)
-                d { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
+                w(cause) { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
                 true
             }
         val alertsFlow = pathRepository.alerts
@@ -88,7 +104,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
                 delay((attempt * attempt).seconds + 1.seconds)
-                d { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
+                w(cause) { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
                 true
             }
 
@@ -124,6 +140,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             data = closestArrivals,
                         )
                     }
+
                     is Result.Error -> Result.Error()
                     is Result.Loading -> Result.Loading()
                 }
@@ -137,6 +154,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             data = alertsResult.data.alerts,
                         )
                     }
+
                     is Result.Error -> Result.Error()
                     is Result.Loading -> Result.Loading()
                 }
@@ -152,23 +170,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 ),
             )
             delay((attempt * attempt).seconds + 1.seconds)
-            d { "Retrying entire chain after error: $cause (attempt $attempt)" }
+            w(cause) { "Retrying entire chain after error: $cause (attempt $attempt)" }
             true
         }
     }
-    val isInNJ: Flow<Boolean> by lazy { locationUseCase.coordinates.map { it.isInNJ } }
+    override val isInNJ: Flow<Boolean> by lazy { locationUseCase.coordinates.map { it.isInNJ } }
 
-    suspend fun refreshTrainsFromNetwork() = pathRepository.refresh()
+    override suspend fun refreshTrainsFromNetwork() = pathRepository.refresh()
 
-    suspend fun locationPermissionsUpdated(currentPermissions: ImmutableList<String>) =
+    override suspend fun locationPermissionsUpdated(currentPermissions: ImmutableList<String>) =
         locationUseCase.permissionsUpdated(currentPermissions)
-
-    companion object {
-        private val ARRIVALS_NETWORK_UPDATE_INTERVAL = 30.seconds
-        private val ALERTS_NETWORK_UPDATE_INTERVAL = 2.minutes
-        private val UI_UPDATE_INTERVAL = 5.seconds
-        private val DEFAULT_WTC_COORDS = Coordinates(40.713056, -74.013333)
-    }
 }
 
 private fun List<Pair<Station, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<Station, ImmutableList<UiUpcomingTrain>>> {

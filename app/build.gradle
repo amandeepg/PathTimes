@@ -4,8 +4,8 @@ plugins {
     id 'kotlin-parcelize'
     id 'org.jmailen.kotlinter'
     id 'com.google.devtools.ksp'
-    id 'de.mannodermaus.android-junit5'
     id 'app.cash.licensee'
+    id 'app.cash.paparazzi'
 }
 
 android {
@@ -57,6 +57,9 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
     namespace 'ca.amandeep.path'
 }
 
@@ -64,6 +67,7 @@ dependencies {
     implementation(KotlinX.collections.immutable)
     implementation AndroidX.activity.compose
     implementation AndroidX.compose.material3
+    implementation AndroidX.compose.material3.windowSizeClass
     implementation AndroidX.compose.material
     implementation AndroidX.compose.ui
     implementation AndroidX.core.ktx
@@ -93,9 +97,7 @@ dependencies {
     implementation AndroidX.compose.ui.tooling
     debugImplementation AndroidX.compose.ui.toolingPreview
 
-    testImplementation(Testing.junit.jupiter.api)
-    testRuntimeOnly(Testing.junit.jupiter.engine)
-    testImplementation(Testing.junit.jupiter.params)
+    testImplementation(Testing.junit4)
     testImplementation "com.google.truth:truth:_"
     testImplementation "com.google.truth.extensions:truth-java8-extension:_"
 }
@@ -108,4 +110,8 @@ licensee {
     allowUrl('https://jsoup.org/license') {
         because 'MIT, but self-hosted copy of the license'
     }
+}
+
+tasks.withType(Test) {
+    android.sourceSets.main.res.srcDirs += 'src/test/res'
 }

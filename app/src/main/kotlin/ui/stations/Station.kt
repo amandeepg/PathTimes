@@ -121,7 +121,7 @@ private fun StationPreview() {
             ) to persistentListOf(
                 UiUpcomingTrain(
                     UpcomingTrain(
-                        _route = Route.JSQ_33,
+                        route = Route.JSQ_33,
                         direction = Direction.TO_NY,
                         projectedArrival = Date(System.currentTimeMillis() + 0.minutes.inWholeMilliseconds),
                     ),
@@ -131,7 +131,7 @@ private fun StationPreview() {
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
-                        _route = Route.NWK_WTC,
+                        route = Route.NWK_WTC,
                         direction = Direction.TO_NJ,
                         projectedArrival = Date(System.currentTimeMillis() + 1.minutes.inWholeMilliseconds),
                     ),
@@ -141,7 +141,7 @@ private fun StationPreview() {
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
-                        _route = Route.HOB_WTC,
+                        route = Route.HOB_WTC,
                         direction = Direction.TO_NJ,
                         projectedArrival = Date(System.currentTimeMillis() + 33.minutes.inWholeMilliseconds),
                     ),
@@ -150,7 +150,7 @@ private fun StationPreview() {
                 ),
                 UiUpcomingTrain(
                     UpcomingTrain(
-                        _route = Route.JSQ_33_HOB,
+                        route = Route.JSQ_33_HOB,
                         direction = Direction.TO_NJ,
                         projectedArrival = Date(System.currentTimeMillis() + 5.minutes.inWholeMilliseconds),
                     ),

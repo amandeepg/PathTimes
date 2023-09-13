@@ -4,7 +4,7 @@ import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
 import ca.amandeep.path.data.model.AlertDatas.Companion.toAlertDatas
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import java.util.Date
 
 class AlertDatasTest {

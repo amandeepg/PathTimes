@@ -11,6 +11,7 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -26,8 +27,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -48,6 +50,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -69,6 +73,7 @@ import ca.amandeep.path.ui.ErrorBar
 import ca.amandeep.path.ui.ErrorScreen
 import ca.amandeep.path.ui.KeepUpdatedEffect
 import ca.amandeep.path.ui.LastUpdatedInfoRow
+import ca.amandeep.path.ui.LastUpdatedUiModel
 import ca.amandeep.path.ui.alerts.ExpandableAlerts
 import ca.amandeep.path.ui.rememberLastUpdatedState
 import ca.amandeep.path.ui.requireOptionalLocationItem
@@ -92,6 +97,7 @@ import kotlin.time.ExperimentalTime
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
+    windowSizeClass: WindowSizeClass,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -110,7 +116,9 @@ fun MainScreen(
 
     var anyLocationPermissionsGranted by remember {
         mutableStateOf(
-            context.checkPermission(ACCESS_COARSE_LOCATION) || context.checkPermission(ACCESS_FINE_LOCATION),
+            context.checkPermission(ACCESS_COARSE_LOCATION) || context.checkPermission(
+                ACCESS_FINE_LOCATION,
+            ),
         )
     }
 
@@ -179,28 +187,25 @@ fun MainScreen(
         }
     }
 
+    val overflowItems: @Composable RowScope.() -> Unit = {
+        OverflowItems(
+            forceRefresh = forceRefresh,
+            shortenNamesPref = shortenNamesPref,
+            setShortenNamesPref = setShortenNamesPref,
+            showOppositeDirectionPref = showOppositeDirectionPref,
+            setShowOppositeDirectionPref = setShowOppositeDirectionPref,
+            showElevatorAlertsPref = showElevatorAlertsPref,
+            showHelpGuidePref = showHelpGuidePref,
+            setShowElevatorAlertsPref = setShowElevatorAlertsPref,
+            setShowHelpGuidePref = setShowHelpGuidePref,
+            anyLocationPermissionsGranted = anyLocationPermissionsGranted,
+        )
+    }
+
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarState) },
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(id = R.string.app_name)) },
-                actions = {
-                    OverflowItems(
-                        forceRefresh = forceRefresh,
-                        shortenNamesPref = shortenNamesPref,
-                        setShortenNamesPref = setShortenNamesPref,
-                        showOppositeDirectionPref = showOppositeDirectionPref,
-                        setShowOppositeDirectionPref = setShowOppositeDirectionPref,
-                        showElevatorAlertsPref = showElevatorAlertsPref,
-                        showHelpGuidePref = showHelpGuidePref,
-                        setShowElevatorAlertsPref = setShowElevatorAlertsPref,
-                        setShowHelpGuidePref = setShowHelpGuidePref,
-                        anyLocationPermissionsGranted = anyLocationPermissionsGranted,
-                    )
-                },
-            )
-        },
+        topBar = { TopBar(overflowItems = overflowItems) },
     ) { innerPadding ->
         val ptrState = rememberPullRefreshState(
             refreshing = refreshing,
@@ -249,6 +254,7 @@ fun MainScreen(
                 setShowElevatorAlerts = setShowElevatorAlertsWithUndo,
                 setShowHelpGuide = setShowHelpGuideWithUndo,
                 anyLocationPermissionsGranted = anyLocationPermissionsGranted,
+                windowSizeClass = windowSizeClass,
             )
             PullRefreshIndicator(
                 refreshing = refreshing,
@@ -257,6 +263,19 @@ fun MainScreen(
             )
         }
     }
+}
+
+@Composable
+@VisibleForTesting
+fun TopBar(
+    modifier: Modifier = Modifier,
+    overflowItems: @Composable (RowScope.() -> Unit),
+) {
+    CenterAlignedTopAppBar(
+        modifier = modifier,
+        title = { Text(stringResource(id = R.string.app_name)) },
+        actions = { overflowItems() },
+    )
 }
 
 @Composable
@@ -306,9 +325,10 @@ private fun <T : Any> foldWithLastGoodState(
     }
 }
 
-@Suppress("UnusedReceiverParameter")
+@Suppress("UnusedReceiverParameter", "ktlint:compose:modifier-missing-check")
 @Composable
-private fun RowScope.OverflowItems(
+@VisibleForTesting
+fun RowScope.OverflowItems(
     forceRefresh: () -> Unit,
     shortenNamesPref: Boolean,
     setShortenNamesPref: (Boolean) -> Unit,
@@ -419,6 +439,7 @@ private fun MainScreenContent(
     setShowingOppositeDirection: (Boolean) -> Unit,
     setShowElevatorAlerts: (Boolean) -> Unit,
     setShowHelpGuide: (Boolean) -> Unit,
+    windowSizeClass: WindowSizeClass,
 ) {
     val connectivityState by LocalContext.current.observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
@@ -435,148 +456,189 @@ private fun MainScreenContent(
         ) { isLoading ->
             when (isLoading || uiModel.arrivals !is Result.Valid) {
                 true -> LoadingScreen()
-                false -> LoadedScreen(
-                    uiModel = uiModel,
-                    locationPermissionsUpdated = locationPermissionsUpdated,
-                    arrivals = uiModel.arrivals,
-                    connectivityState = connectivityState,
-                    anyLocationPermissionsGranted = anyLocationPermissionsGranted,
-                    userState = userState,
-                    setShowingOppositeDirection = setShowingOppositeDirection,
-                    setShowElevatorAlerts = setShowElevatorAlerts,
-                    setShowHelpGuide = setShowHelpGuide,
-                    snackbarState = snackbarState,
-                    now = now,
-                )
+                false -> {
+                    val lastUpdatedState = rememberLastUpdatedState(uiModel.arrivals.lastUpdated)
+                    lastUpdatedState.KeepUpdatedEffect(uiModel.arrivals.lastUpdated, 1.seconds)
+                    val requireOptionalLocationItem = requireOptionalLocationItem(
+                        permissionsUpdated = locationPermissionsUpdated,
+                        navigateToSettingsScreen = {
+                            startActivity(
+                                it,
+                                Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    Uri.fromParts("package", it.packageName, null),
+                                ),
+                                null,
+                            )
+                        },
+                    )
+                    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
+                        keyName = "showDirectionWarning",
+                        initialValue = true,
+                        defaultValue = true,
+                    )
+
+                    val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
+                    LoadedScreen(
+                        connectivityState = connectivityState,
+                        requireOptionalLocationItem = requireOptionalLocationItem,
+                        uiModel = uiModel,
+                        userState = userState,
+                        setShowElevatorAlerts = setShowElevatorAlerts,
+                        anyLocationPermissionsGranted = anyLocationPermissionsGranted,
+                        setShowingOppositeDirection = setShowingOppositeDirection,
+                        snackbarState = snackbarState,
+                        lastUpdatedState = lastUpdatedState.value,
+                        now = now,
+                        setShowHelpGuide = setShowHelpGuide,
+                        alertsExpanded = alertsExpanded,
+                        showDirectionWarning = showDirectionWarning,
+                        setAlertsExpanded = setAlertsExpanded,
+                        setShowDirectionWarning = setShowDirectionWarning,
+                        windowSizeClass = windowSizeClass,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun LoadedScreen(
+@VisibleForTesting
+fun LoadedScreen(
+    requireOptionalLocationItem: @Composable (Modifier) -> Unit,
     uiModel: MainUiModel,
-    locationPermissionsUpdated: suspend (ImmutableList<String>) -> Unit,
-    arrivals: Result.Valid<ArrivalsUiModel>,
     connectivityState: ConnectionState,
     anyLocationPermissionsGranted: Boolean,
     userState: UserState,
     setShowingOppositeDirection: (Boolean) -> Unit,
     setShowElevatorAlerts: (Boolean) -> Unit,
-    setShowHelpGuide: (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
+    lastUpdatedState: LastUpdatedUiModel,
     now: Long,
+    setShowHelpGuide: (Boolean) -> Unit,
+    alertsExpanded: Boolean,
+    showDirectionWarning: Boolean,
+    setAlertsExpanded: (Boolean) -> Unit,
+    setShowDirectionWarning: (Boolean) -> Unit,
+    windowSizeClass: WindowSizeClass,
+    modifier: Modifier = Modifier,
 ) {
-    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
-        keyName = "showDirectionWarning",
-        initialValue = true,
-        defaultValue = true,
-    )
-
-    val requireOptionalLocationItem = requireOptionalLocationItem(
-        permissionsUpdated = locationPermissionsUpdated,
-        navigateToSettingsScreen = {
-            startActivity(
-                it,
-                Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", it.packageName, null),
-                ),
-                null,
-            )
-        },
-    )
-    val lastUpdatedState = rememberLastUpdatedState(arrivals.lastUpdated)
-    lastUpdatedState.KeepUpdatedEffect(arrivals.lastUpdated, 1.seconds)
-
-    val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
+    val arrivals = uiModel.arrivals as Result.Valid<ArrivalsUiModel>
 
     val autoRefreshingNow = connectivityState != ConnectionState.Unavailable
 
-    val spacingModifier = Modifier.padding(vertical = 4.dp)
+    val spacingModifier = when (windowSizeClass.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> Modifier.padding(vertical = 4.dp)
+        WindowWidthSizeClass.Medium -> Modifier.padding(vertical = 4.dp)
+        WindowWidthSizeClass.Expanded -> Modifier.padding(bottom = 8.dp)
+        else -> Modifier.padding(vertical = 4.dp)
+    }
 
-    LazyColumn(
-        modifier = Modifier.padding(horizontal = 10.dp),
+    val columns = when (windowSizeClass.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> 1
+        WindowWidthSizeClass.Medium -> 2
+        WindowWidthSizeClass.Expanded -> 2
+        else -> 1
+    }
+    val horizontalArrangement = when (windowSizeClass.widthSizeClass) {
+        WindowWidthSizeClass.Compact -> 0.dp
+        WindowWidthSizeClass.Medium -> 10.dp
+        WindowWidthSizeClass.Expanded -> 10.dp
+        else -> 0.dp
+    }
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(columns),
+        horizontalArrangement = Arrangement.spacedBy(horizontalArrangement),
+        modifier = modifier.padding(horizontal = 10.dp),
     ) {
-        item { requireOptionalLocationItem(spacingModifier) }
-        item {
-            val alertsModel = when (uiModel.alerts) {
-                is Result.Valid -> uiModel.alerts.copy(
-                    data = uiModel.alerts.data.copy(
-                        alerts = uiModel.alerts.data.alerts.filter {
-                            when {
-                                userState.showElevatorAlerts -> true
-                                it is AlertData.Single -> !it.isElevator
-                                else -> true
-                            }
-                        }.toImmutableList(),
-                    ),
-                )
-                else -> uiModel.alerts
-            }
-            uiModel.alerts
-            ExpandableAlerts(
-                modifier = spacingModifier,
-                connectivityState = connectivityState,
-                alertsResult = alertsModel,
-                expanded = alertsExpanded,
-                setExpanded = setAlertsExpanded,
-                setShowElevatorAlerts = setShowElevatorAlerts,
-            )
-        }
-        if (anyLocationPermissionsGranted && showDirectionWarning) {
-            item {
-                DirectionWarning(
-                    modifier = spacingModifier,
-                    isInNJ = userState.isInNJ,
-                    showOppositeDirection = userState.showOppositeDirection,
-                    setShowingOppositeDirection = setShowingOppositeDirection,
-                    snackbarState = snackbarState,
-                    setShowDirectionWarning = setShowDirectionWarning,
-                )
-            }
-        }
-        item {
-            AnimatedVisibility(
-                visible = arrivals.hasError,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
-            ) {
-                ErrorBar(
+        item(
+            contentType = "top",
+        ) {
+            Column {
+                requireOptionalLocationItem(spacingModifier)
+
+                val alertsModel = when (uiModel.alerts) {
+                    is Result.Valid -> uiModel.alerts.copy(
+                        data = uiModel.alerts.data.copy(
+                            alerts = uiModel.alerts.data.alerts.filter {
+                                when {
+                                    userState.showElevatorAlerts -> true
+                                    it is AlertData.Single -> !it.isElevator
+                                    else -> true
+                                }
+                            }.toImmutableList(),
+                        ),
+                    )
+
+                    else -> uiModel.alerts
+                }
+                ExpandableAlerts(
                     modifier = spacingModifier,
                     connectivityState = connectivityState,
+                    alertsResult = alertsModel,
+                    expanded = alertsExpanded,
+                    setExpanded = setAlertsExpanded,
+                    setShowElevatorAlerts = setShowElevatorAlerts,
                 )
+                if (anyLocationPermissionsGranted && showDirectionWarning) {
+                    DirectionWarning(
+                        modifier = spacingModifier,
+                        isInNJ = userState.isInNJ,
+                        showOppositeDirection = userState.showOppositeDirection,
+                        setShowingOppositeDirection = setShowingOppositeDirection,
+                        snackbarState = snackbarState,
+                        setShowDirectionWarning = setShowDirectionWarning,
+                    )
+                }
+                AnimatedVisibility(
+                    visible = arrivals.hasError,
+                    enter = expandVertically(),
+                    exit = shrinkVertically(),
+                ) {
+                    ErrorBar(
+                        modifier = spacingModifier,
+                        connectivityState = connectivityState,
+                    )
+                }
+                when (windowSizeClass.widthSizeClass) {
+                    WindowWidthSizeClass.Compact -> Unit
+                    WindowWidthSizeClass.Medium -> Spacer(modifier = spacingModifier)
+                    WindowWidthSizeClass.Expanded -> Spacer(modifier = spacingModifier)
+                    else -> Unit
+                }
+                AnimatedVisibility(
+                    visible = !autoRefreshingNow && lastUpdatedState.secondsAgo > TOP_LAST_UPDATED_THRESHOLD_SECS,
+                    enter = expandVertically(),
+                    exit = shrinkVertically(),
+                ) {
+                    LastUpdatedInfoRow(
+                        modifier = spacingModifier,
+                        lastUpdatedState = lastUpdatedState,
+                    )
+                }
             }
         }
-        item {
-            Spacer(modifier = spacingModifier)
-        }
-        item {
-            AnimatedVisibility(
-                visible = !autoRefreshingNow && lastUpdatedState.value.secondsAgo > TOP_LAST_UPDATED_THRESHOLD_SECS,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
-            ) {
-                LastUpdatedInfoRow(
-                    modifier = spacingModifier,
-                    lastUpdatedState = lastUpdatedState.value,
-                )
-            }
-        }
-        items(arrivals.data, contentType = { "station" }) {
+        items(
+            count = arrivals.data.size,
+            contentType = { "station" },
+        ) {
             Station(
                 modifier = spacingModifier,
-                station = it,
+                station = arrivals.data[it],
                 now = now,
                 userState = userState,
                 autoRefreshingNow = autoRefreshingNow,
                 setShowHelpGuide = setShowHelpGuide,
             )
         }
-        item {
+        item(
+            span = StaggeredGridItemSpan.FullLine,
+            contentType = "lastUpdated",
+        ) {
             LastUpdatedInfoRow(
                 modifier = spacingModifier,
-                lastUpdatedState = lastUpdatedState.value,
+                lastUpdatedState = lastUpdatedState,
             )
         }
     }

@@ -491,7 +491,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
     override val values = sequenceOf(
         UiUpcomingTrain(
             UpcomingTrain(
-                _route = Route.JSQ_33,
+                route = Route.JSQ_33,
                 direction = Direction.TO_NY,
                 projectedArrival = Date().apply { time += 0.minutes.inWholeMilliseconds },
             ),
@@ -501,7 +501,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         ),
         UiUpcomingTrain(
             UpcomingTrain(
-                _route = Route.NWK_WTC,
+                route = Route.NWK_WTC,
                 direction = Direction.TO_NJ,
                 projectedArrival = Date().apply { time += 1.minutes.inWholeMilliseconds },
             ),
@@ -520,7 +520,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         ),
         UiUpcomingTrain(
             UpcomingTrain(
-                _route = Route.HOB_WTC,
+                route = Route.HOB_WTC,
                 direction = Direction.TO_NJ,
                 projectedArrival = Date().apply { time += 33.minutes.inWholeMilliseconds },
             ),
@@ -529,7 +529,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         ),
         UiUpcomingTrain(
             UpcomingTrain(
-                _route = Route.JSQ_33_HOB,
+                route = Route.JSQ_33_HOB,
                 direction = Direction.TO_NJ,
                 projectedArrival = Date().apply { time += 5.minutes.inWholeMilliseconds },
             ),
