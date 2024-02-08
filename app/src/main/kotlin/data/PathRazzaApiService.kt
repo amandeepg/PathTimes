@@ -15,7 +15,9 @@ interface PathRazzaApiService {
     suspend fun getStations(): Stations
 
     @GET("stations/{station}/realtime")
-    suspend fun getArrivals(@Path("station") station: String): UpcomingTrains
+    suspend fun getArrivals(
+        @Path("station") station: String,
+    ): UpcomingTrains
 
     companion object {
         private const val API_PATH = "https://path.api.razza.dev/v1/"

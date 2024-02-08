@@ -30,7 +30,6 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-
     private val locationUseCase = LocationUseCase(application)
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
@@ -112,7 +111,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     ?.sortedByDirectionAndTime(currentLocation)
                     ?.toImmutableList()
             }
-                .addHelpTextIndicator()
+                .addHelpText()
                 .toImmutableList()
 
             val arrivalsUiModel =
@@ -172,7 +171,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 }
 
-private fun List<Pair<Station, ImmutableList<UiUpcomingTrain>>>.addHelpTextIndicator(): List<Pair<Station, ImmutableList<UiUpcomingTrain>>> {
+private fun List<Pair<Station, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<Station, ImmutableList<UiUpcomingTrain>>> {
     val allTrains = flatMap { it.second }
     val firstNjTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.TO_NJ }
     val firstNycTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.TO_NY }

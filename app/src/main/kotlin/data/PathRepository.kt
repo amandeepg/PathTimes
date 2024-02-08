@@ -100,6 +100,7 @@ class PathRepository(
         val metadata: Metadata = Metadata(),
         val alerts: AlertDatas = AlertDatas(),
     )
+
     data class Metadata(
         val lastUpdated: Long = -1,
     )

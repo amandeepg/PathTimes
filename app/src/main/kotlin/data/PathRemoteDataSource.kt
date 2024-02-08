@@ -12,7 +12,6 @@ class PathRemoteDataSource(
     private val everbridgeApiService: PathAlertsApiService,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
-
     suspend fun getAlerts(): AlertDatas =
         withContext(ioDispatcher) {
             d { "getAlerts" }

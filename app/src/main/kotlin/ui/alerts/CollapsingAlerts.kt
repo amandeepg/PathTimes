@@ -234,11 +234,14 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
     companion object {
         val ALERT1 = AlertData.Single(
             date = Date().apply { time -= 7.minutes.inWholeMilliseconds },
-            text = "JSQ-33 via HOB delayed. Train experiencing network communication problems at JSQ. An update will be issued in approx. 15 mins.",
+            text = "JSQ-33 via HOB delayed. " +
+                "Train experiencing network communication problems at JSQ. An update will be issued in approx. 15 mins.",
         )
         val ALERT2 = AlertData.Single(
             date = Date().apply { time -= 12.minutes.inWholeMilliseconds },
-            text = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. We regret this inconvenience.",
+            text = "At JSQ, concourse elevator connecting platform with trks 1&2 out of service. " +
+                "Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. " +
+                "We regret this inconvenience.",
         )
         val GROUPED_ALERT1 = AlertData.Grouped(
             title = AlertData.Grouped.Title.RouteTitle(

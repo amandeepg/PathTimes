@@ -278,7 +278,7 @@ private fun setAndComputeLastGoodState(
     // If all trains are empty, force a refresh, and show a loading screen
     val allTrainsEmpty = lastGoodState.arrivals is Result.Valid &&
         lastGoodState.arrivals.data.all { it.second.all { it.isDepartedTrain } }
-    LaunchedEffect(allTrainsEmpty) {
+    LaunchedEffect(allTrainsEmpty, forceUpdate) {
         if (allTrainsEmpty) {
             forceUpdate()
             setLastGoodState(

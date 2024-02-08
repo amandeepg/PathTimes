@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -110,12 +110,9 @@ fun Alert(
             @Composable
             fun DateText() = Text(
                 text = DateUtils.getRelativeTimeSpanString(
-                    /* time = */
-                    singleAlert.date.time,
-                    /* now = */
-                    System.currentTimeMillis(),
-                    /* minResolution = */
-                    DateUtils.MINUTE_IN_MILLIS,
+                    singleAlert.date.time, // time
+                    System.currentTimeMillis(), // now
+                    DateUtils.MINUTE_IN_MILLIS, // minResolution
                 ).toString().lowercase(Locale.US),
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 style = timeTextStyle,
@@ -159,7 +156,6 @@ fun Alert(
                             )
                             .align(Alignment.CenterVertically)
                             .rotate(arrowRotationDegree),
-
                         imageVector = Icons.Filled.ExpandLess,
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = stringResource(R.string.expandable_arrow_content_description),
@@ -261,7 +257,7 @@ fun Alerts(
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
                 if (index != alertsUiModel.size - 1) {
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 6.dp),
                         color = DividerDefaults.color.copy(alpha = 0.5f),
                     )

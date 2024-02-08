@@ -66,7 +66,7 @@ fun requireOptionalLocationItem(
             .filter { it.hasPermission }
             .map { it.permission }
             .toImmutableList()
-    LaunchedEffect(permissionsGranted) {
+    LaunchedEffect(permissionsGranted, permissionsUpdated) {
         permissionsUpdated(permissionsGranted)
     }
 
@@ -100,7 +100,7 @@ fun requireOptionalLocationItem(
                             } else {
                                 stringResource(R.string.location_rationale)
                             }
-                            ) +
+                        ) +
                             "\n" + stringResource(R.string.grant_settings_access),
                         allowButtonText = stringResource(R.string.open_settings),
                         allowButtonAction = { navigateToSettingsScreen(ctx) },
@@ -167,7 +167,8 @@ private fun PermissionsUiPreview() {
 private fun PermissionsUi2Preview() {
     PATHTheme {
         PermissionsUi(
-            rationaleText = "Precise location is preferred over coarse location to show the closest station.\nPlease grant access on the Settings screen",
+            rationaleText = "Precise location is preferred over coarse location to show the closest station.\n" +
+                "Please grant access on the Settings screen",
             allowButtonText = "Open Settings",
             allowButtonAction = {},
             denyButtonText = "Don't ask again",

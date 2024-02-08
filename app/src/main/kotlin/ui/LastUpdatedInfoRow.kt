@@ -78,7 +78,9 @@ private fun computeLastUpdatedModel(lastUpdated: Long): LastUpdatedUiModel {
         LastUpdatedUiModel(
             unitDescriptionResId = if (value == 1L) {
                 if (secondsAgo >= 60) R.string.minute else R.string.second
-            } else if (secondsAgo >= 60) R.string.minutes else R.string.seconds,
+            } else {
+                if (secondsAgo >= 60) R.string.minutes else R.string.seconds
+            },
             units = value,
             isNow = false,
             secondsAgo = secondsAgo,
