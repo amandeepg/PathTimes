@@ -130,6 +130,9 @@ data class AlertDatas(
             .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
+            .replace("An update will be issued w/in approx", "Update in")
+            .replace("Next update will be issued w/in approx", "Update in")
+            .replace("Next update w/in", "Update in")
             .replace("mins.", "  mins.")
             .replace(APOLOGIZE_REGEX, "")
             .remove("PATHAlert:")
@@ -177,8 +180,11 @@ sealed interface AlertData {
             companion object {
                 val ROUTE_STRINGS = listOf(
                     "JSQ-33 via HOB" to Route.JSQ_33_HOB,
+                    "33-JSQ via HOB" to Route.JSQ_33_HOB,
                     "HOB-33" to Route.HOB_33,
+                    "33-HOB" to Route.HOB_33,
                     "JSQ-33" to Route.JSQ_33,
+                    "33-JSQ" to Route.JSQ_33,
                     "NWK-WTC" to Route.NWK_WTC,
                     "WTC-NWK" to Route.NWK_WTC,
                     "HOB-WTC" to Route.HOB_WTC,
