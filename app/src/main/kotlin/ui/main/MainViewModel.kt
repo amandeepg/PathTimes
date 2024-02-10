@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.data.LocationUseCase
 import ca.amandeep.path.data.PathAlertsApiService
-import ca.amandeep.path.data.PathRazzaApiService
+import ca.amandeep.path.data.PathRazzaRestApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.Coordinates
@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
+import kotlin.math.min
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -49,8 +50,9 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
     private val locationUseCase = LocationUseCase(application)
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
-            pathApi = PathRazzaApiService.INSTANCE,
-            everbridgeApiService = PathAlertsApiService.INSTANCE,
+            pathGrpcApi = PathRazzaRestApiService.GRPC_INSTANCE,
+            pathRestApi = PathRazzaRestApiService.INSTANCE,
+            alertsApi = PathAlertsApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
         ),
         arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
@@ -73,7 +75,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
-                delay((attempt * attempt).seconds + 1.seconds)
+                delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying Stations chain after error: $cause (attempt $attempt)" }
                 true
             }
@@ -89,7 +91,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
-                delay((attempt * attempt).seconds + 1.seconds)
+                delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
                 true
             }
@@ -103,7 +105,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 emit(Result.Error())
-                delay((attempt * attempt).seconds + 1.seconds)
+                delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
                 true
             }
@@ -169,7 +171,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                     alerts = Result.Error(),
                 ),
             )
-            delay((attempt * attempt).seconds + 1.seconds)
+            delay(min(45, attempt * attempt).seconds + 1.seconds)
             w(cause) { "Retrying entire chain after error: $cause (attempt $attempt)" }
             true
         }

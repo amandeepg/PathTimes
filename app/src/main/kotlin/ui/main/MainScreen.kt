@@ -82,6 +82,7 @@ import ca.amandeep.path.ui.stations.Station
 import ca.amandeep.path.util.ConnectionState
 import ca.amandeep.path.util.checkPermission
 import ca.amandeep.path.util.observeConnectivity
+import com.github.ajalt.timberkt.d
 import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -305,6 +306,8 @@ private fun setAndComputeLastGoodState(
             )
         }
     }
+
+    d { "lastGoodState: $lastGoodState" }
 
     return lastGoodState
 }

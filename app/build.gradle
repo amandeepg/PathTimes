@@ -6,6 +6,7 @@ plugins {
     id 'com.google.devtools.ksp'
     id 'app.cash.licensee'
     id 'app.cash.paparazzi'
+    id 'com.squareup.wire'
 }
 
 android {
@@ -97,6 +98,10 @@ dependencies {
     implementation AndroidX.compose.ui.tooling
     debugImplementation AndroidX.compose.ui.toolingPreview
 
+    implementation "com.google.api.grpc:proto-google-common-protos:_"
+    implementation(Square.wire.runtime)
+    implementation(Square.wire.grpc.client)
+
     testImplementation(Testing.junit4)
     testImplementation "com.google.truth:truth:_"
     testImplementation "com.google.truth.extensions:truth-java8-extension:_"
@@ -104,6 +109,7 @@ dependencies {
 
 licensee {
     allow 'Apache-2.0'
+    allow 'BSD-3-Clause'
     allowUrl('https://developer.android.com/studio/terms.html') {
         because 'Android Software Development Kit License Agreement'
     }
@@ -114,4 +120,24 @@ licensee {
 
 tasks.withType(Test) {
     android.sourceSets.main.res.srcDirs += 'src/test/res'
+}
+
+wire {
+    sourcePath {
+        srcDir 'src/main/protos'
+    }
+    sourcePath {
+        srcJar 'com.google.api.grpc:proto-google-common-protos:_'
+    }
+    sourcePath {
+        srcJar 'com.google.protobuf:protobuf-java:_'
+    }
+
+}
+
+wire {
+    kotlin {
+        rpcRole = 'client'
+        includes = ['path_api.*', 'google.type.*']
+    }
 }

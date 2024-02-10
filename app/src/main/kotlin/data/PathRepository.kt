@@ -1,6 +1,7 @@
 package ca.amandeep.path.data
 
 import ca.amandeep.path.data.model.AlertDatas
+import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Station
 import ca.amandeep.path.data.model.Stations
 import ca.amandeep.path.data.model.UpcomingTrain
@@ -17,9 +18,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEmpty
+import okhttp3.internal.immutableListOf
 import kotlin.time.Duration
 
 /**
@@ -31,19 +34,9 @@ class PathRepository(
     private val arrivalsUpdateInterval: Duration,
     private val alertsUpdateInterval: Duration,
 ) {
-    private var stationsCache: Stations? = null
     private var refreshFlow = MutableSharedFlow<Unit>()
 
-    /**
-     * Get the list of stations from the cache, or fetch it from the API if it's not cached.
-     */
-    val stations: Flow<Stations> by lazy {
-        flow {
-            stationsCache = (stationsCache ?: pathRemoteDataSource.getStations()).also {
-                emit(it)
-            }
-        }
-    }
+    val stations: Flow<Stations> = flowOf(STATIONS)
 
     /**
      * Get the list of arrivals for a station, periodically polling the API for updates.
@@ -105,3 +98,104 @@ class PathRepository(
         val lastUpdated: Long = -1,
     )
 }
+
+private val STATIONS = Stations(
+    stations = immutableListOf(
+        Station(
+            station = "NEWARK",
+            name = "Newark",
+            coordinates = Coordinates(
+                latitude = 40.73454,
+                longitude = -74.16375,
+            ),
+        ),
+        Station(
+            station = "HARRISON",
+            name = "Harrison",
+            coordinates = Coordinates(
+                latitude = 40.73942,
+                longitude = -74.15587,
+            ),
+        ),
+        Station(
+            station = "JOURNAL_SQUARE",
+            name = "Journal Square",
+            coordinates = Coordinates(
+                latitude = 40.73301,
+                longitude = -74.06289,
+            ),
+        ),
+        Station(
+            station = "GROVE_STREET",
+            name = "Grove Street",
+            coordinates = Coordinates(
+                latitude = 40.71966,
+                longitude = -74.04245,
+            ),
+        ),
+        Station(
+            station = "EXCHANGE_PLACE",
+            name = "Exchange Place",
+            coordinates = Coordinates(
+                latitude = 40.71676,
+                longitude = -74.03238,
+            ),
+        ),
+        Station(
+            station = "WORLD_TRADE_CENTER",
+            name = "World Trade Center",
+            coordinates = Coordinates(
+                latitude = 40.71271,
+                longitude = -74.01193,
+            ),
+        ),
+        Station(
+            station = "NEWPORT",
+            name = "Newport",
+            coordinates = Coordinates(
+                latitude = 40.72699,
+                longitude = -74.03383,
+            ),
+        ),
+        Station(
+            station = "HOBOKEN",
+            name = "Hoboken",
+            coordinates = Coordinates(
+                latitude = 40.73586,
+                longitude = -74.02922,
+            ),
+        ),
+        Station(
+            station = "CHRISTOPHER_STREET",
+            name = "Christopher Street",
+            coordinates = Coordinates(
+                latitude = 40.73295,
+                longitude = -74.00707,
+            ),
+        ),
+        Station(
+            station = "NINTH_STREET",
+            name = "9th Street",
+            coordinates = Coordinates(
+                latitude = 40.73424,
+                longitude = -73.9991,
+            ),
+        ),
+        Station(
+            station = "FOURTEENTH_STREET",
+            name = "14th Street",
+            coordinates = Coordinates(
+                latitude = 40.73735,
+                longitude = -73.99684,
+            ),
+        ),
+        Station(
+            station = "TWENTY_THIRD_STREET",
+            name = "23rd Street",
+            coordinates = Coordinates(
+                latitude = 40.7429,
+                longitude = -73.99278,
+            ),
+        ),
+    ),
+)

@@ -5,6 +5,7 @@ buildscript {
     dependencies {
         classpath "io.nlopez.compose.rules:ktlint:_"
         classpath 'app.cash.paparazzi:paparazzi-gradle-plugin:_'
+        classpath Square.wire.gradlePlugin
         classpath CashApp.licenseeGradlePlugin
     }
 }
@@ -18,6 +19,7 @@ plugins {
     id 'de.mannodermaus.android-junit5' apply false
     id 'app.cash.licensee' apply false
     id 'app.cash.paparazzi' apply false
+    id 'com.squareup.wire' apply false
 }
 
 tasks.register('clean') {
@@ -38,7 +40,7 @@ subprojects {
         // Defer until afterEvaluate so that testImplementation is created by Android plugin.
         afterEvaluate {
             dependencies.constraints {
-                add("testImplementation", "com.google.guava:guava") {
+                add("testImplementation", "com.google.guava:guava:_") {
                     attributes {
                         attribute(
                                 TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
