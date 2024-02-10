@@ -74,7 +74,7 @@ fun ExpandableView(
 
 fun Modifier.expandableClickable(
     onClick: () -> Unit,
-) = composed {
+) = this.composed {
     clickable(
         indication = null, // Removes the ripple effect on tap
         interactionSource = remember { MutableInteractionSource() }, // Removes the ripple effect on tap

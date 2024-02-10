@@ -4,14 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.data.LocationUseCase
 import ca.amandeep.path.data.PathAlertsApiService
-import ca.amandeep.path.data.PathRazzaRestApiService
+import ca.amandeep.path.data.PathOfficialRestApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.SortPlaces
-import ca.amandeep.path.data.model.Station
-import ca.amandeep.path.data.model.Stations
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
@@ -50,8 +49,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
     private val locationUseCase = LocationUseCase(application)
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
-            pathGrpcApi = PathRazzaRestApiService.GRPC_INSTANCE,
-            pathRestApi = PathRazzaRestApiService.INSTANCE,
+            pathRestApi = PathOfficialRestApiService.INSTANCE,
             alertsApi = PathAlertsApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
         ),
@@ -65,20 +63,6 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             // Start with the WTC
             emit(MainViewModel.DEFAULT_WTC_COORDS)
         }
-        val stationsFlow = pathRepository.stations
-            .map<Stations, Result<Stations>> {
-                Result.Valid(
-                    lastUpdated = System.currentTimeMillis(),
-                    data = it,
-                )
-            }
-            .onStart { emit(Result.Loading()) }
-            .retryWhen { cause, attempt ->
-                emit(Result.Error())
-                delay(min(45, attempt * attempt).seconds + 1.seconds)
-                w(cause) { "Retrying Stations chain after error: $cause (attempt $attempt)" }
-                true
-            }
         val arrivalsFlow = pathRepository
             .arrivals
             .repeat(MainViewModel.UI_UPDATE_INTERVAL)
@@ -112,12 +96,11 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
 
         combine(
             currentLocationFlow,
-            stationsFlow,
             arrivalsFlow,
             alertsFlow,
-        ) { currentLocation, stations, arrivalsResult, alertsResult ->
+        ) { currentLocation, arrivalsResult, alertsResult ->
             val arrivals = arrivalsResult.asValid()?.data?.arrivals.orEmpty()
-            val closestStations = stations.asValid()?.data?.stations
+            val closestStations = arrivalsResult.asValid()?.data?.arrivals?.keys
                 ?.sortedWith(SortPlaces(currentLocation)).orEmpty()
             val closestArrivals = closestStations.mapToNotNullPairs {
                 it to arrivals[it]
@@ -184,10 +167,10 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
         locationUseCase.permissionsUpdated(currentPermissions)
 }
 
-private fun List<Pair<Station, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<Station, ImmutableList<UiUpcomingTrain>>> {
+private fun List<Pair<StationName, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<StationName, ImmutableList<UiUpcomingTrain>>> {
     val allTrains = flatMap { it.second }
-    val firstNjTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.TO_NJ }
-    val firstNycTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.TO_NY }
+    val firstNjTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.ToNJ }
+    val firstNycTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.ToNY }
 
     return map {
         it.copy(

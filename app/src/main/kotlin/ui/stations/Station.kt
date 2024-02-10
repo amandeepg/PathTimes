@@ -20,26 +20,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.amandeep.path.R
-import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
-import ca.amandeep.path.data.model.Station
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import java.util.Date
 import java.util.Locale
-import kotlin.time.Duration.Companion.minutes
 
 private val PATH_BLUE = Color(0xff003da0)
 private val PATH_ON_BLUE = Color(0xeeeeeeee)
 
 @Composable
 fun Station(
-    station: Pair<Station, ImmutableList<UiUpcomingTrain>>,
+    station: Pair<StationName, ImmutableList<UiUpcomingTrain>>,
     now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
@@ -56,7 +53,7 @@ fun Station(
                     .background(PATH_BLUE),
             ) {
                 Text(
-                    text = station.first.name.uppercase(Locale.US),
+                    text = station.first.longName.uppercase(Locale.US),
                     color = PATH_ON_BLUE,
                     fontWeight = FontWeight.Black,
                     fontSize = 24.sp,
@@ -80,14 +77,14 @@ fun Station(
                     Text(
                         text = if (!userState.showOppositeDirection) {
                             val direction =
-                                if (userState.isInNJ) Direction.TO_NY else Direction.TO_NJ
+                                if (userState.isInNJ) Direction.ToNY else Direction.ToNJ
                             stringResource(
                                 R.string.no_trains_bound,
                                 direction.stateName,
                             )
                         } else {
                             stringResource(R.string.no_trains)
-                        } + station.first.name,
+                        } + station.first.longName,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
@@ -114,16 +111,12 @@ fun Station(
 private fun StationPreview() {
     PATHTheme {
         Station(
-            Station(
-                station = "WTC",
-                name = "World Trade Center",
-                coordinates = Coordinates(0.0, 0.0),
-            ) to persistentListOf(
+            StationName.WTC to persistentListOf(
                 UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.JSQ_33,
-                        direction = Direction.TO_NY,
-                        projectedArrival = Date(System.currentTimeMillis() + 0.minutes.inWholeMilliseconds),
+                        direction = Direction.ToNJ,
+                        minsToArrival = 0,
                     ),
                     arrivalInMinutesFromNow = 0,
                     isInOppositeDirection = false,
@@ -132,8 +125,8 @@ private fun StationPreview() {
                 UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.NWK_WTC,
-                        direction = Direction.TO_NJ,
-                        projectedArrival = Date(System.currentTimeMillis() + 1.minutes.inWholeMilliseconds),
+                        direction = Direction.ToNJ,
+                        minsToArrival = 1,
                     ),
                     arrivalInMinutesFromNow = 1,
                     isInOppositeDirection = false,
@@ -142,8 +135,8 @@ private fun StationPreview() {
                 UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.HOB_WTC,
-                        direction = Direction.TO_NJ,
-                        projectedArrival = Date(System.currentTimeMillis() + 33.minutes.inWholeMilliseconds),
+                        direction = Direction.ToNJ,
+                        minsToArrival = 33,
                     ),
                     arrivalInMinutesFromNow = 33,
                     isInOppositeDirection = false,
@@ -151,8 +144,8 @@ private fun StationPreview() {
                 UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.JSQ_33_HOB,
-                        direction = Direction.TO_NJ,
-                        projectedArrival = Date(System.currentTimeMillis() + 5.minutes.inWholeMilliseconds),
+                        direction = Direction.ToNJ,
+                        minsToArrival = 5,
                     ),
                     arrivalInMinutesFromNow = 5,
                     isInOppositeDirection = false,
@@ -178,11 +171,7 @@ private fun StationPreview() {
 private fun EmptyStationPreview() {
     PATHTheme {
         Station(
-            station = Station(
-                station = "HOB",
-                name = "Hoboken",
-                coordinates = Coordinates(0.0, 0.0),
-            ) to persistentListOf(),
+            station = StationName.HOB to persistentListOf(),
             now = System.currentTimeMillis(),
             userState = UserState(
                 shortenNames = false,

@@ -47,8 +47,8 @@ fun DirectionWarning(
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
     ) {
-        val direction = if (isInNJ) Direction.TO_NY else Direction.TO_NJ
-        val location = if (isInNJ) Direction.TO_NJ else Direction.TO_NY
+        val direction = if (isInNJ) Direction.ToNY else Direction.ToNJ
+        val location = if (isInNJ) Direction.ToNJ else Direction.ToNY
         Column(
             modifier = Modifier
                 .padding(top = 8.dp, start = 5.dp, end = 4.dp)

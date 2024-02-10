@@ -38,6 +38,7 @@ fun PATHTheme(
     if (!view.isInEditMode) {
         SideEffect {
             (view.context as? Activity)?.window?.statusBarColor = colorScheme.surface.toArgb()
+            @Suppress("DEPRECATION")
             ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = !darkTheme
         }
     }

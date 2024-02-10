@@ -19,10 +19,9 @@ import app.cash.paparazzi.Paparazzi
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.AlertDatas
-import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
-import ca.amandeep.path.data.model.Station
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.LastUpdatedUiModel
 import ca.amandeep.path.ui.theme.PATHTheme
@@ -251,16 +250,12 @@ class MainScreenshotTest(
 
     @Composable
     private fun arrivalsData() = persistentListOf(
-        Station(
-            station = "WTC",
-            name = "World Trade Center",
-            coordinates = Coordinates(0.0, 0.0),
-        ) to persistentListOf(
+        StationName.WTC to persistentListOf(
             UiUpcomingTrain(
                 UpcomingTrain(
                     route = Route.JSQ_33,
-                    direction = Direction.TO_NY,
-                    projectedArrival = Date(System.currentTimeMillis() + 0.minutes.inWholeMilliseconds),
+                    direction = Direction.ToNY,
+                    minsToArrival = 0,
                 ),
                 arrivalInMinutesFromNow = 0,
                 isInOppositeDirection = false,
@@ -269,8 +264,8 @@ class MainScreenshotTest(
             UiUpcomingTrain(
                 UpcomingTrain(
                     route = Route.NWK_WTC,
-                    direction = Direction.TO_NJ,
-                    projectedArrival = Date(System.currentTimeMillis() + 1.minutes.inWholeMilliseconds),
+                    direction = Direction.ToNJ,
+                    minsToArrival = 1,
                 ),
                 arrivalInMinutesFromNow = 1,
                 isInOppositeDirection = false,
@@ -279,8 +274,8 @@ class MainScreenshotTest(
             UiUpcomingTrain(
                 UpcomingTrain(
                     route = Route.HOB_WTC,
-                    direction = Direction.TO_NJ,
-                    projectedArrival = Date(System.currentTimeMillis() + 33.minutes.inWholeMilliseconds),
+                    direction = Direction.ToNJ,
+                    minsToArrival = 33,
                 ),
                 arrivalInMinutesFromNow = 33,
                 isInOppositeDirection = false,
@@ -288,8 +283,8 @@ class MainScreenshotTest(
             UiUpcomingTrain(
                 UpcomingTrain(
                     route = Route.JSQ_33_HOB,
-                    direction = Direction.TO_NJ,
-                    projectedArrival = Date(System.currentTimeMillis() + 5.minutes.inWholeMilliseconds),
+                    direction = Direction.ToNJ,
+                    minsToArrival = 5,
                 ),
                 arrivalInMinutesFromNow = 5,
                 isInOppositeDirection = false,

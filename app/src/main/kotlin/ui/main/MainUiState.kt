@@ -5,7 +5,7 @@ import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
-import ca.amandeep.path.data.model.Station
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.util.isInNJ
@@ -42,7 +42,7 @@ data class MainUiModel(
     val alerts: Result<AlertsUiModel> = Result.Loading(),
 )
 
-typealias ArrivalsUiModel = ImmutableList<Pair<Station, ImmutableList<UiUpcomingTrain>>>
+typealias ArrivalsUiModel = ImmutableList<Pair<StationName, ImmutableList<UiUpcomingTrain>>>
 typealias AlertsUiModel = AlertDatas
 
 data class UiUpcomingTrain(
@@ -73,8 +73,8 @@ fun UpcomingTrain.toUiTrain(
         arrivalInMinutesFromNow = minsFromNow,
         isDepartedTrain = minsFromNow < 0,
         isInOppositeDirection = when (direction) {
-            Direction.TO_NJ -> !currentLocation.isInNJ
-            Direction.TO_NY -> currentLocation.isInNJ
+            Direction.ToNJ -> !currentLocation.isInNJ
+            Direction.ToNY -> currentLocation.isInNJ
         },
         alerts = alerts
             .filterIsInstance<AlertData.Grouped>()
@@ -122,8 +122,8 @@ fun Iterable<UiUpcomingTrain>.sortedByDirectionAndTime(
 // Return -1 if the train is going in the opposite direction, 1 otherwise
 fun UiUpcomingTrain.directionFromCurrentLocation(coords: Coordinates): Int =
     when (upcomingTrain.direction) {
-        Direction.TO_NJ -> if (coords.isInNJ) -1 else 1
-        Direction.TO_NY -> if (coords.isInNJ) 1 else -1
+        Direction.ToNJ -> if (coords.isInNJ) -1 else 1
+        Direction.ToNY -> if (coords.isInNJ) 1 else -1
     }
 
 infix fun Date.lessThanDurationAgo(duration: Duration): Boolean {

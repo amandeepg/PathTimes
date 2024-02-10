@@ -178,7 +178,7 @@ sealed interface AlertData {
             data class FreeformTitle(override val text: String) : Title
 
             companion object {
-                val ROUTE_STRINGS = listOf(
+                private val ROUTE_STRINGS = listOf(
                     "JSQ-33 via HOB" to Route.JSQ_33_HOB,
                     "33-JSQ via HOB" to Route.JSQ_33_HOB,
                     "HOB-33" to Route.HOB_33,

@@ -1,5 +1,3 @@
-@file:Suppress("PrivatePropertyName")
-
 package ca.amandeep.path.ui.stations
 
 import android.content.res.Configuration
@@ -19,14 +17,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.rounded.SubdirectoryArrowLeft
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -57,7 +55,6 @@ import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
-import ca.amandeep.path.data.model.RouteStation
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.ui.HEADING_DARK_TEXT_COLOR
@@ -77,11 +74,9 @@ import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.ui.theme.surfaceColorAtElevation
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import java.util.Date
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.text.Typography.nbsp
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * A single train with heading and next arrival time.
@@ -142,8 +137,8 @@ fun Train(
                 ) {
                     append(
                         when (train.upcomingTrain.direction) {
-                            Direction.TO_NY -> stringResource(R.string.east_bound_help_text, nbsp)
-                            Direction.TO_NJ -> stringResource(R.string.west_bound_help_text, nbsp)
+                            Direction.ToNY -> stringResource(R.string.east_bound_help_text, nbsp)
+                            Direction.ToNJ -> stringResource(R.string.west_bound_help_text, nbsp)
                         },
                     )
                 }
@@ -201,7 +196,7 @@ private fun ColumnScope.ExpandableTrainAlerts(alerts: ImmutableList<AlertData.Gr
             setShowElevatorAlerts = {},
         )
         if (index != alerts.size - 1) {
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(vertical = 6.dp),
                 color = DividerDefaults.color.copy(alpha = 0.5f),
             )
@@ -229,31 +224,28 @@ private fun RowScope.TrainMainRowContent(
                     .size(22.dp)
                     .align(
                         when (train.upcomingTrain.direction) {
-                            Direction.TO_NJ -> Alignment.CenterStart
-                            Direction.TO_NY -> Alignment.CenterEnd
+                            Direction.ToNJ -> Alignment.CenterStart
+                            Direction.ToNY -> Alignment.CenterEnd
                         },
                     )
                     .offset(
                         x = when (train.upcomingTrain.direction) {
-                            Direction.TO_NJ -> (-6).dp
-                            Direction.TO_NY -> (6).dp
+                            Direction.ToNJ -> (-6).dp
+                            Direction.ToNY -> (6).dp
                         },
                     ),
                 imageVector = when (train.upcomingTrain.direction) {
-                    Direction.TO_NJ -> Icons.Filled.ArrowBackIosNew
-                    Direction.TO_NY -> Icons.Filled.ArrowForwardIos
+                    Direction.ToNJ -> Icons.Filled.ArrowBackIosNew
+                    Direction.ToNY -> Icons.AutoMirrored.Filled.ArrowForwardIos
                 },
-                contentDescription = stringResource(R.string.to) + train.upcomingTrain.direction.stateName,
+                contentDescription = stringResource(R.string.to) + train.upcomingTrain.direction.stateNameShort,
             )
             Text(
                 modifier = when (train.upcomingTrain.direction) {
-                    Direction.TO_NJ -> Modifier.align(Alignment.CenterEnd)
-                    Direction.TO_NY -> Modifier.align(Alignment.CenterStart)
+                    Direction.ToNJ -> Modifier.align(Alignment.CenterEnd)
+                    Direction.ToNY -> Modifier.align(Alignment.CenterStart)
                 },
-                text = when (train.upcomingTrain.direction) {
-                    Direction.TO_NJ -> "NJ"
-                    Direction.TO_NY -> "NY"
-                },
+                text = train.upcomingTrain.direction.stateNameShort,
                 fontSize = 8.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
@@ -392,17 +384,11 @@ private fun SingleTrainHeading(
         route.via
     } else {
         when (direction) {
-            Direction.TO_NJ -> route.njTerminus
-            Direction.TO_NY -> route.nyTerminus
+            Direction.ToNJ -> route.njTerminus
+            Direction.ToNY -> route.nyTerminus
         }
     }
-    val name = when (station) {
-        RouteStation.JSQ -> if (shortName) "JSQ" else "Journal Square"
-        RouteStation.NWK -> if (shortName) "NWK" else "Newark"
-        RouteStation.WTC -> if (shortName) "WTC" else "World Trade Center"
-        RouteStation.HOB -> if (shortName) "HOB" else "Hoboken"
-        RouteStation.THIRTY_THIRD -> if (shortName) "33rd" else "33rd St"
-    }
+    val name = if (shortName) station.shortName else station.longName
     val pillColor = when (route) {
         Route.JSQ_33 -> JSQ_33_COLOR
         Route.HOB_33 -> HOB_33_COLOR
@@ -492,8 +478,8 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.JSQ_33,
-                direction = Direction.TO_NY,
-                projectedArrival = Date().apply { time += 0.minutes.inWholeMilliseconds },
+                direction = Direction.ToNY,
+                minsToArrival = 0,
             ),
             arrivalInMinutesFromNow = 0,
             isInOppositeDirection = false,
@@ -502,8 +488,8 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.NWK_WTC,
-                direction = Direction.TO_NJ,
-                projectedArrival = Date().apply { time += 1.minutes.inWholeMilliseconds },
+                direction = Direction.ToNJ,
+                minsToArrival = 1,
             ),
             arrivalInMinutesFromNow = 1,
             isInOppositeDirection = false,
@@ -521,8 +507,8 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.HOB_WTC,
-                direction = Direction.TO_NJ,
-                projectedArrival = Date().apply { time += 33.minutes.inWholeMilliseconds },
+                direction = Direction.ToNJ,
+                minsToArrival = 33,
             ),
             arrivalInMinutesFromNow = 33,
             isInOppositeDirection = false,
@@ -530,8 +516,8 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
         UiUpcomingTrain(
             UpcomingTrain(
                 route = Route.JSQ_33_HOB,
-                direction = Direction.TO_NJ,
-                projectedArrival = Date().apply { time += 5.minutes.inWholeMilliseconds },
+                direction = Direction.ToNJ,
+                minsToArrival = 5,
             ),
             arrivalInMinutesFromNow = 5,
             isInOppositeDirection = false,

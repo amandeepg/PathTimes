@@ -46,10 +46,6 @@ sealed class ConnectionState {
     data object Unavailable : ConnectionState()
 }
 
-val Context.currentConnectivityState: ConnectionState
-    get() = getSystemService<ConnectivityManager>()?.getCurrentConnectivityState()
-        ?: ConnectionState.Unavailable
-
 private fun ConnectivityManager.getCurrentConnectivityState(): ConnectionState =
     getNetworkCapabilities(activeNetwork)
         ?.let { actNetwork ->

@@ -56,6 +56,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,6 +70,7 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
+import ca.amandeep.path.data.model.State
 import ca.amandeep.path.ui.ErrorBar
 import ca.amandeep.path.ui.ErrorScreen
 import ca.amandeep.path.ui.KeepUpdatedEffect
@@ -221,7 +223,7 @@ fun MainScreen(
             forceUpdate = forceRefresh,
         )
 
-        var now by remember { mutableStateOf(System.currentTimeMillis()) }
+        var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
         LaunchedEffect(Unit) {
             while (true) {
@@ -622,13 +624,20 @@ fun LoadedScreen(
                 }
             }
         }
+        val arrivalsData = if (userState.showOppositeDirection) {
+            arrivals.data
+        } else {
+            arrivals.data.filter {
+                it.first.state == (if (userState.isInNJ) State.NJ else State.NY)
+            }
+        }
         items(
-            count = arrivals.data.size,
+            count = arrivalsData.size,
             contentType = { "station" },
         ) {
             Station(
                 modifier = spacingModifier,
-                station = arrivals.data[it],
+                station = arrivalsData[it],
                 now = now,
                 userState = userState,
                 autoRefreshingNow = autoRefreshingNow,
