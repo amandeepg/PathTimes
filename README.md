@@ -1,4 +1,5 @@
 <img src="./play_store_512.png" width="256"/>
+
 # Arrivals for PATH [![Build with Gradle](https://github.com/amandeepg/PathTimes/actions/workflows/gradle.yml/badge.svg)](https://github.com/amandeepg/PathTimes/actions/workflows/gradle.yml)
 
 An Android app for riding [the PATH](https://en.wikipedia.org/wiki/PATH_(rail_system)) that shows the next arrivals for trains at every station.
