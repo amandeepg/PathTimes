@@ -52,6 +52,7 @@ data class UiUpcomingTrain(
     val isInOppositeDirection: Boolean = false,
     val showDirectionHelpText: Boolean = false,
     val alerts: ImmutableList<AlertData.Grouped> = persistentListOf(),
+    val forceAlertsOpen: Boolean = false,
 )
 
 fun Iterable<UpcomingTrain>.toUiTrains(

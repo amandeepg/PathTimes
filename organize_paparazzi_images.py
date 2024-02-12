@@ -4,7 +4,7 @@ import shutil
 
 # Define a function to extract device names from file names
 def extract_device_name(file_name):
-    match = re.search(r'deviceName=(.*?),', file_name)
+    match = re.search(r'device=(.*?),', file_name)
     if match:
         return match.group(1).strip()
     else:

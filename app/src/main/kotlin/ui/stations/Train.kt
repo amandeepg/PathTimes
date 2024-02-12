@@ -103,13 +103,13 @@ fun Train(
                 train = train,
                 now = now,
                 autoRefreshingNow = autoRefreshingNow,
-                alertsExpanded = alertsExpanded,
+                alertsExpanded = alertsExpanded || train.forceAlertsOpen,
                 setAlertsExpanded = setAlertsExpanded,
             )
         }
         if (train.alerts.isNotEmpty()) {
             ExpandableView(
-                isExpanded = alertsExpanded,
+                isExpanded = alertsExpanded || train.forceAlertsOpen,
             ) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),

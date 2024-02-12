@@ -132,6 +132,31 @@ val PIXEL_7A = PIXEL_7.copy(
     released = "May 10, 2023",
 )
 
+val PIXEL_8 = DeviceConfig(
+    screenHeight = 2400,
+    screenWidth = 1080,
+    xdpi = 428,
+    ydpi = 428,
+    orientation = ScreenOrientation.PORTRAIT,
+    density = Density.DPI_420,
+    ratio = ScreenRatio.LONG,
+    size = ScreenSize.LARGE,
+    keyboard = Keyboard.NOKEY,
+    touchScreen = TouchScreen.FINGER,
+    keyboardState = KeyboardState.SOFT,
+    softButtons = true,
+    navigation = Navigation.NONAV,
+    released = "October 12, 2023",
+)
+
+val PIXEL_8_PRO = PIXEL_8.copy(
+    screenHeight = 2992,
+    screenWidth = 1344,
+    xdpi = 489,
+    ydpi = 489,
+    density = Density.DPI_560,
+)
+
 val GALAXY_S_23 = DeviceConfig(
     screenHeight = 2340,
     screenWidth = 1080,
@@ -160,7 +185,40 @@ val GALAXY_S_23_ULTRA = GALAXY_S_23.copy(
     screenWidth = 1440,
     xdpi = 500,
     ydpi = 500,
-    density = Density.XXHIGH,
+    density = Density.DPI_560,
+)
+
+val GALAXY_S_24 = DeviceConfig(
+    screenHeight = 2340,
+    screenWidth = 1080,
+    xdpi = 416,
+    ydpi = 416,
+    orientation = ScreenOrientation.PORTRAIT,
+    density = Density.DPI_420,
+    ratio = ScreenRatio.LONG,
+    size = ScreenSize.LARGE,
+    keyboard = Keyboard.NOKEY,
+    touchScreen = TouchScreen.FINGER,
+    keyboardState = KeyboardState.SOFT,
+    softButtons = true,
+    navigation = Navigation.NONAV,
+    released = "January 24, 2024",
+)
+
+val GALAXY_S_24_PLUS = GALAXY_S_24.copy(
+    screenHeight = 3120,
+    screenWidth = 1440,
+    xdpi = 513,
+    ydpi = 513,
+    density = Density.DPI_560,
+)
+
+val GALAXY_S_24_ULTRA = GALAXY_S_24.copy(
+    screenHeight = 3120,
+    screenWidth = 1440,
+    xdpi = 505,
+    ydpi = 505,
+    density = Density.DPI_560,
 )
 
 fun List<Any>.toLandscape(): List<Any>? = run {

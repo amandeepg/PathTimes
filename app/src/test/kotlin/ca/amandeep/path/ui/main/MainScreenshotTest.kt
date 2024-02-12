@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.InstantAnimationsRule
 import app.cash.paparazzi.Paparazzi
+import app.cash.paparazzi.ThumbnailScale
 import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.AlertDatas
@@ -26,6 +27,7 @@ import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.ui.LastUpdatedUiModel
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.junit.Rule
@@ -36,7 +38,7 @@ import java.util.Date
 import kotlin.time.Duration.Companion.minutes
 
 val DATA: List<Any> = run {
-    @Suppress("KotlinConstantConditions")
+    @Suppress("RemoveExplicitTypeArguments")
     val devices = listOfNotNull<List<Any>>(
 //        listOf("Pixel 4", DeviceConfig.PIXEL_4),
 //        listOf("Pixel 4a", DeviceConfig.PIXEL_4A),
@@ -44,9 +46,12 @@ val DATA: List<Any> = run {
 //        listOf("Pixel 5", DeviceConfig.PIXEL_5),
 //        listOf("Pixel 6", DeviceConfig.PIXEL_6),
 //        listOf("Pixel 6 Pro", DeviceConfig.PIXEL_6_PRO),
-        listOf("Pixel 7", PIXEL_7),
+//        listOf("Pixel 7", PIXEL_7),
 //        listOf("Pixel 7a", PIXEL_7A),
 //        listOf("Pixel 7 Pro", PIXEL_7_PRO),
+//        listOf("Pixel 8", PIXEL_8),
+//        listOf("Pixel 8a", PIXEL_8A),
+        listOf("Pixel 8 Pro", PIXEL_8_PRO),
 //        listOf("Pixel Fold", PIXEL_FOLD),
 //        listOf("Pixel Fold Outer", PIXEL_FOLD_OUTER),
 //        listOf("Galaxy Z Fold5", GALAXY_Z_FOLD_5),
@@ -56,6 +61,9 @@ val DATA: List<Any> = run {
 //        listOf("Galaxy S23", GALAXY_S_23),
 //        listOf("Galaxy S23+", GALAXY_S_23_PLUS),
 //        listOf("Galaxy S23 Ultra", GALAXY_S_23_ULTRA),
+//        listOf("Galaxy S24", GALAXY_S_24),
+//        listOf("Galaxy S24+", GALAXY_S_24_PLUS),
+//        listOf("Galaxy S24 Ultra", GALAXY_S_24_ULTRA),
     ).andLandscape() + listOf<List<Any>>(
         //
     )
@@ -65,13 +73,14 @@ val DATA: List<Any> = run {
         /* isDarkMode */            listOf(true, false),
         /* alertsExpanded */        listOf(true, false, null),
         /* showDirectionWarning */  listOf(true, false).filterNot { it },
-        /* showHelpGuide */         listOf(true, false).filterNot { it },
+        /* showHelpGuide */         listOf(true, false),
         /* showOppositeDirection */ listOf(true, false),
         /* includeNotifs */         listOf(true, false),
         /* updatedWhen */           listOf(0, 60 * 7).filter { it == 0 },
+        /* shortenNames */          listOf(true, false),
         devices,
     ).cartesianProduct().map {
-        val device = it[7] as List<*>
+        val device = it[8] as List<*>
 
         arrayOf(
             it[0] as Boolean,
@@ -83,6 +92,7 @@ val DATA: List<Any> = run {
             it[4] as Boolean,
             it[5] as Boolean,
             it[6] as Int,
+            it[7] as Boolean,
         )
     }
 }
@@ -99,18 +109,20 @@ class MainScreenshotTest(
     private val showOppositeDirection: Boolean,
     private val includeNotifs: Boolean,
     private val updatedWhen: Int,
+    private val shortenNames: Boolean,
 ) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters(
-            name = "isDarkMode={0}," +
-                " deviceName={1}," +
-                " alertsExpanded={3}," +
-                " showDirectionWarning={4}," +
-                " showHelpGuide={5}," +
-                " showOppositeDirection={6}," +
+            name = "darkMode={0}," +
+                " device={1}," +
+                " alertsExp={3}," +
+                " dirWarn={4}," +
+                " helpGuide={5}," +
+                " showOppoDir={6}," +
                 " showNotifs={7}," +
-                " updatedWhen={8}",
+                " updatedWhen={8}" +
+                " shortNames={9}",
         )
         fun data() = DATA
     }
@@ -122,6 +134,7 @@ class MainScreenshotTest(
             true -> "android:ThemeOverlay.Material.Dark"
             false -> "android:Theme.Material.Light.NoActionBar"
         },
+        thumbnailScale = ThumbnailScale.NoScale,
     )
 
     @get:Rule
@@ -176,11 +189,11 @@ class MainScreenshotTest(
                                 connectivityState = ConnectionState.Available,
                                 anyLocationPermissionsGranted = true,
                                 userState = UserState(
-                                    shortenNames = true,
+                                    shortenNames = shortenNames,
                                     showOppositeDirection = showOppositeDirection,
                                     showElevatorAlerts = false,
                                     showHelpGuide = showHelpGuide,
-                                    isInNJ = true,
+                                    isInNJ = false,
                                 ),
                                 setShowingOppositeDirection = {},
                                 setShowElevatorAlerts = {},
@@ -215,11 +228,11 @@ class MainScreenshotTest(
         persistentListOf(
             AlertData.Grouped(
                 title = AlertData.Grouped.Title.RouteTitle(
-                    routes = persistentListOf(Route.HOB_33, Route.JSQ_33),
+                    routes = persistentListOf(Route.NWK_WTC),
                     text = "delayed",
                 ),
                 main = AlertData.Single(
-                    text = "Work is ongoing to correct a signal problem at 33 St.",
+                    text = "Work is ongoing to correct a signal problem at Exchange Place",
                     date = Date(System.currentTimeMillis() - 14.minutes.inWholeMilliseconds),
                 ),
                 history = persistentListOf(
@@ -231,7 +244,7 @@ class MainScreenshotTest(
             ),
             AlertData.Grouped(
                 title = AlertData.Grouped.Title.RouteTitle(
-                    routes = persistentListOf(Route.NWK_WTC),
+                    routes = persistentListOf(Route.HOB_33, Route.JSQ_33),
                     text = "resuming normal service",
                 ),
                 main = AlertData.Single(
@@ -250,45 +263,183 @@ class MainScreenshotTest(
 
     @Composable
     private fun arrivalsData() = persistentListOf(
-        StationName.WTC to persistentListOf(
-            UiUpcomingTrain(
-                UpcomingTrain(
-                    route = Route.JSQ_33,
-                    direction = Direction.ToNY,
-                    minsToArrival = 0,
-                ),
-                arrivalInMinutesFromNow = 0,
+        StationName.WTC to listOf(
+            mockTrain(
+                route = Route.HOB_WTC,
+                direction = Direction.ToNJ,
+                minsToArrival = 0,
+                showDirectionHelpText = true,
+            ),
+            mockTrain(
+                route = Route.NWK_WTC,
+                direction = Direction.ToNJ,
+                minsToArrival = 4,
+                alerts = (alertsData().alerts.getOrNull(0) as? AlertData.Grouped)?.let { persistentListOf(it) } ?: persistentListOf(),
+            ),
+            mockTrain(
+                route = Route.HOB_WTC,
+                direction = Direction.ToNJ,
+                minsToArrival = 12,
+            ),
+        ).toTrainList(),
+        StationName.CHR to listOf(
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 2,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 14,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 5,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 18,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNY,
+                minsToArrival = 1,
                 isInOppositeDirection = false,
                 showDirectionHelpText = true,
             ),
-            UiUpcomingTrain(
-                UpcomingTrain(
-                    route = Route.NWK_WTC,
-                    direction = Direction.ToNJ,
-                    minsToArrival = 1,
-                ),
-                arrivalInMinutesFromNow = 1,
-                isInOppositeDirection = false,
-                showDirectionHelpText = true,
-            ),
-            UiUpcomingTrain(
-                UpcomingTrain(
-                    route = Route.HOB_WTC,
-                    direction = Direction.ToNJ,
-                    minsToArrival = 33,
-                ),
-                arrivalInMinutesFromNow = 33,
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNY,
+                minsToArrival = 12,
                 isInOppositeDirection = false,
             ),
-            UiUpcomingTrain(
-                UpcomingTrain(
-                    route = Route.JSQ_33_HOB,
-                    direction = Direction.ToNJ,
-                    minsToArrival = 5,
-                ),
-                arrivalInMinutesFromNow = 5,
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNY,
+                minsToArrival = 3,
                 isInOppositeDirection = false,
             ),
-        ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNY,
+                minsToArrival = 14,
+                isInOppositeDirection = false,
+            ),
+        ).toTrainList(),
+        StationName.S9 to listOf(
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 0,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 12,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 3,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 14,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNY,
+                minsToArrival = 4,
+                isInOppositeDirection = false,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNY,
+                minsToArrival = 15,
+                isInOppositeDirection = false,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNY,
+                minsToArrival = 7,
+                isInOppositeDirection = false,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNY,
+                minsToArrival = 19,
+                isInOppositeDirection = false,
+            ),
+        ).toTrainList(),
+        StationName.S14 to listOf(
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 9,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 0,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNJ,
+                minsToArrival = 10,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNY,
+                minsToArrival = 1,
+                isInOppositeDirection = false,
+            ),
+            mockTrain(
+                route = Route.JSQ_33,
+                direction = Direction.ToNY,
+                minsToArrival = 19,
+                isInOppositeDirection = false,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNY,
+                minsToArrival = 10,
+                isInOppositeDirection = false,
+            ),
+            mockTrain(
+                route = Route.HOB_33,
+                direction = Direction.ToNY,
+                minsToArrival = 22,
+                isInOppositeDirection = false,
+            ),
+        ).toTrainList(),
     )
+
+    private fun mockTrain(
+        route: Route,
+        direction: Direction,
+        minsToArrival: Int,
+        isInOppositeDirection: Boolean = true,
+        showDirectionHelpText: Boolean = false,
+        alerts: ImmutableList<AlertData.Grouped> = persistentListOf(),
+        forceAlertsOpen: Boolean = false,
+    ): UiUpcomingTrain? = UiUpcomingTrain(
+        UpcomingTrain(
+            route = route,
+            direction = direction,
+            minsToArrival = minsToArrival,
+        ),
+        arrivalInMinutesFromNow = minsToArrival,
+        isInOppositeDirection = isInOppositeDirection,
+        showDirectionHelpText = showDirectionHelpText,
+        alerts = alerts,
+        forceAlertsOpen = forceAlertsOpen,
+    ).takeUnless { !showOppositeDirection && !isInOppositeDirection }
+
+    private fun List<UiUpcomingTrain?>.toTrainList() = filterNotNull()
+        .sortedWith(compareBy({ it.upcomingTrain.direction }, { it.arrivalInMinutesFromNow }))
+        .toImmutableList()
 }

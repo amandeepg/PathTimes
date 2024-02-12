@@ -4,8 +4,6 @@ buildscript {
     }
     dependencies {
         classpath "io.nlopez.compose.rules:ktlint:_"
-        classpath 'app.cash.paparazzi:paparazzi-gradle-plugin:_'
-        classpath Square.wire.gradlePlugin
         classpath CashApp.licenseeGradlePlugin
     }
 }
