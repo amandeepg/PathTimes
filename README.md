@@ -1,4 +1,4 @@
-<img src="./play_store_512.png" width="256"/>
+<img src="./play_store_512_rounded.webp" width="256"/>
 
 # Arrivals for PATH [![Build with Gradle](https://github.com/amandeepg/PathTimes/actions/workflows/gradle.yml/badge.svg)](https://github.com/amandeepg/PathTimes/actions/workflows/gradle.yml)
 
