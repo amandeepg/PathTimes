@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -107,6 +108,7 @@ fun DirectionWarning(
                             val snackbarResult = snackbarState.showSnackbar(
                                 message = snackbarMessage,
                                 actionLabel = snackbarActionLabel,
+                                duration = SnackbarDuration.Short,
                             )
                             if (snackbarResult == SnackbarResult.ActionPerformed) {
                                 setShowDirectionWarning(true)

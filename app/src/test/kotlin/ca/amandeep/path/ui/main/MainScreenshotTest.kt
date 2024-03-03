@@ -275,6 +275,7 @@ class MainScreenshotTest(
                 direction = Direction.ToNJ,
                 minsToArrival = 4,
                 alerts = (alertsData().alerts.getOrNull(0) as? AlertData.Grouped)?.let { persistentListOf(it) } ?: persistentListOf(),
+                forceAlertsOpen = alertsExpanded == true,
             ),
             mockTrain(
                 route = Route.HOB_WTC,

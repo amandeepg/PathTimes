@@ -27,8 +27,9 @@ fun StatusBar(
     modifier: Modifier = Modifier,
     includeNotifs: Boolean = false,
 ) {
-    val height = 24
-    val dpTpSp = 0.5f
+    val height = 36
+    val dpTpSp = 0.55f
+    val paddingRatio = 0.3f
 
     Box(
         modifier = modifier
@@ -38,7 +39,7 @@ fun StatusBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 25.dp, vertical = 5.dp),
+                .padding(horizontal = 25.dp, vertical = (height * paddingRatio).dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -47,7 +48,7 @@ fun StatusBar(
                     .padding(end = 5.dp),
                 text = "2:28",
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = (height * dpTpSp).sp,
+                fontSize = (height * (1 - paddingRatio) * dpTpSp).sp,
             )
             if (includeNotifs) {
                 Icon(
@@ -85,7 +86,7 @@ fun StatusBar(
                 modifier = Modifier.wrapContentHeight(align = Alignment.CenterVertically, unbounded = true),
                 text = "82%",
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = (height * dpTpSp).sp,
+                fontSize = (height * (1 - paddingRatio) * dpTpSp).sp,
             )
         }
     }
