@@ -17,6 +17,7 @@ Some features of the app:
 
 ## Development
 [![Build with Gradle](https://github.com/amandeepg/PathTimes/actions/workflows/gradle.yml/badge.svg)](https://github.com/amandeepg/PathTimes/actions/workflows/gradle.yml)
+
 Built with:
 * 100% Kotlin
 * UI in 100% [Jetpack Compose](https://developer.android.com/jetpack/compose)
