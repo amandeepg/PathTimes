@@ -16,8 +16,8 @@ RIGHT=${2:-$RIGHT_DEFAULT};
  
 #The intermediate images we will use must be png to support transparency.
 #We remove the extension '.jpg' from the filenames and add the extension '.png'.
-LEFT_OUT="${LEFT%.jpg}.Diagonal Down.png";
-RIGHT_OUT="${RIGHT%.jpg}.Diagonal Down.png";
+LEFT_OUT="${LEFT%.png}.Diagonal Down.png";
+RIGHT_OUT="${RIGHT%.png}.Diagonal Down.png";
 OUT="DiagonalDown.jpg";
 OUT_PNG="DiagonalDown.png";
  
@@ -47,6 +47,7 @@ magick "$RIGHT" -gravity north -crop "$WIDTH"x"$HEIGHT"+0+0 +repage \
 composite -blend 50% "$LEFT_OUT" "$RIGHT_OUT" "$OUT";
  
 #Cleaning up
-rm "$LEFT_OUT" "$RIGHT_OUT";
-convert -define webp:lossless=true -quality 50 "$OUT" "$OUT_PNG"
+rm -f "$LEFT_OUT"
+rm -f "$RIGHT_OUT"
+convert -define webp:lossless=true -quality 100 "$OUT" "$OUT_PNG"
 rm $OUT

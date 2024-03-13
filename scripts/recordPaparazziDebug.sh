@@ -61,54 +61,26 @@ rm -f "$SCREENSHOT_3"
 scripts/diagonalCombine.sh "$SCREENSHOT_3_1" "$SCREENSHOT_3_2"
 
 echo "Framing images..."
-
-rm -f "$RESULT_PNG"
-if ! framer --oxipng-level 6 --pngquant-speed 1 "$FRAME_1" "$SCREENSHOT_1"; then
-    echo "Error during image optimization. Please check 'framer' command."
-    exit 1
-fi
-rm -f "$FRAMED_1"
-if ! convert -define webp:lossless=true -quality 50 "$RESULT_PNG" "$FRAMED_1"; then
-    echo "Error converting $RESULT_PNG to WebP format. Please check the 'convert' command."
-    exit 1
-fi
-rm -f "$RESULT_PNG"
-
-rm -f "$RESULT_PNG"
-if ! framer --oxipng-level 6 --pngquant-speed 1 "$FRAME_2" "$SCREENSHOT_2"; then
-    echo "Error during image optimization. Please check 'framer' command."
-    exit 1
-fi
-rm -f "$FRAMED_2"
-if ! convert -define webp:lossless=true -quality 100 "$RESULT_PNG" "$FRAMED_2"; then
-    echo "Error converting $RESULT_PNG to WebP format. Please check the 'convert' command."
-    exit 1
-fi
-rm -f "$RESULT_PNG"
-
-rm -f "$RESULT_PNG"
-if ! framer --oxipng-level 6 --pngquant-speed 1 "$FRAME_3" "$SCREENSHOT_3"; then
-    echo "Error during image optimization. Please check 'framer' command."
-    exit 1
-fi
-rm -f "$FRAMED_3"
-if ! convert -define webp:lossless=true -quality 100 "$RESULT_PNG" "$FRAMED_3"; then
-    echo "Error converting $RESULT_PNG to WebP format. Please check the 'convert' command."
-    exit 1
-fi
-rm -f "$RESULT_PNG"
-
-rm -f "$RESULT_PNG"
-if ! framer --oxipng-level 6 --pngquant-speed 1 "$FRAME_4" "$SCREENSHOT_4"; then
-    echo "Error during image optimization. Please check 'framer' command."
-    exit 1
-fi
-rm -f "$FRAMED_4"
-if ! convert -define webp:lossless=true -quality 100 "$RESULT_PNG" "$FRAMED_4"; then
-    echo "Error converting $RESULT_PNG to WebP format. Please check the 'convert' command."
-    exit 1
-fi
-rm -f "$RESULT_PNG"
+for i in {1..4}; do
+    FRAME_VAR="FRAME_$i"
+    SCREENSHOT_VAR="SCREENSHOT_$i"
+    FRAMED_VAR="FRAMED_$i"
+    
+    rm -f "$RESULT_PNG"
+    if ! framer --oxipng-level 6 --pngquant-speed 1 "${!FRAME_VAR}" "${!SCREENSHOT_VAR}"; then
+        echo "Error during image optimization. Please check 'framer' command."
+        exit 1
+    fi
+    
+    rm -f "${!FRAMED_VAR}"
+    if ! convert -define webp:lossless=true -quality 100 "$RESULT_PNG" "${!FRAMED_VAR}"; then
+        echo "Error converting $RESULT_PNG to WebP format. Please check the 'convert' command."
+        exit 1
+    fi
+    rm -f "$RESULT_PNG"
+    echo "Process completed successfully. Output file: $FRAMED_VAR"
+    rm -f "$SCREENSHOT_VAR"
+done
 
 rm -f "$SCREENSHOT_3"
 
@@ -116,7 +88,4 @@ for file in images/framescr*.webp; do
     rm -f "${file%.webp}.png"
     convert "$file" "${file%.webp}.png" 
 done
-echo "Process completed successfully. Output file: $FRAMED_1"
-echo "Process completed successfully. Output file: $FRAMED_2"
-echo "Process completed successfully. Output file: $FRAMED_3"
-echo "Process completed successfully. Output file: $FRAMED_4"
+echo "Process completed successfully."

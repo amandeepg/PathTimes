@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Arrivals for PATH</string>
+    <string name="app_name">Under The Hudson</string>
     <string name="refresh_action">Refresh</string>
     <string name="more_item_actions">More</string>
     <string name="shorten_names_action_text">Shorten station names</string>
@@ -37,10 +37,10 @@
     <string name="mins_plural">mins</string>
     <string name="to">"To "</string>
     <string name="no_alerts_icon">No alerts icon</string>
-    <string name="couldn_t_load_path_alerts">Couldn\'t load PATH Alerts</string>
-    <string name="loading_path_alerts">Loading PATH Alerts …</string>
-    <string name="no_path_alerts">No PATH Alerts</string>
-    <string name="path_alerts_title">PATH Alerts</string>
+    <string name="couldn_t_load_path_alerts">Couldn\'t load Alerts</string>
+    <string name="loading_path_alerts">Loading Alerts …</string>
+    <string name="no_path_alerts">No Alerts</string>
+    <string name="path_alerts_title">Alerts</string>
     <string name="expandable_arrow_content_description">Expandable Arrow</string>
     <string name="default_alert_title">Alert</string>
     <string name="undo">Undo</string>
