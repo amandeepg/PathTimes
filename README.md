@@ -1,4 +1,4 @@
-<span><img src="images/play_store_512_rounded.webp" width="256" alt="Logo icon"/> &nbsp;&nbsp;
+<span><picture><img src="images/play_store_512_rounded.webp" width="256" alt="Logo icon"/></picture> &nbsp;&nbsp;
 <a href='https://play.google.com/store/apps/details?id=ca.amandeep.path&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://github.com/amandeepg/PathTimes/assets/984237/68628d96-c167-428d-97a4-a04d861d2e48' height="256"/></a> &nbsp;
 
 # Under The Hudson
@@ -25,4 +25,5 @@ Built with:
 * [Android ViewModels](https://developer.android.com/topic/libraries/architecture/viewmodel)
 
 ## Screenshots
-<img src="./images/1.webp" width="400"/> <img src="./images/2.webp" width="400"/>
+<a href="https://raw.githubusercontent.com/amandeepg/PathTimes/master/images/1.webp"><img src="./images/1.webp" width="400"/></a> 
+<a href="https://raw.githubusercontent.com/amandeepg/PathTimes/master/images/2.webp"><img src="./images/2.webp" width="400"/></a>
