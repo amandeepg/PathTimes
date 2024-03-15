@@ -27,7 +27,7 @@ Built with:
 * Framing screenshots with [framer](https://github.com/amandeepg/framer)
 
 ## Screenshots
-<a href="https://play-lh.googleusercontent.com/rinJfu3g7gLNSK4rT2OE_wIdTqmVsz4vn72PniE6T9vVJCFUs-1SMh5tGB4_9dWEbvw=w2560"><img src="https://play-lh.googleusercontent.com/rinJfu3g7gLNSK4rT2OE_wIdTqmVsz4vn72PniE6T9vVJCFUs-1SMh5tGB4_9dWEbvw=w400" width="400"/></a> 
-<a href="https://play-lh.googleusercontent.com/D_K8j47S_ndyZZWm8akyPYg14d8fpg9FFDyScVdUYWFeDHzwysm7Jpoql3Sdiun92fk=w2560"><img src="https://play-lh.googleusercontent.com/D_K8j47S_ndyZZWm8akyPYg14d8fpg9FFDyScVdUYWFeDHzwysm7Jpoql3Sdiun92fk=w400" width="400"/></a> 
-<a href="https://play-lh.googleusercontent.com/e7sOesl9hiiaeclRfgCSrhfx7kReBD0Q5gZ7Ukq8mvT1Eudswu0efQ1kHvIU4sS2Dg=w2560"><img src="https://play-lh.googleusercontent.com/e7sOesl9hiiaeclRfgCSrhfx7kReBD0Q5gZ7Ukq8mvT1Eudswu0efQ1kHvIU4sS2Dg=w400" width="400"/></a> 
-<a href="https://play-lh.googleusercontent.com/qQuQNK27XxsU3Kob2vULfihCuNxKQ8Vqb2hsRWrwHxKeRu8jODpz9VNpciw5SW-lyNib=w2560"><img src="https://play-lh.googleusercontent.com/qQuQNK27XxsU3Kob2vULfihCuNxKQ8Vqb2hsRWrwHxKeRu8jODpz9VNpciw5SW-lyNib=w400" width="400"/></a> 
+<a href="https://play-lh.googleusercontent.com/rinJfu3g7gLNSK4rT2OE_wIdTqmVsz4vn72PniE6T9vVJCFUs-1SMh5tGB4_9dWEbvw=w2560"><img src="https://play-lh.googleusercontent.com/rinJfu3g7gLNSK4rT2OE_wIdTqmVsz4vn72PniE6T9vVJCFUs-1SMh5tGB4_9dWEbvw=w400" width="45%"/></a> 
+<a href="https://play-lh.googleusercontent.com/D_K8j47S_ndyZZWm8akyPYg14d8fpg9FFDyScVdUYWFeDHzwysm7Jpoql3Sdiun92fk=w2560"><img src="https://play-lh.googleusercontent.com/D_K8j47S_ndyZZWm8akyPYg14d8fpg9FFDyScVdUYWFeDHzwysm7Jpoql3Sdiun92fk=w400" width="45%"/></a> 
+<a href="https://play-lh.googleusercontent.com/e7sOesl9hiiaeclRfgCSrhfx7kReBD0Q5gZ7Ukq8mvT1Eudswu0efQ1kHvIU4sS2Dg=w2560"><img src="https://play-lh.googleusercontent.com/e7sOesl9hiiaeclRfgCSrhfx7kReBD0Q5gZ7Ukq8mvT1Eudswu0efQ1kHvIU4sS2Dg=w400" width="45%"/></a> 
+<a href="https://play-lh.googleusercontent.com/qQuQNK27XxsU3Kob2vULfihCuNxKQ8Vqb2hsRWrwHxKeRu8jODpz9VNpciw5SW-lyNib=w2560"><img src="https://play-lh.googleusercontent.com/qQuQNK27XxsU3Kob2vULfihCuNxKQ8Vqb2hsRWrwHxKeRu8jODpz9VNpciw5SW-lyNib=w400" width="45%"/></a> 
