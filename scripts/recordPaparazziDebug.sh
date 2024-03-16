@@ -4,13 +4,13 @@
 SNAPSHOT_DIR="app/src/test/snapshots/images"
 RESULT_PNG="result.png"
 
-SCREENSHOT_FOLDER="app/src/test/snapshots/images/Pixel 8 Pro"
-SCREENSHOT_1="$SCREENSHOT_FOLDER/ca.amandeep.path.ui.main_MainScreenshotTest_screenshotMain[darkMode=true, device=Pixel 8 Pro, alertsExp=null, dirWarn=false, helpGuide=false, showOppoDir=false, showNotifs=true, updatedWhen=0 shortNames=false].png"
-SCREENSHOT_2="$SCREENSHOT_FOLDER/ca.amandeep.path.ui.main_MainScreenshotTest_screenshotMain[darkMode=false, device=Pixel 8 Pro, alertsExp=true, dirWarn=false, helpGuide=true, showOppoDir=false, showNotifs=true, updatedWhen=0 shortNames=false].png"
-SCREENSHOT_3_1="$SCREENSHOT_FOLDER/ca.amandeep.path.ui.main_MainScreenshotTest_screenshotMain[darkMode=true, device=Pixel 8 Pro, alertsExp=null, dirWarn=false, helpGuide=true, showOppoDir=true, showNotifs=true, updatedWhen=0 shortNames=false].png"
-SCREENSHOT_3_2="$SCREENSHOT_FOLDER/ca.amandeep.path.ui.main_MainScreenshotTest_screenshotMain[darkMode=false, device=Pixel 8 Pro, alertsExp=null, dirWarn=false, helpGuide=true, showOppoDir=true, showNotifs=true, updatedWhen=0 shortNames=false].png"
+SCREENSHOT_FOLDER="app/src/test/snapshots/images/Pixel 8 Pro/ca.amandeep.path.ui.main_MainScreenshotTest_"
+SCREENSHOT_1="${SCREENSHOT_FOLDER}screenshotMain[darkMode=true, device=Pixel 8 Pro, alertsExp=null, dirWarn=false, helpGuide=false, showOppoDir=false, showNotifs=true, updatedWhen=0 shortNames=false].png"
+SCREENSHOT_2="${SCREENSHOT_FOLDER}screenshotMain[darkMode=false, device=Pixel 8 Pro, alertsExp=true, dirWarn=false, helpGuide=true, showOppoDir=false, showNotifs=true, updatedWhen=0 shortNames=false].png"
+SCREENSHOT_3_1="${SCREENSHOT_FOLDER}screenshotMain[darkMode=true, device=Pixel 8 Pro, alertsExp=null, dirWarn=false, helpGuide=true, showOppoDir=true, showNotifs=true, updatedWhen=0 shortNames=false].png"
+SCREENSHOT_3_2="${SCREENSHOT_FOLDER}screenshotMain[darkMode=false, device=Pixel 8 Pro, alertsExp=null, dirWarn=false, helpGuide=true, showOppoDir=true, showNotifs=true, updatedWhen=0 shortNames=false].png"
 SCREENSHOT_3="DiagonalDown.png"
-SCREENSHOT_4="$SCREENSHOT_FOLDER/ca.amandeep.path.ui.main_MainScreenshotTest_screenshotMain[darkMode=true, device=Pixel 8 Pro, alertsExp=false, dirWarn=false, helpGuide=true, showOppoDir=false, showNotifs=true, updatedWhen=0 shortNames=false].png"
+SCREENSHOT_4="${SCREENSHOT_FOLDER}screenshotMain[darkMode=true, device=Pixel 8 Pro, alertsExp=false, dirWarn=false, helpGuide=true, showOppoDir=false, showNotifs=true, updatedWhen=0 shortNames=false].png"
 
 FRAME_1="images/frame1.webp"
 FRAME_2="images/frame2.webp"
@@ -84,6 +84,7 @@ done
 
 rm -f "$SCREENSHOT_3"
 
+echo "Converting webp to png..."
 for file in images/framescr*.webp; do 
     rm -f "${file%.webp}.png"
     convert "$file" "${file%.webp}.png" 
