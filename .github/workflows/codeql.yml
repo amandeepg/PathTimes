@@ -80,7 +80,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
     - name: Build
       if: ${{ matrix.language == 'java-kotlin' }}
-      run: ./gradlew classes --scan -PgithubUsername=amandeepg -PgithubPassword=${{ secrets.githubPassword }}
+      run: ./gradlew build --scan -PgithubUsername=amandeepg -PgithubPassword=${{ secrets.githubPassword }}
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
