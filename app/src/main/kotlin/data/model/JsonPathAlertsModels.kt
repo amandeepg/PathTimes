@@ -60,7 +60,7 @@ data class AlertDatas(
             timeZone = TimeZone.getTimeZone("America/New_York")
         }
         private val TIME_PREFIX_REGEX = Regex("^\\d{1,2}[: ]\\d{1,2} ?[apAP][mM][: ]?", RegexOption.IGNORE_CASE)
-        private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2} mins\\.")
+        private val UPDATE_IN_MINS_REGEX = Regex("Update in \\d{1,2}( )?m(ins)?\\.")
         private val APOLOGIZE_REGEX =
             Regex("We (apologize|regret) (for )?(the|this|any)?( )?(inconvenience)( )?(this )?(may )?(have|has)?( )?(caused)?(.*\\.)")
 
@@ -102,6 +102,8 @@ data class AlertDatas(
                                 }
                             }
                             .trim()
+                            .takeIf { it.any { char -> char.isLetter() } }
+                            ?: ""
                         alert.copy(text = newText)
                     }
                     val alerts = alertsWithBlanks.mapIndexed { index, alert ->
@@ -232,5 +234,5 @@ private fun String.capitalize(): String = replaceFirstChar {
 }
 
 private fun String.addPeriod(): String = trim().let {
-    if (it.endsWith(".")) it else "$it."
+    if (it.endsWith(".") || it.isBlank()) it else "$it."
 }
