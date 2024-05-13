@@ -55,6 +55,7 @@ import ca.amandeep.path.R
 import ca.amandeep.path.data.model.AlertData
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.ui.HEADING_DARK_TEXT_COLOR
@@ -357,15 +358,15 @@ private fun TrainHeading(
     Row {
         val hasVia = train.route.via != null
         SingleTrainHeading(
+            train.target,
             train.route,
-            train.direction,
             shortName = userState.shortenNames || hasVia,
         )
         if (hasVia) {
             Spacer(Modifier.width(5.dp))
             SingleTrainHeading(
+                train.target,
                 train.route,
-                train.direction,
                 shortName = true,
                 isVia = true,
             )
@@ -375,18 +376,15 @@ private fun TrainHeading(
 
 @Composable
 private fun SingleTrainHeading(
+    targetStation: StationName,
     route: Route,
-    direction: Direction,
     shortName: Boolean = false,
     isVia: Boolean = false,
 ) {
     val station = if (isVia && route.via != null) {
         route.via
     } else {
-        when (direction) {
-            Direction.ToNJ -> route.njTerminus
-            Direction.ToNY -> route.nyTerminus
-        }
+        targetStation
     }
     val name = if (shortName) station.shortName else station.longName
     val pillColor = when (route) {
