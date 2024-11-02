@@ -3,17 +3,18 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'kotlin-parcelize'
-    id 'org.jmailen.kotlinter'
-    id 'com.google.devtools.ksp'
     id 'app.cash.licensee'
     id 'app.cash.paparazzi'
+    id 'com.android.application'
+    id 'com.google.devtools.ksp'
+    id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'org.jmailen.kotlinter'
 }
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "ca.amandeep.path"
@@ -43,7 +44,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = '11'
-        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         freeCompilerArgs += "-P"
         //noinspection GrDeprecatedAPIUsage
         freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
@@ -54,9 +55,6 @@ android {
 
     buildFeatures {
         compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion compose_version
     }
     packagingOptions {
         resources {
@@ -88,11 +86,11 @@ tasks.withType(KotlinCompile) {
 }
 
 dependencies {
-    implementation(KotlinX.collections.immutable)
     implementation AndroidX.activity.compose
+    implementation AndroidX.compose.material
+    implementation AndroidX.compose.material.icons.extended
     implementation AndroidX.compose.material3
     implementation AndroidX.compose.material3.windowSizeClass
-    implementation AndroidX.compose.material
     implementation AndroidX.compose.ui
     implementation AndroidX.core.ktx
     implementation AndroidX.core.splashscreen
@@ -100,7 +98,7 @@ dependencies {
     implementation AndroidX.lifecycle.runtime.ktx
     implementation AndroidX.lifecycle.viewModelKtx
     implementation AndroidX.navigation.compose
-    implementation AndroidX.compose.material.icons.extended
+    implementation KotlinX.collections.immutable
 
     //noinspection GradleDependency breaking permissions changes, TODO handle them
     implementation Google.accompanist.permissions
