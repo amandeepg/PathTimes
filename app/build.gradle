@@ -36,14 +36,14 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         freeCompilerArgs += "-P"
         //noinspection GrDeprecatedAPIUsage
