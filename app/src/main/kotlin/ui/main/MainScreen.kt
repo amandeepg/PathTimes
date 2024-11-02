@@ -573,6 +573,7 @@ fun LoadedScreen(
                                 when {
                                     userState.showElevatorAlerts -> true
                                     it is AlertData.Single -> !it.isElevator
+                                    it is AlertData.Grouped -> !(it.history + it.main).all { it.isElevator }
                                     else -> true
                                 }
                             }.toImmutableList(),
