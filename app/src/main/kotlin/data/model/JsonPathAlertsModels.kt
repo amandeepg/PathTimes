@@ -65,13 +65,23 @@ data class AlertDatas(
             Regex("We (apologize|regret) (for )?(the|this|any)?( )?(inconvenience)( )?(this )?(may )?(have|has)?( )?(caused)?(.*\\.)")
 
         fun Iterable<Pair<String, String>>.toAlertDatas(): ImmutableList<AlertData.Single> = this
+            .filter {
+                "satisfaction survey" !in it.second.lowercase()
+            }
             .map {
                 val date = try {
                     DATE_FORMATTER.parse(it.first.trim())
                 } catch (_: Exception) {
                     null
                 }
-                AlertData.Single(it.second.removeUnnecessaryText().trim(), date)
+                AlertData.Single(
+                    text = it.second
+                        .removeUnnecessaryText()
+                        .removeUrls()
+                        .addPeriod()
+                        .trim(),
+                    date = date,
+                )
             }
             .sortedBy { it.date }
             .reversed()
@@ -118,8 +128,32 @@ data class AlertDatas(
                     AlertData.Grouped(
                         title = title,
                         main = alerts.first(),
-                        history = alerts.drop(1).toImmutableList(),
+                        history = alerts.drop(1).sortedByDescending { it.date }.toImmutableList(),
                     )
+                }
+            }
+            .let { allAlerts ->
+                val containingRoutesAlerts = allAlerts.findContainedRouteAlerts()
+                val allToBeAbsorbed = containingRoutesAlerts.map { it.first }
+                val allAbsorbing = containingRoutesAlerts.map { it.second }
+                allAlerts.mapNotNull {
+                    if (it !is AlertData.Grouped || it.title !is AlertData.Grouped.Title.RouteTitle) return@mapNotNull it
+                    when (it) {
+                        in allAbsorbing -> {
+                            val absorbed = containingRoutesAlerts.find { it2 -> it2.second == it }!!
+                            it.copy(
+                                history = it.history
+                                    .plus(absorbed.first.main)
+                                    .plus(absorbed.first.history)
+                                    .sortedByDescending { it.date }
+                                    .toImmutableList(),
+                            )
+                        }
+                        in allToBeAbsorbed -> {
+                            null
+                        }
+                        else -> it
+                    }
                 }
             }
             .toImmutableList()
@@ -127,7 +161,37 @@ data class AlertDatas(
         private fun AlertData.Single.toTitle(): AlertData.Grouped.Title =
             text.getBefore(".").toTitle()
 
+        fun Iterable<AlertData>.findContainedRouteAlerts(): List<Pair<AlertData.Grouped, AlertData.Grouped>> {
+            val routeAlerts = this.filterIsInstance<AlertData.Grouped>()
+                .filter { it.title is AlertData.Grouped.Title.RouteTitle }
+
+            val containedAlerts = mutableListOf<Pair<AlertData.Grouped, AlertData.Grouped>>()
+
+            for (alert1 in routeAlerts) {
+                for (alert2 in routeAlerts) {
+                    if (alert1 != alert2 &&
+                        alert1.title is AlertData.Grouped.Title.RouteTitle &&
+                        alert2.title is AlertData.Grouped.Title.RouteTitle
+                    ) {
+                        if (alert2.title.routes.containsAll(alert1.title.routes)) {
+                            containedAlerts.add(Pair(alert1, alert2))
+                        }
+                    }
+                }
+            }
+
+            return containedAlerts
+        }
+
+        private fun String.removeUrls(): String = this
+            .trim()
+            .split(". ")
+            .filter { !it.contains("http") }
+            .joinToString(". ")
+            .trim()
+
         private fun String.removeUnnecessaryText(): String = this
+            .trim()
             .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
             .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
@@ -145,6 +209,7 @@ data class AlertDatas(
             .remove("Real-Time Train Departures on: - RidePATH app: - PATH website:")
             .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
             .replace("..", ".").replace("..", ".")
+            .trim()
 
         private fun String.remove(str: String): String = replace(str, "")
     }
