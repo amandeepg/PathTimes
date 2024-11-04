@@ -1,0 +1,80 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: amandeepg
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: path-summarize-alerts
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: path-summarize-alerts
+
+provider:
+  name: aws
+  runtime: python3.12
+  memorySize: 256
+  timeout: 30
+  logRetentionInDays: 14
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource:
+            - arn:aws:s3:::path-summarize-data/*
+        - Effect: Allow
+          Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+          Resource: "*"
+
+  environment:
+    POWERTOOLS_SERVICE_NAME: ${self:service}
+    POWERTOOLS_METRICS_NAMESPACE: ${self:service}
+    LOG_LEVEL: INFO
+    OPENAI_API_KEY: ${file(./config.yml):OPENAI_API_KEY}
+    SKIP_CACHE_MAGIC_WORD: ${file(./config.yml):SKIP_CACHE_MAGIC_WORD}
+
+functions:
+  summarize:
+    handler: src/handler.handler  # Updated handler path
+    events:
+      - http:
+          path: /summarize
+          method: get
+          cors: true
+    layers:
+      - arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2:42
+
+package:
+  patterns:
+    - '!.venv/**'
+    - '!node_modules/**'
+    - '!tests/**'
+    - '!.git/**'
+    - '!.pytest_cache/**'
+    - '!__pycache__/**'
+    - '!.coverage'
+    - '!.gitlab-ci.yml'
+    - '!README.md'
+    - '!config.yml'
+
+plugins:
+  - serverless-python-requirements
+  - serverless-iam-roles-per-function
+
+resources:
+  Resources:
+    SummarizeDataBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: path-summarize-data
+        LifecycleConfiguration:
+          Rules:
+            - Id: ExpireOldData
+              Status: Enabled
+              ExpirationInDays: 30
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true

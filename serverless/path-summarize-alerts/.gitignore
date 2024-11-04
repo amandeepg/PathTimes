@@ -1,0 +1,53 @@
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Serverless directories
+.serverless
+
+# Dependencies
+node_modules/
+.python-packages/
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Serverless
+.serverless/
+.requirements.zip
+.requirements/
+
+# Environment
+.env
+config.yml
+
+# IDE
+.idea/
+.vscode/
+
+# Testing
+.coverage
+coverage/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+config.yml

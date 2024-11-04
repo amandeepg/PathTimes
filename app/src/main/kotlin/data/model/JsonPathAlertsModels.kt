@@ -11,7 +11,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -27,7 +26,9 @@ data class AlertContainer(
         val noAlerts = NO_ALERTS_HTML_TEXT in content.orEmpty()
         val alerts = try {
             val document = Jsoup.parse(content?.replace("&quot", "").orEmpty())
-            document.toAlertDatas()
+            document.select(".stationName").map { it.text() }
+                .zip(document.select(".alertText").map { it.text() })
+                .toAlertDatas()
         } catch (_: Exception) {
             emptyList()
         }
@@ -39,11 +40,6 @@ data class AlertContainer(
 
     companion object {
         private const val NO_ALERTS_HTML_TEXT = "There are no active PATHAlerts at this time"
-
-        private fun Document.toAlertDatas(): ImmutableList<AlertData.Single> =
-            select(".stationName").map { it.text() }
-                .zip(select(".alertText").map { it.text() })
-                .toAlertDatas()
     }
 }
 
