@@ -1,26 +1,32 @@
 package ca.amandeep.path.data.model
 
+import ca.amandeep.path.data.AlertData
+import ca.amandeep.path.data.AlertParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.Date
 
-class AlertContainerTest {
+class AlertParserTest {
     @Test
     fun alertDatas_fail() {
-        val alertDatas = AlertContainer(
-            contentKey = "contentKey",
-            content = "nothing",
-        ).alertDatas
+        val alertDatas = AlertParser().parse(
+            AlertContainer(
+                contentKey = "contentKey",
+                content = "nothing",
+            ),
+        )
         assertThat(alertDatas.hasError).isTrue()
         assertThat(alertDatas.alerts).isEmpty()
     }
 
     @Test
     fun alertDatas_singleAlert() {
-        val alertDatas = AlertContainer(
-            contentKey = "contentKey",
-            content = Fakes.SINGLE_ALERT,
-        ).alertDatas
+        val alertDatas = AlertParser().parse(
+            AlertContainer(
+                contentKey = "contentKey",
+                content = Fakes.SINGLE_ALERT,
+            ),
+        )
         assertThat(alertDatas.hasError).isFalse()
 
         assertThat(alertDatas.alerts).containsExactly(

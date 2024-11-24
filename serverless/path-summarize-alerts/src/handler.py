@@ -9,6 +9,7 @@ from .lib.summarizer import AlertSummarizer
 logger = Logger()
 tracer = Tracer()
 
+
 @logger.inject_lambda_context
 @tracer.capture_lambda_handler
 def handler(event: APIGatewayProxyEvent, context: LambdaContext) -> Dict[str, Any]:
@@ -29,17 +30,18 @@ def handler(event: APIGatewayProxyEvent, context: LambdaContext) -> Dict[str, An
         input_text = query_params['input']
         logger.info(f"Processing request with input length: {len(input_text)}")
 
-        skip_cache = 'skip_cache' in query_params and query_params['skip_cache'] == os.environ.get("SKIP_CACHE_MAGIC_WORD")
+        skip_cache = 'skip_cache' in query_params and query_params['skip_cache'] == os.environ.get(
+            "SKIP_CACHE_MAGIC_WORD")
 
         summarizer = AlertSummarizer()
         result = summarizer.summarize(input_text, skip_cache=skip_cache)
 
         logger.info("Successfully processed request")
-        logger.debug(f"Response: {json.dumps(result)}")
+        logger.debug(f"Response: {result.model_dump_json()}")
 
         return {
             'statusCode': 200,
-            'body': json.dumps(result),
+            'body': result.model_dump_json(),
             'headers': {
                 'Content-Type': 'application/json',
                 'Cache-Control': 'max-age=86400'  # Cache for 24 hours

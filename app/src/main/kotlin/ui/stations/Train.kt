@@ -52,7 +52,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.amandeep.path.R
-import ca.amandeep.path.data.model.AlertData
+import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName

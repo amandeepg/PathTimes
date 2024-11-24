@@ -1,7 +1,8 @@
 package ca.amandeep.path.data.model
 
-import ca.amandeep.path.data.model.AlertDatas.Companion.getGroupedAlerts
-import ca.amandeep.path.data.model.AlertDatas.Companion.toAlertDatas
+import ca.amandeep.path.data.AlertData
+import ca.amandeep.path.data.AlertDatas.Companion.getGroupedAlerts
+import ca.amandeep.path.data.AlertDatas.Companion.toAlertDatas
 import com.google.common.truth.Truth.assertThat
 import kotlinx.collections.immutable.persistentListOf
 import org.junit.Test

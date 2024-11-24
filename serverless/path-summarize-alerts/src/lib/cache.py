@@ -1,11 +1,16 @@
+import hashlib
 import json
+from typing import Optional
+
 import boto3
-from typing import Optional, Dict, Any
 from aws_lambda_powertools import Logger, Tracer
-from .constants import CACHE_VERSION
+
+from .constants import SYSTEM_MESSAGE, MODEL_NAME
+from .models import CacheResponse
 
 logger = Logger()
 tracer = Tracer()
+
 
 class CacheService:
     def __init__(self, bucket_name: str):
@@ -14,18 +19,25 @@ class CacheService:
         logger.info(f"Initialized CacheService with bucket: {bucket_name}")
 
     @staticmethod
+    def hash_category_key() -> str:
+        """Create a SHA-1 hash of the prompt."""
+        input_string = f"{CacheResponse.model_json_schema}|{SYSTEM_MESSAGE}|{MODEL_NAME}"
+        hash_value = hashlib.sha1(input_string.encode('utf-8')).hexdigest()
+        return hash_value
+
+    @staticmethod
     def create_versioned_key(hash_key: str) -> str:
         """Create a versioned lib key."""
-        return f"{CACHE_VERSION}/{hash_key}"
+        return f"{CacheService.hash_category_key()}/{hash_key}"
 
     @tracer.capture_method
-    def get(self, hash_key: str) -> Optional[Dict[str, Any]]:
+    def get(self, hash_key: str) -> Optional[str]:
         """Try to get cached response from S3."""
         versioned_key = self.create_versioned_key(hash_key)
         logger.debug(f"Attempting to retrieve cached response for versioned key: {versioned_key}")
         try:
             response = self.s3_client.get_object(Bucket=self.bucket_name, Key=versioned_key)
-            data = json.loads(response['Body'].read().decode('utf-8'))
+            data = response['Body'].read().decode('utf-8')
             logger.info(f"Successfully retrieved cached response for versioned key: {versioned_key}")
             logger.debug(f"Cache data: {json.dumps(data)}")
             return data
@@ -38,7 +50,7 @@ class CacheService:
             return None
 
     @tracer.capture_method
-    def save(self, hash_key: str, data: Dict[str, Any]) -> None:
+    def save(self, hash_key: str, data: str) -> None:
         """Save response to S3 lib."""
         versioned_key = self.create_versioned_key(hash_key)
         logger.debug(f"Attempting to lib response for versioned key: {versioned_key}")
@@ -46,11 +58,11 @@ class CacheService:
             self.s3_client.put_object(
                 Bucket=self.bucket_name,
                 Key=versioned_key,
-                Body=json.dumps(data),
+                Body=data,
                 ContentType='application/json'
             )
             logger.info(f"Successfully cached response for versioned key: {versioned_key}")
-            logger.debug(f"Cached data: {json.dumps(data)}")
+            logger.debug(f"Cached data: {data}")
         except Exception as e:
             logger.error(f"Error saving to lib: {str(e)}", exc_info=True)
             logger.error(f"Versioned key: {versioned_key}, Bucket: {self.bucket_name}")

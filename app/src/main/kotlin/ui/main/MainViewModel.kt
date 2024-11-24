@@ -2,8 +2,10 @@ package ca.amandeep.path.ui.main
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import ca.amandeep.path.data.AlertParser
 import ca.amandeep.path.data.LocationUseCase
 import ca.amandeep.path.data.PathAlertsApiService
+import ca.amandeep.path.data.PathAlertsSummarizerApiService
 import ca.amandeep.path.data.PathOfficialRestApiService
 import ca.amandeep.path.data.PathRemoteDataSource
 import ca.amandeep.path.data.PathRepository
@@ -52,6 +54,8 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             pathRestApi = PathOfficialRestApiService.INSTANCE,
             alertsApi = PathAlertsApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
+            alertParser = AlertParser(),
+            summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
         ),
         arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
         alertsUpdateInterval = MainViewModel.ALERTS_NETWORK_UPDATE_INTERVAL,

@@ -70,7 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.amandeep.path.R
-import ca.amandeep.path.data.model.AlertData
+import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.model.State
 import ca.amandeep.path.ui.ErrorBar
 import ca.amandeep.path.ui.ErrorScreen

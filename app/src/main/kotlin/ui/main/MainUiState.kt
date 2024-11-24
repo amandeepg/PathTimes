@@ -1,8 +1,8 @@
 package ca.amandeep.path.ui.main
 
 import androidx.compose.runtime.Immutable
-import ca.amandeep.path.data.model.AlertData
-import ca.amandeep.path.data.model.AlertDatas
+import ca.amandeep.path.data.AlertData
+import ca.amandeep.path.data.AlertDatas
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.StationName

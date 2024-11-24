@@ -17,8 +17,8 @@ import app.cash.paparazzi.InstantAnimationsRule
 import app.cash.paparazzi.Paparazzi
 import app.cash.paparazzi.ThumbnailScale
 import ca.amandeep.path.R
-import ca.amandeep.path.data.model.AlertData
-import ca.amandeep.path.data.model.AlertDatas
+import ca.amandeep.path.data.AlertData
+import ca.amandeep.path.data.AlertDatas
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName

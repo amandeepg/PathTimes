@@ -1,6 +1,5 @@
 package ca.amandeep.path.data
 
-import ca.amandeep.path.data.model.AlertDatas
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.UpcomingTrain
 import ca.amandeep.path.util.tickFlow

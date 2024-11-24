@@ -38,8 +38,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
-import ca.amandeep.path.data.model.AlertData
-import ca.amandeep.path.data.model.AlertDatas
+import ca.amandeep.path.data.AlertData
+import ca.amandeep.path.data.AlertDatas
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.ui.HEADING_LIGHT_TEXT_COLOR
 import ca.amandeep.path.ui.NWK_WTC_COLOR
