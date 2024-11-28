@@ -108,6 +108,7 @@ dependencies {
     implementation Square.moshi
     ksp Square.moshi.kotlinCodegen
     implementation Square.retrofit2.converter.moshi
+    implementation Square.retrofit2.converter.scalars
     implementation Square.retrofit2
 
     implementation "dev.burnoo:compose-remember-preference:_"

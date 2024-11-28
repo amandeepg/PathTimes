@@ -5,6 +5,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -12,7 +13,7 @@ interface PathAlertsSummarizerApiService {
     @GET("summarize")
     suspend fun summarize(
         @Query("input") input: String,
-    )
+    ): String
 
     companion object {
         private const val API_PATH = "https://v8qv31w7hh.execute-api.us-east-1.amazonaws.com/dev/"
@@ -22,6 +23,7 @@ interface PathAlertsSummarizerApiService {
         ): PathAlertsSummarizerApiService =
             Retrofit.Builder()
                 .baseUrl(API_PATH)
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(MoshiConverterFactory.create())
                 .client(
                     OkHttpClient.Builder()
