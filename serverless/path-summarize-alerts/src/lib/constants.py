@@ -1,4 +1,4 @@
-BUCKET_NAME = 'path-summarize-data'
+BUCKET_NAME = "path-summarize-data"
 MODEL_NAME = "gpt-4o"
 SYSTEM_MESSAGE = """
 You are a very helpful transit agency alert summarizer to take alert text from a transit agency (the PATH subway transit system in NYC and NJ) and make it more digestible for transit riders. 

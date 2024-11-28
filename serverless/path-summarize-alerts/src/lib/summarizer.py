@@ -6,8 +6,7 @@ from openai import OpenAI
 
 from .cache import CacheService
 from .constants import BUCKET_NAME, SYSTEM_MESSAGE, MODEL_NAME
-from .models import *
-from .models import CacheResponse
+from .models import CacheResponse, AlertSummary
 
 logger = Logger()
 tracer = Tracer()
@@ -22,14 +21,18 @@ class AlertSummarizer:
     @staticmethod
     def hash_string(input_string: str) -> str:
         """Create a SHA-1 hash of the input string."""
-        hash_value = hashlib.sha1(input_string.encode('utf-8')).hexdigest()
-        logger.debug(f"Generated hash: {hash_value} for input length: {len(input_string)}")
+        hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
+        logger.debug(
+            f"Generated hash: {hash_value} for input length: {len(input_string)}"
+        )
         return hash_value
 
     @tracer.capture_method
     def summarize(self, input_text: str, skip_cache: bool) -> CacheResponse:
         """Summarize the input text using OpenAI API with caching."""
-        logger.info(f"Processing new summarization request. Input length: {len(input_text)}")
+        logger.info(
+            f"Processing new summarization request. Input length: {len(input_text)}"
+        )
         logger.debug(f"Raw input text: {input_text}")
 
         hash_key = self.hash_string(input_text)
@@ -47,19 +50,24 @@ class AlertSummarizer:
             logger.info("Making OpenAI API request")
             logger.debug(f"System message: {SYSTEM_MESSAGE}")
 
-            ai_response, completion = self.client.chat.completions.create_with_completion(
-                response_model=AlertSummary,
-                model=MODEL_NAME,
-                messages=[
-                    {"role": "system", "content": SYSTEM_MESSAGE},
-                    self.user_msg(input_text)
-                ],
+            ai_response, completion = (
+                self.client.chat.completions.create_with_completion(
+                    response_model=AlertSummary,
+                    model=MODEL_NAME,
+                    messages=[
+                        {"role": "system", "content": SYSTEM_MESSAGE},
+                        self.user_msg(input_text),
+                    ],
+                )
             )
 
             logger.info("Successfully received OpenAI API response")
             logger.debug(f"Raw API response: {ai_response}")
             logger.info(f"Usage: {completion.usage}")
-            cost = completion.usage.prompt_tokens * 2.5 / 1_000_000 + completion.usage.completion_tokens * 10 / 1_000_000
+            cost = (
+                completion.usage.prompt_tokens * 2.5 / 1_000_000
+                + completion.usage.completion_tokens * 10 / 1_000_000
+            )
             logger.info(f"Cost approx: {cost * 100:.2f} cents")
 
             # Prepare response

@@ -19,19 +19,20 @@ def handler(event: APIGatewayProxyEvent, context: LambdaContext) -> Dict[str, An
 
     try:
         # Get input string from event
-        query_params = event.get('queryStringParameters', {})
-        if not query_params or 'input' not in query_params:
+        query_params = event.get("queryStringParameters", {})
+        if not query_params or "input" not in query_params:
             logger.error("Missing input parameter in request")
             return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing input parameter'})
+                "statusCode": 400,
+                "body": json.dumps({"error": "Missing input parameter"}),
             }
 
-        input_text = query_params['input']
+        input_text = query_params["input"]
         logger.info(f"Processing request with input length: {len(input_text)}")
 
-        skip_cache = 'skip_cache' in query_params and query_params['skip_cache'] == os.environ.get(
-            "SKIP_CACHE_MAGIC_WORD")
+        skip_cache = "skip_cache" in query_params and query_params[
+            "skip_cache"
+        ] == os.environ.get("SKIP_CACHE_MAGIC_WORD")
 
         summarizer = AlertSummarizer()
         result = summarizer.summarize(input_text, skip_cache=skip_cache)
@@ -40,22 +41,18 @@ def handler(event: APIGatewayProxyEvent, context: LambdaContext) -> Dict[str, An
         logger.debug(f"Response: {result.model_dump_json()}")
 
         return {
-            'statusCode': 200,
-            'body': result.model_dump_json(),
-            'headers': {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'max-age=86400'  # Cache for 24 hours
-            }
+            "statusCode": 200,
+            "body": result.model_dump_json(),
+            "headers": {
+                "Content-Type": "application/json",
+                "Cache-Control": "max-age=86400",  # Cache for 24 hours
+            },
         }
 
     except Exception as e:
         logger.exception("Error processing request")
         return {
-            'statusCode': 500,
-            'body': json.dumps({
-                'error': str(e)
-            }),
-            'headers': {
-                'Content-Type': 'application/json'
-            }
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)}),
+            "headers": {"Content-Type": "application/json"},
         }

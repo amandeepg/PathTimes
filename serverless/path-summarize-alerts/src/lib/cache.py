@@ -14,15 +14,17 @@ tracer = Tracer()
 
 class CacheService:
     def __init__(self, bucket_name: str):
-        self.s3_client = boto3.client('s3')
+        self.s3_client = boto3.client("s3")
         self.bucket_name = bucket_name
         logger.info(f"Initialized CacheService with bucket: {bucket_name}")
 
     @staticmethod
     def hash_category_key() -> str:
         """Create a SHA-1 hash of the prompt."""
-        input_string = f"{CacheResponse.model_json_schema}|{SYSTEM_MESSAGE}|{MODEL_NAME}"
-        hash_value = hashlib.sha1(input_string.encode('utf-8')).hexdigest()
+        input_string = (
+            f"{CacheResponse.model_json_schema}|{SYSTEM_MESSAGE}|{MODEL_NAME}"
+        )
+        hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
         return hash_value
 
     @staticmethod
@@ -34,11 +36,17 @@ class CacheService:
     def get(self, hash_key: str) -> Optional[str]:
         """Try to get cached response from S3."""
         versioned_key = self.create_versioned_key(hash_key)
-        logger.debug(f"Attempting to retrieve cached response for versioned key: {versioned_key}")
+        logger.debug(
+            f"Attempting to retrieve cached response for versioned key: {versioned_key}"
+        )
         try:
-            response = self.s3_client.get_object(Bucket=self.bucket_name, Key=versioned_key)
-            data = response['Body'].read().decode('utf-8')
-            logger.info(f"Successfully retrieved cached response for versioned key: {versioned_key}")
+            response = self.s3_client.get_object(
+                Bucket=self.bucket_name, Key=versioned_key
+            )
+            data = response["Body"].read().decode("utf-8")
+            logger.info(
+                f"Successfully retrieved cached response for versioned key: {versioned_key}"
+            )
             logger.debug(f"Cache data: {json.dumps(data)}")
             return data
         except self.s3_client.exceptions.NoSuchKey:
@@ -59,9 +67,11 @@ class CacheService:
                 Bucket=self.bucket_name,
                 Key=versioned_key,
                 Body=data,
-                ContentType='application/json'
+                ContentType="application/json",
             )
-            logger.info(f"Successfully cached response for versioned key: {versioned_key}")
+            logger.info(
+                f"Successfully cached response for versioned key: {versioned_key}"
+            )
             logger.debug(f"Cached data: {data}")
         except Exception as e:
             logger.error(f"Error saving to lib: {str(e)}", exc_info=True)

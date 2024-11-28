@@ -11,6 +11,8 @@ provider:
   memorySize: 256
   timeout: 30
   logRetentionInDays: 14
+  apiGateway:
+    minimumCompressionSize: 0
 
   iam:
     role:
@@ -36,7 +38,7 @@ provider:
 
 functions:
   summarize:
-    handler: src/handler.handler  # Updated handler path
+    handler: src/handler.handler
     events:
       - http:
           path: /summarize
