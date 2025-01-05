@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.transform
 import kotlin.time.Duration
 
 /**
@@ -22,6 +23,7 @@ import kotlin.time.Duration
  */
 class PathRepository(
     private val pathRemoteDataSource: PathRemoteDataSource,
+    private val summarizerApi: PathAlertsSummarizerApiService,
     private val arrivalsUpdateInterval: Duration,
     private val alertsUpdateInterval: Duration,
 ) {
@@ -49,13 +51,32 @@ class PathRepository(
     val alerts: Flow<AlertsResult>
         get() =
             // Merge tick flow to periodically poll the API, and the refresh flow to force a refresh
-            merge(tickFlow(alertsUpdateInterval), refreshFlow).map {
-                AlertsResult(
+            merge(tickFlow(alertsUpdateInterval), refreshFlow).transform {
+                val alertsResult = AlertsResult(
                     Metadata(System.currentTimeMillis()),
                     pathRemoteDataSource.getAlerts(),
-                ).also {
-                    d { "new alerts wallTime: ${it.metadata.lastUpdated}" }
-                }
+                )
+                emit(
+                    alertsResult.also {
+                        d { "new alerts wallTime: ${it.metadata.lastUpdated}" }
+                    },
+                )
+                emit(
+                    alertsResult.copy(
+                        alerts = alertsResult.alerts.copy(
+                            alerts = alertsResult.alerts.alerts.map {
+                                if (it is AlertData.Single) {
+                                    d { "starting summary..." }
+                                    it.copy(text = summarizerApi.summarize(it.text)).also {
+                                        d { "summarized alert: ${it.text}" }
+                                    }
+                                } else {
+                                    it
+                                }
+                            }.toImmutableList(),
+                        ),
+                    ),
+                )
             }
 
     /**

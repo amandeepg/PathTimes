@@ -55,8 +55,8 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             alertsApi = PathAlertsApiService.INSTANCE,
             ioDispatcher = Dispatchers.IO,
             alertParser = AlertParser(),
-            summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
         ),
+        summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
         arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
         alertsUpdateInterval = MainViewModel.ALERTS_NETWORK_UPDATE_INTERVAL,
     )

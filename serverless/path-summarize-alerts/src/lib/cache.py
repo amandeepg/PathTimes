@@ -5,7 +5,7 @@ from typing import Optional
 import boto3
 from aws_lambda_powertools import Logger, Tracer
 
-from .constants import SYSTEM_MESSAGE, MODEL_NAME
+from .constants import *
 from .models import CacheResponse
 
 logger = Logger()
@@ -20,10 +20,8 @@ class CacheService:
 
     @staticmethod
     def hash_category_key() -> str:
-        """Create a SHA-1 hash of the prompt."""
-        input_string = (
-            f"{CacheResponse.model_json_schema}|{SYSTEM_MESSAGE}|{MODEL_NAME}"
-        )
+        """Create an SHA-1 hash of the prompt."""
+        input_string = f"{CacheResponse.model_json_schema()}|{SYSTEM_MESSAGE}|{MODEL_NAME}|{CACHE_INT}"
         hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
         return hash_value
 

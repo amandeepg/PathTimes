@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 from typing import Dict, Any
@@ -35,7 +36,7 @@ def handler(event: APIGatewayProxyEvent, context: LambdaContext) -> Dict[str, An
         ] == os.environ.get("SKIP_CACHE_MAGIC_WORD")
 
         summarizer = AlertSummarizer()
-        result = summarizer.summarize(input_text, skip_cache=skip_cache)
+        result = asyncio.run(summarizer.summarize(input_text, skip_cache=skip_cache))
 
         logger.info("Successfully processed request")
         logger.debug(f"Response: {result.model_dump_json()}")

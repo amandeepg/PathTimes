@@ -20,7 +20,7 @@ val PIXEL_FOLD = DeviceConfig(
     xdpi = 378,
     ydpi = 378,
     orientation = ScreenOrientation.LANDSCAPE,
-    density = Density.DPI_360,
+    density = Density.create("360dpi"),
     ratio = ScreenRatio.NOTLONG,
     size = ScreenSize.XLARGE,
     keyboard = Keyboard.QWERTY,
@@ -37,7 +37,7 @@ val PIXEL_FOLD_OUTER = PIXEL_FOLD.copy(
     xdpi = 408,
     ydpi = 408,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_400,
+    density = Density.create("400dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
 )
@@ -48,7 +48,7 @@ val GALAXY_Z_FOLD_5 = DeviceConfig(
     xdpi = 373,
     ydpi = 373,
     orientation = ScreenOrientation.LANDSCAPE,
-    density = Density.DPI_360,
+    density = Density.create("360dpi"),
     ratio = ScreenRatio.NOTLONG,
     size = ScreenSize.XLARGE,
     keyboard = Keyboard.QWERTY,
@@ -65,7 +65,7 @@ val GALAXY_Z_FOLD_5_OUTER = GALAXY_Z_FOLD_5.copy(
     xdpi = 401,
     ydpi = 401,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_400,
+    density = Density.create("400dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
 )
@@ -76,7 +76,7 @@ val GALAXY_Z_FLIP_5 = DeviceConfig(
     xdpi = 425,
     ydpi = 425,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_420,
+    density = Density.create("420dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
     keyboard = Keyboard.QWERTY,
@@ -93,7 +93,7 @@ val GALAXY_Z_FLIP_5_OUTER = GALAXY_Z_FLIP_5.copy(
     xdpi = 306,
     ydpi = 306,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_300,
+    density = Density.create("300dpi"),
     ratio = ScreenRatio.NOTLONG,
     size = ScreenSize.SMALL,
 )
@@ -104,7 +104,7 @@ val PIXEL_7 = DeviceConfig(
     xdpi = 416,
     ydpi = 416,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_420,
+    density = Density.create("420dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
     keyboard = Keyboard.NOKEY,
@@ -128,8 +128,7 @@ val PIXEL_7A = PIXEL_7.copy(
     screenWidth = 1080,
     xdpi = 429,
     ydpi = 429,
-    density = Density.DPI_420,
-    released = "May 10, 2023",
+    density = Density.create("420dpi"),
 )
 
 val PIXEL_8 = DeviceConfig(
@@ -138,7 +137,7 @@ val PIXEL_8 = DeviceConfig(
     xdpi = 428,
     ydpi = 428,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_420,
+    density = Density.create("420dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
     keyboard = Keyboard.NOKEY,
@@ -154,7 +153,7 @@ val PIXEL_8_PRO = PIXEL_8.copy(
     screenWidth = 1344,
     xdpi = 489,
     ydpi = 489,
-    density = Density.DPI_560,
+    density = Density.create("560dpi"),
 )
 
 val GALAXY_S_23 = DeviceConfig(
@@ -163,7 +162,7 @@ val GALAXY_S_23 = DeviceConfig(
     xdpi = 425,
     ydpi = 425,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_420,
+    density = Density.create("420dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
     keyboard = Keyboard.NOKEY,
@@ -177,7 +176,7 @@ val GALAXY_S_23 = DeviceConfig(
 val GALAXY_S_23_PLUS = GALAXY_S_23.copy(
     xdpi = 393,
     ydpi = 393,
-    density = Density.DPI_400,
+    density = Density.create("400dpi"),
 )
 
 val GALAXY_S_23_ULTRA = GALAXY_S_23.copy(
@@ -185,7 +184,7 @@ val GALAXY_S_23_ULTRA = GALAXY_S_23.copy(
     screenWidth = 1440,
     xdpi = 500,
     ydpi = 500,
-    density = Density.DPI_560,
+    density = Density.create("560dpi"),
 )
 
 val GALAXY_S_24 = DeviceConfig(
@@ -194,7 +193,7 @@ val GALAXY_S_24 = DeviceConfig(
     xdpi = 416,
     ydpi = 416,
     orientation = ScreenOrientation.PORTRAIT,
-    density = Density.DPI_420,
+    density = Density.create("420dpi"),
     ratio = ScreenRatio.LONG,
     size = ScreenSize.LARGE,
     keyboard = Keyboard.NOKEY,
@@ -210,7 +209,7 @@ val GALAXY_S_24_PLUS = GALAXY_S_24.copy(
     screenWidth = 1440,
     xdpi = 513,
     ydpi = 513,
-    density = Density.DPI_560,
+    density = Density.create("560dpi"),
 )
 
 val GALAXY_S_24_ULTRA = GALAXY_S_24.copy(
@@ -218,7 +217,7 @@ val GALAXY_S_24_ULTRA = GALAXY_S_24.copy(
     screenWidth = 1440,
     xdpi = 505,
     ydpi = 505,
-    density = Density.DPI_560,
+    density = Density.create("560dpi"),
 )
 
 fun List<Any>.toLandscape(): List<Any>? = run {

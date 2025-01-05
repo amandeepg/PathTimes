@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.InstantAnimationsRule
 import app.cash.paparazzi.Paparazzi
-import app.cash.paparazzi.ThumbnailScale
 import ca.amandeep.path.R
 import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.AlertDatas
@@ -133,7 +132,7 @@ class MainScreenshotTest(
             true -> "android:ThemeOverlay.Material.Dark"
             false -> "android:Theme.Material.Light.NoActionBar"
         },
-        thumbnailScale = ThumbnailScale.NoScale,
+        useDeviceResolution = true,
     )
 
     @get:Rule

@@ -14,7 +14,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import java.text.SimpleDateFormat
@@ -27,19 +26,11 @@ class PathRemoteDataSource(
     private val alertsApi: PathAlertsApiService,
     private val ioDispatcher: CoroutineDispatcher,
     private val alertParser: AlertParser,
-    private val summarizerApi: PathAlertsSummarizerApiService,
 ) {
     suspend fun getAlerts(): AlertDatas =
         withContext(ioDispatcher) {
             d { "getAlerts" }
-            alertParser.parse(alertsApi.getAlerts()).also {
-                it.alerts.filterIsInstance<AlertData.Single>().forEach {
-                    async {
-                        val output = summarizerApi.summarize(it.text)
-                        d { output }
-                    }.start()
-                }
-            }
+            alertParser.parse(alertsApi.getAlerts())
         }
 
     suspend fun getArrivals(): Map<StationName, List<UpcomingTrain>> =

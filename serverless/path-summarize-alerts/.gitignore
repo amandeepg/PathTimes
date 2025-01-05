@@ -52,3 +52,4 @@ coverage/
 Thumbs.db
 
 config.yml
+requirements.txt
