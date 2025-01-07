@@ -66,7 +66,7 @@ class AlertSummarizer:
                 ),
                 asyncio.create_task(
                     self.get_ai_response(
-                        input_text, model="anthropic/claude-3.5-sonnet"
+                        input_text, model="anthropic/claude-3.5-haiku"
                     )
                 ),
             ]
