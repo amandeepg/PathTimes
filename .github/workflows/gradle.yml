@@ -24,4 +24,4 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
     - name: Build
-      run: ./gradlew build --scan -PgithubUsername=amandeepg -PgithubPassword=${{ secrets.githubPassword }}
+      run: ./gradlew build --scan
