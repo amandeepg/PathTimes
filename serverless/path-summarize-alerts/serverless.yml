@@ -23,6 +23,7 @@ provider:
             - s3:PutObject
           Resource:
             - arn:aws:s3:::path-summarize-data/*
+            - arn:aws:s3:::path-summarize-data-rate-limit/*
         - Effect: Allow
           Action:
             - xray:PutTraceSegments
@@ -80,6 +81,20 @@ resources:
             - Id: ExpireOldData
               Status: Enabled
               ExpirationInDays: 30
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+    SummarizeDataRateLimit:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: path-summarize-data-rate-limit
+        LifecycleConfiguration:
+          Rules:
+            - Id: ExpireOldData
+              Status: Enabled
+              ExpirationInDays: 1
         PublicAccessBlockConfiguration:
           BlockPublicAcls: true
           BlockPublicPolicy: true

@@ -2,10 +2,12 @@ import asyncio
 import json
 import os
 from typing import Dict, Any
+
 from aws_lambda_powertools import Logger, Tracer
-from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
-from .lib.summarizer import AlertSummarizer
+from aws_lambda_powertools.utilities.typing import LambdaContext
+
+from .lib.summarizer import AlertSummarizer, RateLimitedException
 
 logger = Logger()
 tracer = Tracer()
@@ -48,6 +50,14 @@ def handler(event: APIGatewayProxyEvent, context: LambdaContext) -> Dict[str, An
                 "Content-Type": "application/json",
                 "Cache-Control": "max-age=86400",  # Cache for 24 hours
             },
+        }
+
+    except RateLimitedException as e:
+        logger.exception(f"Rate limit exceeded {e}")
+        return {
+            "statusCode": 429,
+            "body": json.dumps({"error": "Rate limit exceeded"}),
+            "headers": {"Content-Type": "application/json"},
         }
 
     except Exception as e:

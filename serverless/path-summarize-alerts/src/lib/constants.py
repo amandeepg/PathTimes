@@ -1,4 +1,5 @@
 BUCKET_NAME = "path-summarize-data"
+BUCKET_NAME_RATE_LIMIT = "path-summarize-data-rate-limit"
 MODEL_NAME = "openai/chatgpt-4o-latest"
 SYSTEM_MESSAGE = """
 You are a very helpful transit agency alert summarizer to take alert text from a transit agency (the PATH subway transit 

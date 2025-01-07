@@ -1,6 +1,9 @@
 import asyncio
 import hashlib
+import json
+import time
 
+import boto3
 import instructor
 import langsmith.wrappers
 from aws_lambda_powertools import Logger, Tracer
@@ -14,8 +17,13 @@ logger = Logger()
 tracer = Tracer()
 
 
+class RateLimitedException(Exception):
+    pass
+
+
 class AlertSummarizer:
     def __init__(self):
+        self.s3_client = boto3.client("s3")
         self.client = instructor.from_openai(
             langsmith.wrappers.wrap_openai(
                 AsyncOpenAI(base_url="https://openrouter.ai/api/v1")
@@ -52,6 +60,10 @@ class AlertSummarizer:
             response_data.cached = True
             return response_data
 
+        if self.should_be_rate_limited(input_text):
+            logger.info("Rate limited")
+            raise RateLimitedException("Rate limited")
+
         try:
             usable_ai_response = asyncio.create_task(
                 self.get_ai_response(input_text, model=MODEL_NAME)
@@ -65,9 +77,7 @@ class AlertSummarizer:
                     )
                 ),
                 asyncio.create_task(
-                    self.get_ai_response(
-                        input_text, model="anthropic/claude-3.5-haiku"
-                    )
+                    self.get_ai_response(input_text, model="anthropic/claude-3.5-haiku")
                 ),
             ]
             await asyncio.sleep(0)  # <~~~~~~~~~ This hacky line sets the task running
@@ -93,6 +103,29 @@ class AlertSummarizer:
             logger.error(f"Error calling OpenAI API: {str(e)}", exc_info=True)
             logger.error(f"Input text length: {len(input_text)}")
             raise
+
+    def should_be_rate_limited(self, input_text):
+        file_name = hashlib.sha1(input_text.encode()).hexdigest()
+        try:
+            # Get the object from S3
+            response = self.s3_client.get_object(
+                Bucket=BUCKET_NAME_RATE_LIMIT, Key=file_name
+            )
+            # read json from the s3 response body
+            data = json.loads(response["Body"].read().decode("utf-8"))
+            # Check if file is older than 30 seconds
+            should_be_rate_limited = time.time() - float(data["LastModified"]) <= 30.0
+        except Exception as e:
+            logger.exception(f"Error checking if rate limited {e}")
+            should_be_rate_limited = False
+        if not should_be_rate_limited:
+            self.s3_client.put_object(
+                Bucket=BUCKET_NAME_RATE_LIMIT,
+                Key=file_name,
+                Body=json.dumps({"LastModified": str(time.time())}),
+                ContentType="application/json",
+            )
+        return should_be_rate_limited
 
     def get_ai_response(self, input_text: str, model: str = MODEL_NAME):
         return self.client.chat.completions.create(
