@@ -113,14 +113,14 @@ class MainScreenshotTest(
         @JvmStatic
         @Parameterized.Parameters(
             name = "darkMode={0}," +
-                " device={1}," +
-                " alertsExp={3}," +
-                " dirWarn={4}," +
-                " helpGuide={5}," +
-                " showOppoDir={6}," +
-                " showNotifs={7}," +
-                " updatedWhen={8}" +
-                " shortNames={9}",
+                "device={1}," +
+                "alertsExp={3}," +
+                "dirWarn={4}," +
+                "helpGuide={5}," +
+                "showOppoDir={6}," +
+                "showNotifs={7}," +
+                "updatedWhen={8}," +
+                "shortNames={9},",
         )
         fun data() = DATA
     }
