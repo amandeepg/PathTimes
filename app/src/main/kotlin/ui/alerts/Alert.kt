@@ -1,9 +1,14 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package ca.amandeep.path.ui.alerts
 
 import android.content.res.Configuration
 import android.text.format.DateUtils
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -61,6 +66,8 @@ fun Alert(
     setShowElevatorAlerts: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val titleTextStyle = alertTextStyle.copy(fontWeight = FontWeight.Medium)
+
     val singleAlert = when (alert) {
         is AlertData.Single -> alert
         is AlertData.Grouped -> alert.main
@@ -70,30 +77,38 @@ fun Alert(
     Column(modifier) {
         if (alert is AlertData.Grouped) {
             when (alert.title) {
-                is AlertData.Grouped.Title.RouteTitle ->
-                    Row(modifier = Modifier.padding(bottom = 3.dp)) {
+                is AlertData.Grouped.Title.RouteTitle -> {
+                    FlowRow(
+                        modifier = Modifier.padding(bottom = 3.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
                         alert.title.routes.forEachIndexed { index, route ->
-                            SingleRoute(route, alertTextStyle)
+                            SingleRoute(route, titleTextStyle)
                             if (index != alert.title.routes.size - 1) {
                                 Spacer(Modifier.width(2.dp))
                             }
                         }
 
-                        Text(
-                            text = alert.title.text,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            style = alertTextStyle,
-                            modifier = Modifier
-                                .padding(start = 5.dp)
-                                .align(Alignment.CenterVertically),
+                        if (alert.title.routes.size == 1) {
+                            alert.GroupedTitleText(
+                                modifier = Modifier
+                                    .padding(start = 5.dp)
+                                    .align(Alignment.CenterVertically),
+                                titleTextStyle = titleTextStyle,
+                            )
+                        }
+                    }
+                    if (alert.title.routes.size > 1) {
+                        alert.GroupedTitleText(
+                            modifier = Modifier.padding(bottom = 3.dp),
+                            titleTextStyle = titleTextStyle,
                         )
                     }
+                }
 
                 is AlertData.Grouped.Title.FreeformTitle ->
-                    Text(
-                        text = alert.title.text,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = alertTextStyle,
+                    alert.GroupedTitleText(
+                        titleTextStyle = titleTextStyle,
                     )
 
                 else -> Unit
@@ -103,7 +118,7 @@ fun Alert(
             Text(
                 text = singleAlert.text,
                 color = MaterialTheme.colorScheme.onBackground,
-                style = alertTextStyle,
+                style = if (alert is AlertData.Grouped) alertTextStyle else titleTextStyle,
             )
         }
         if (singleAlert.date != null) {
@@ -207,6 +222,19 @@ fun Alert(
 }
 
 @Composable
+private fun AlertData.Grouped.GroupedTitleText(
+    titleTextStyle: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = title.text,
+        color = MaterialTheme.colorScheme.onBackground,
+        style = titleTextStyle,
+        modifier = modifier,
+    )
+}
+
+@Composable
 private fun RowScope.SingleRoute(
     route: Route,
     style: TextStyle,
@@ -285,8 +313,8 @@ private fun AlertPreview() {
     }
 }
 
-@Preview(name = "Light")
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Light", widthDp = 360)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 360)
 @Composable
 private fun AlertsPreview() {
     PATHTheme {
@@ -297,6 +325,8 @@ private fun AlertsPreview() {
             alertsUiModel = AlertDatas(
                 alerts = persistentListOf(
                     SampleAlertsPreviewProvider.ALERT1,
+                    SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT1,
+                    SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT2,
                     SampleAlertsPreviewProvider.GROUPED_ALERT1,
                     SampleAlertsPreviewProvider.ALERT2,
                     SampleAlertsPreviewProvider.GROUPED_ALERT2,

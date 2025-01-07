@@ -51,6 +51,7 @@ import ca.amandeep.path.ui.main.asValid
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.util.ConnectionState
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import java.util.Date
 import kotlin.time.Duration.Companion.minutes
 
@@ -245,7 +246,7 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
         )
         val GROUPED_ALERT1 = AlertData.Grouped(
             title = AlertData.Grouped.Title.RouteTitle(
-                persistentListOf(Route.NWK_WTC, Route.HOB_WTC),
+                persistentListOf(Route.NWK_WTC),
                 "delayed",
             ),
             main = AlertData.Single(
@@ -261,6 +262,18 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
                     "Crew reported a bird. Update in 10 mins.",
                     date = Date().apply { time -= 24.minutes.inWholeMilliseconds },
                 ),
+            ),
+        )
+        val GROUPED_MANY_LINE_ALERT1 = GROUPED_ALERT1.copy(
+            title = AlertData.Grouped.Title.RouteTitle(
+                persistentListOf(Route.NWK_WTC, Route.HOB_WTC, Route.JSQ_33, Route.HOB_33),
+                "are having delays because of the snow incidents we are seeing around the city",
+            ),
+        )
+        val GROUPED_MANY_LINE_ALERT2 = GROUPED_MANY_LINE_ALERT1.copy(
+            title = AlertData.Grouped.Title.RouteTitle(
+                (Route.entries + Route.entries).toImmutableList(),
+                GROUPED_MANY_LINE_ALERT1.title.text,
             ),
         )
         val GROUPED_ALERT2 = AlertData.Grouped(
