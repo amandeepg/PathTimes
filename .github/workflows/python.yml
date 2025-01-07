@@ -30,8 +30,8 @@ jobs:
     - name: Install the project
       run: uv sync --all-extras --dev --directory serverless/path-summarize-alerts/
 
-    - name: "Compile python code with flake8"
-      run: uv --directory serverless/path-summarize-alerts/ run flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: "Compile python code with ruff"
+      run: uv --directory serverless/path-summarize-alerts/ tool run ruff check
 
-    - name: "Check python formatting with black"
-      run: uv --directory serverless/path-summarize-alerts/ run black . --check
+    - name: "Check python formatting with ruff"
+      run: uv --directory serverless/path-summarize-alerts/ tool run ruff format --check

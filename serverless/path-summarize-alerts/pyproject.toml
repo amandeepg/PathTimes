@@ -54,5 +54,4 @@ dependencies = [
     "langsmith>=0.2.10",
     "aws-xray-sdk>=2.14.0",
     "tool>=0.8.0",
-    "flake8>=7.1.1",
 ]

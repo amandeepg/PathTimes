@@ -5,7 +5,7 @@ from typing import Optional
 import boto3
 from aws_lambda_powertools import Logger, Tracer
 
-from .constants import *
+from .constants import SYSTEM_MESSAGE, MODEL_NAME, CACHE_INT
 from .models import CacheResponse
 
 logger = Logger()

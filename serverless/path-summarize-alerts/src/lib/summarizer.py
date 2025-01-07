@@ -10,7 +10,7 @@ from aws_lambda_powertools import Logger, Tracer
 from openai import AsyncOpenAI
 
 from .cache import CacheService
-from .constants import *
+from .constants import BUCKET_NAME, MODEL_NAME, BUCKET_NAME_RATE_LIMIT, SYSTEM_MESSAGE
 from .models import CacheResponse, AlertSummary
 
 logger = Logger()
