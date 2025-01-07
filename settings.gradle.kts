@@ -5,10 +5,6 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
-        maven("https://maven.pkg.github.com/IlyaGulya/paparazzi") {
-            name = "github"
-            credentials(PasswordCredentials::class.java)
-        }
     }
 }
 
