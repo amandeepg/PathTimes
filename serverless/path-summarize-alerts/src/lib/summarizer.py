@@ -1,13 +1,13 @@
-import asyncio
 import hashlib
 import json
+import os
 import time
 
 import boto3
 import instructor
 import langsmith.wrappers
 from aws_lambda_powertools import Logger, Tracer
-from openai import AsyncOpenAI
+from openai import OpenAI
 
 from .cache import CacheService
 from .constants import BUCKET_NAME, MODEL_NAME, BUCKET_NAME_RATE_LIMIT, SYSTEM_MESSAGE
@@ -24,9 +24,10 @@ class RateLimitedException(Exception):
 class AlertSummarizer:
     def __init__(self):
         self.s3_client = boto3.client("s3")
+        self.lambda_client = boto3.client('lambda')
         self.client = instructor.from_openai(
             langsmith.wrappers.wrap_openai(
-                AsyncOpenAI(base_url="https://openrouter.ai/api/v1")
+                OpenAI(base_url="https://openrouter.ai/api/v1")
             ),
             mode=instructor.Mode.JSON,
         )
@@ -43,7 +44,7 @@ class AlertSummarizer:
         return hash_value
 
     @tracer.capture_method
-    async def summarize(self, input_text: str, skip_cache: bool) -> CacheResponse:
+    def summarize(self, input_text: str, skip_cache: bool) -> CacheResponse:
         """Summarize the input text using OpenAI API with caching."""
         logger.info(
             f"Processing new summarization request. Input length: {len(input_text)}"
@@ -65,37 +66,25 @@ class AlertSummarizer:
             raise RateLimitedException("Rate limited")
 
         try:
-            usable_ai_response = asyncio.create_task(
-                self.get_ai_response(input_text, model=MODEL_NAME)
-            )
-            await asyncio.sleep(0)  # <~~~~~~~~~ This hacky line sets the task running
-
-            other_ai_responses = [
-                asyncio.create_task(
-                    self.get_ai_response(
-                        input_text, model="google/gemini-2.0-flash-exp:free"
-                    )
-                ),
-                asyncio.create_task(
-                    self.get_ai_response(input_text, model="anthropic/claude-3.5-haiku")
-                ),
-            ]
-            await asyncio.sleep(0)  # <~~~~~~~~~ This hacky line sets the task running
+            usable_ai_response = self.get_ai_response(input_text, model=MODEL_NAME)
 
             # Prepare response
             response_data = CacheResponse(
                 input=input_text,
                 model=MODEL_NAME,
                 cache_version=CacheService.hash_category_key(),
-                response=await usable_ai_response,
+                response=usable_ai_response,
                 cached=False,
             )
 
             # Save to cache
             self.cache_service.save(hash_key, response_data.model_dump_json())
 
-            for ai_response in other_ai_responses:
-                await ai_response
+            self.lambda_client.invoke(
+                FunctionName=os.environ['MULTISUMMARIZER_LAMBDA_NAME'],
+                InvocationType='Event',
+                Payload=json.dumps({'original_text_key': hash_key})
+            )
 
             return response_data
 

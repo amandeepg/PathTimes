@@ -1,8 +1,5 @@
-# "org" ensures this Service is used with the correct Serverless Framework Access Key.
 org: amandeepg
-# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 app: path-summarize-alerts
-# "service" is the name of this project. This will also be added to your AWS resource names.
 service: path-summarize-alerts
 
 provider:
@@ -40,15 +37,22 @@ provider:
     LANGCHAIN_ENDPOINT: ${file(./config.yml):LANGCHAIN_ENDPOINT}
     LANGCHAIN_API_KEY: ${file(./config.yml):LANGCHAIN_API_KEY}
     LANGCHAIN_PROJECT: ${file(./config.yml):LANGCHAIN_PROJECT}
+    MULTISUMMARIZER_LAMBDA_NAME: ${self:service}-${self:provider.stage}-multisummarize
 
 functions:
   summarize:
-    handler: src/handler.handler
+    handler: src/handler.summarize
+    timeout: 30
     events:
       - http:
           path: /summarize
           method: get
           cors: true
+    layers:
+      - arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2:42
+  multisummarize:
+    handler: src/handler.multisummarize
+    timeout: 200
     layers:
       - arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2:42
 

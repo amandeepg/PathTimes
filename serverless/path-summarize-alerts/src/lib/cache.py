@@ -57,7 +57,7 @@ class CacheService:
 
     @tracer.capture_method
     def save(self, hash_key: str, data: str) -> None:
-        """Save response to S3 lib."""
+        """Save response to S3."""
         versioned_key = self.create_versioned_key(hash_key)
         logger.debug(f"Attempting to lib response for versioned key: {versioned_key}")
         try:
