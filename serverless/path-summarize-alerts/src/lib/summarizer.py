@@ -1,7 +1,11 @@
+import asyncio
 import hashlib
 import json
 import os
 import time
+
+from baml_client import b
+from baml_client.types import AlertSummary, IsDelay, IsRelevant, AffectedStations, AffectedRoutes
 
 import boto3
 import instructor
@@ -11,7 +15,7 @@ from openai import OpenAI
 
 from .cache import CacheService
 from .constants import BUCKET_NAME, MODEL_NAME, BUCKET_NAME_RATE_LIMIT, SYSTEM_MESSAGE
-from .models import CacheResponse, AlertSummary
+from .models import CacheResponse, AlertSummaryContainer
 
 logger = Logger()
 tracer = Tracer()
@@ -116,22 +120,28 @@ class AlertSummarizer:
             )
         return should_be_rate_limited
 
-    def get_ai_response(self, input_text: str, model: str = MODEL_NAME):
-        return self.client.chat.completions.create(
-            response_model=AlertSummary,
-            extra_headers={
-                "HTTP-Referer": "https://path-summarizer.amandeep.ca",
-                "X-Title": "PathSummarizer",
-            },
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_MESSAGE},
-                self.user_msg(input_text),
-            ],
+    async def get_ai_response(self, input_text: str, model: str = MODEL_NAME) -> AlertSummaryContainer:
+        summary_task = b.GetAlertSummary(input_text)
+        delay_task = b.IsDelayAlert(input_text)
+        relevance_task = b.IsRelevantAlert(input_text)
+        affected_area_task = b.GetAffectedArea(input_text)
+
+        summary, is_delay, is_relevant, affected_area = await asyncio.gather(
+            summary_task,
+            delay_task,
+            relevance_task,
+            affected_area_task
+        )
+        
+        return AlertSummaryContainer(
+            text=summary,
+            is_delay=is_delay.is_delay,
+            is_relevant=is_relevant.is_relevant,
+            affected_area=affected_area
         )
 
     @staticmethod
-    def user_msg(content: str):
+    def user_msg(content: str``):
         return {"role": "user", "content": content}
 
     @staticmethod

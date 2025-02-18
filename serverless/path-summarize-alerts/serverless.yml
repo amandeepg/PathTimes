@@ -31,7 +31,7 @@ provider:
     POWERTOOLS_SERVICE_NAME: ${self:service}
     POWERTOOLS_METRICS_NAMESPACE: ${self:service}
     LOG_LEVEL: INFO
-    OPENAI_API_KEY: ${file(./config.yml):OPENAI_API_KEY}
+    OPENROUTER_API_KEY: ${file(./config.yml):OPENROUTER_API_KEY}
     SKIP_CACHE_MAGIC_WORD: ${file(./config.yml):SKIP_CACHE_MAGIC_WORD}
     LANGCHAIN_TRACING_V2: ${file(./config.yml):LANGCHAIN_TRACING_V2}
     LANGCHAIN_ENDPOINT: ${file(./config.yml):LANGCHAIN_ENDPOINT}

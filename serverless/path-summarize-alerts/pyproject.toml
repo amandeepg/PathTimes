@@ -55,3 +55,12 @@ dependencies = [
     "aws-xray-sdk>=2.14.0",
     "tool>=0.8.0",
 ]
+
+[dependency-groups]
+dev = [
+    "baml-py>=0.75.0",
+    "path-summarize-alerts",
+]
+
+[tool.uv.sources]
+path-summarize-alerts = { workspace = true }

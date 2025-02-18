@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.12.4' and python_full_version < '3.13'",
@@ -137,6 +138,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e0/6c/8e7fb2a45f20afc5c19d52807b560793fb48b0feca1de7de116b62a7893e/aws_xray_sdk-2.14.0.tar.gz", hash = "sha256:aab843c331af9ab9ba5cefb3a303832a19db186140894a523edafc024cc0493c", size = 93976 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/69/b417833a8926fa5491e5346d7c233bf7d8a9b12ba1f4ef41ccea2494000c/aws_xray_sdk-2.14.0-py2.py3-none-any.whl", hash = "sha256:cfbe6feea3d26613a2a869d14c9246a844285c97087ad8f296f901633554ad94", size = 101922 },
+]
+
+[[package]]
+name = "baml-py"
+version = "0.75.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/7f/b25477d8c2bd23bcbe72f0d38c646c41b5b1973f47f1c758350becf4460f/baml_py-0.75.0-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:55ce9b5cba1b2a70830d858c10171581a64a6d24c62c9303cad60331bb2a7841", size = 12778374 },
+    { url = "https://files.pythonhosted.org/packages/be/7a/77408b9f9a52ebb481efd92eecfa0bad9336e84907d383efc0bb9446428b/baml_py-0.75.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:12603f8621b2dbb7bb7147366e4c72c4f14f55d4b434dfb0edf1c249e128a4c4", size = 11846083 },
+    { url = "https://files.pythonhosted.org/packages/d5/ce/8decf593c30bbf852f3ee7e396cb69eda1d9284b5d024801176bb04de92f/baml_py-0.75.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a112409e6aa6816cf2ac11672278d6bdba7f06057ec145aa634ec77cc4d396fe", size = 15162789 },
+    { url = "https://files.pythonhosted.org/packages/e6/31/db6f9ca428dd57de7b90d57d434c289864c0df8165a342a0cad673531787/baml_py-0.75.0-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:13098cf0136007b19f8a109258f7f57c5a49e5b50317c48c6805c6b1818ea7d6", size = 14610973 },
+    { url = "https://files.pythonhosted.org/packages/35/53/4e69f82cd3f90174d010a4372c8f39d934e51cad9938840212deb9da7130/baml_py-0.75.0-cp38-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:4d278e2dff1e36e615d9d0a3a948d5188c2197d34b09fac42895656ae6986a1c", size = 14879483 },
+    { url = "https://files.pythonhosted.org/packages/fb/45/af483bf371315a81685bba461ff5061352631fceb13a893d55b7b1a1fab1/baml_py-0.75.0-cp38-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:40186fe26946c7c2a298c4631b5d7f6a129fc4b6abcb7c2365930be599e90401", size = 15149625 },
+    { url = "https://files.pythonhosted.org/packages/4a/14/1fb1877637a8d9227ff3b51d823807d786c3a0a9a2151b3654abfb73b082/baml_py-0.75.0-cp38-abi3-win_amd64.whl", hash = "sha256:67faf033d0805c31862644817d5630f74e20978fff2df44aefaed8a01ac4755d", size = 12689295 },
 ]
 
 [[package]]
@@ -621,6 +636,12 @@ dependencies = [
     { name = "yarl" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "baml-py" },
+    { name = "path-summarize-alerts" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiohappyeyeballs", specifier = "~=2.4.3" },
@@ -672,6 +693,12 @@ requires-dist = [
     { name = "typing-extensions", specifier = "~=4.12.2" },
     { name = "urllib3", specifier = "~=2.2.3" },
     { name = "yarl", specifier = "~=1.17.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "baml-py", specifier = ">=0.75.0" },
+    { name = "path-summarize-alerts", virtual = "." },
 ]
 
 [[package]]
