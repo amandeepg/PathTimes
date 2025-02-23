@@ -5,8 +5,8 @@ from typing import Optional
 import boto3
 from aws_lambda_powertools import Logger, Tracer
 
-from .constants import SYSTEM_MESSAGE, MODEL_NAME, CACHE_INT
-from .models import CacheResponse
+from .constants import CACHE_INT, OpenRouterClient
+from .hash_constants import LLM_HASH
 
 logger = Logger()
 tracer = Tracer()
@@ -21,8 +21,19 @@ class CacheService:
     @staticmethod
     def hash_category_key() -> str:
         """Create an SHA-1 hash of the prompt."""
-        input_string = f"{CacheResponse.model_json_schema()}|{SYSTEM_MESSAGE}|{MODEL_NAME}|{CACHE_INT}"
-        hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
+        hash_string = f"{LLM_HASH}|{CACHE_INT}"
+        hash_value = hashlib.sha1(hash_string.encode("utf-8")).hexdigest()
+        return hash_value
+
+    @staticmethod
+    def hash_key(input_string: str, model: OpenRouterClient) -> str:
+        """Create an SHA-1 hash of the input string."""
+        input_hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
+        model_hash_value = hashlib.sha1(model.value[1].encode("utf-8")).hexdigest()
+        hash_value = f"{input_hash_value}/{model.value[0]}-{model.value[1].replace('/', '--')}-{model_hash_value}"
+        logger.debug(
+            f"Generated hash: {hash_value} for input length: {len(input_string)}"
+        )
         return hash_value
 
     @staticmethod

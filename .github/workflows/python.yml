@@ -28,10 +28,10 @@ jobs:
         python-version-file: "serverless/path-summarize-alerts/.python-version"
 
     - name: Install the project
-      run: uv sync --all-extras --dev --directory serverless/path-summarize-alerts/
+      run: uv sync --all-extras --dev --directory serverless/path-summarize-alerts
 
     - name: "Compile python code with ruff"
-      run: uv --directory serverless/path-summarize-alerts/ tool run ruff check
+      run: uvx --directory serverless/path-summarize-alerts ruff check
 
     - name: "Check python formatting with ruff"
-      run: uv --directory serverless/path-summarize-alerts/ tool run ruff format --check
+      run: uvx --directory serverless/path-summarize-alerts ruff format --check

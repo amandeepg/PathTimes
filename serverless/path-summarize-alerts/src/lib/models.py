@@ -15,3 +15,4 @@ class CacheResponse(BaseModel):
     model: str
     cache_version: str
     cached: bool
+    hash_key: str

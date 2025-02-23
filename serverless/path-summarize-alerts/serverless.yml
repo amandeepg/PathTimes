@@ -4,10 +4,13 @@ service: path-summarize-alerts
 
 provider:
   name: aws
+  stage: dev
   runtime: python3.12
   memorySize: 256
   timeout: 30
   logRetentionInDays: 14
+  tracing:
+    lambda: true
   apiGateway:
     minimumCompressionSize: 0
 
@@ -16,6 +19,7 @@ provider:
       statements:
         - Effect: Allow
           Action:
+            - s3:ListObject
             - s3:GetObject
             - s3:PutObject
           Resource:
@@ -26,6 +30,10 @@ provider:
             - xray:PutTraceSegments
             - xray:PutTelemetryRecords
           Resource: "*"
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource: arn:aws:lambda:us-east-1:459074224363:function:${self:service}-${self:provider.stage}-multisummarize
 
   environment:
     POWERTOOLS_SERVICE_NAME: ${self:service}
@@ -33,16 +41,17 @@ provider:
     LOG_LEVEL: INFO
     OPENROUTER_API_KEY: ${file(./config.yml):OPENROUTER_API_KEY}
     SKIP_CACHE_MAGIC_WORD: ${file(./config.yml):SKIP_CACHE_MAGIC_WORD}
-    LANGCHAIN_TRACING_V2: ${file(./config.yml):LANGCHAIN_TRACING_V2}
-    LANGCHAIN_ENDPOINT: ${file(./config.yml):LANGCHAIN_ENDPOINT}
-    LANGCHAIN_API_KEY: ${file(./config.yml):LANGCHAIN_API_KEY}
-    LANGCHAIN_PROJECT: ${file(./config.yml):LANGCHAIN_PROJECT}
+    OPENROUTER_APP_NAME: ${file(./config.yml):OPENROUTER_APP_NAME}
+    OPENROUTER_APP_URL: ${file(./config.yml):OPENROUTER_APP_URL}
+    BOUNDARY_PROJECT_ID: ${file(./config.yml):BOUNDARY_PROJECT_ID}
+    BOUNDARY_SECRET: ${file(./config.yml):BOUNDARY_SECRET}
+    GOOGLE_API_KEY: ${file(./config.yml):GOOGLE_API_KEY}
     MULTISUMMARIZER_LAMBDA_NAME: ${self:service}-${self:provider.stage}-multisummarize
 
 functions:
   summarize:
     handler: src/handler.summarize
-    timeout: 30
+    timeout: 29
     events:
       - http:
           path: /summarize
