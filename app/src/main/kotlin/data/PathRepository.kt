@@ -67,8 +67,13 @@ class PathRepository(
                             alerts = alertsResult.alerts.alerts.map {
                                 if (it is AlertData.Single) {
                                     d { "starting summary... of ${it.text}" }
-                                    it.copy(text = summarizerApi.summarize(it.text)).also {
-                                        d { "summarized alert: ${it.text}" }
+                                    val summarizeApiResponse = summarizerApi.summarize(it.text)
+                                    val summarizedText = summarizeApiResponse.response.text
+                                    d { "summarized alert: $summarizedText" }
+                                    if (summarizedText.isNotBlank()) {
+                                        it.copy(text = "✦ $summarizedText")
+                                    } else {
+                                        it
                                     }
                                 } else {
                                     it

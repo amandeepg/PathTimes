@@ -1,6 +1,7 @@
 package ca.amandeep.path.data
 
 import android.content.Context
+import ca.amandeep.path.data.model.SummarizeApiResponse
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -13,7 +14,7 @@ interface PathAlertsSummarizerApiService {
     @GET("summarize")
     suspend fun summarize(
         @Query("input") input: String,
-    ): String
+    ): SummarizeApiResponse
 
     companion object {
         private const val API_PATH = "https://v8qv31w7hh.execute-api.us-east-1.amazonaws.com/dev/"

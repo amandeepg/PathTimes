@@ -299,6 +299,23 @@ fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
     return seconds / 60.0
 }
 
+@JsonClass(generateAdapter = true)
+data class SummarizeApiResponse(
+    val input: String,
+    val response: LlmResponse,
+    val model: String,
+    @Json(name = "cache_version") val cacheVersion: String,
+    val cached: Boolean,
+    @Json(name = "hash_key") val hashKey: String
+)
+
+@JsonClass(generateAdapter = true)
+data class LlmResponse(
+    val text: String,
+    @Json(name = "is_delay") val isDelay: Boolean,
+    @Json(name = "is_relevant") val isRelevant: Boolean,
+)
+
 class SortPlaces(private val currentLocation: Coordinates) : Comparator<StationName> {
     override fun compare(station1: StationName, station2: StationName): Int {
         val lat1 = station1.coordinates.latitude
