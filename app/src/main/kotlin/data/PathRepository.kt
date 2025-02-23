@@ -66,7 +66,7 @@ class PathRepository(
                         alerts = alertsResult.alerts.copy(
                             alerts = alertsResult.alerts.alerts.map {
                                 if (it is AlertData.Single) {
-                                    d { "starting summary..." }
+                                    d { "starting summary... of ${it.text}" }
                                     it.copy(text = summarizerApi.summarize(it.text)).also {
                                         d { "summarized alert: ${it.text}" }
                                     }

@@ -3,13 +3,12 @@ import json
 from typing import Optional
 
 import boto3
-from aws_lambda_powertools import Logger, Tracer
+from aws_lambda_powertools import Logger
 
 from .constants import CACHE_INT, OpenRouterClient
 from .hash_constants import LLM_HASH
 
 logger = Logger()
-tracer = Tracer()
 
 
 class CacheService:
@@ -21,9 +20,7 @@ class CacheService:
     @staticmethod
     def hash_category_key() -> str:
         """Create an SHA-1 hash of the prompt."""
-        hash_string = f"{LLM_HASH}|{CACHE_INT}"
-        hash_value = hashlib.sha1(hash_string.encode("utf-8")).hexdigest()
-        return hash_value
+        return f"{LLM_HASH}-{CACHE_INT}"
 
     @staticmethod
     def hash_key(input_string: str, model: OpenRouterClient) -> str:
@@ -31,9 +28,7 @@ class CacheService:
         input_hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
         model_hash_value = hashlib.sha1(model.value[1].encode("utf-8")).hexdigest()
         hash_value = f"{input_hash_value}/{model.value[0]}-{model.value[1].replace('/', '--')}-{model_hash_value}"
-        logger.debug(
-            f"Generated hash: {hash_value} for input length: {len(input_string)}"
-        )
+        logger.debug(f"Generated hash_key: {hash_value}")
         return hash_value
 
     @staticmethod
@@ -41,7 +36,7 @@ class CacheService:
         """Create a versioned lib key."""
         return f"{CacheService.hash_category_key()}/{hash_key}"
 
-    @tracer.capture_method
+    # @tracer.capture_method
     def get(self, hash_key: str) -> Optional[str]:
         """Try to get cached response from S3."""
         versioned_key = self.create_versioned_key(hash_key)
@@ -66,7 +61,7 @@ class CacheService:
             logger.error(f"Versioned key: {versioned_key}, Bucket: {self.bucket_name}")
             return None
 
-    @tracer.capture_method
+    #     @tracer.capture_method
     def save(self, hash_key: str, data: str) -> None:
         """Save response to S3."""
         versioned_key = self.create_versioned_key(hash_key)

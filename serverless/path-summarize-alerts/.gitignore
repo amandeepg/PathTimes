@@ -54,3 +54,4 @@ Thumbs.db
 config.yml
 requirements.txt
 baml_client
+.pdm-python

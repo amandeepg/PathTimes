@@ -23,7 +23,11 @@ provider:
             - s3:GetObject
             - s3:PutObject
           Resource:
+            - arn:aws:s3:::path-summarize-data
             - arn:aws:s3:::path-summarize-data/*
+            - arn:aws:s3:::path-summarize-data/*/*
+            - arn:aws:s3:::path-summarize-data/*/*/*
+            - arn:aws:s3:::path-summarize-data-rate-limit
             - arn:aws:s3:::path-summarize-data-rate-limit/*
         - Effect: Allow
           Action:
@@ -47,10 +51,11 @@ provider:
     BOUNDARY_SECRET: ${file(./config.yml):BOUNDARY_SECRET}
     GOOGLE_API_KEY: ${file(./config.yml):GOOGLE_API_KEY}
     MULTISUMMARIZER_LAMBDA_NAME: ${self:service}-${self:provider.stage}-multisummarize
+    AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
 
 functions:
   summarize:
-    handler: src/handler.summarize
+    handler: src.handler.summarize
     timeout: 29
     events:
       - http:
@@ -58,12 +63,12 @@ functions:
           method: get
           cors: true
     layers:
-      - arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2:42
+      - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
   multisummarize:
-    handler: src/handler.multisummarize
+    handler: src.handler.multisummarize
     timeout: 200
     layers:
-      - arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2:42
+      - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
 
 package:
   patterns:
@@ -77,6 +82,14 @@ package:
     - '!.gitlab-ci.yml'
     - '!README.md'
     - '!config.yml'
+    - '!.idea'
+    - '!.idea/**'
+    - '!src/__pycache__/**'
+    - '!.clinerules-code'
+    - '!.*-version'
+    - '!*.sh'
+    - '!*.uv.lock'
+    - '!*.ruff-cache'
 
 plugins:
   - serverless-python-requirements

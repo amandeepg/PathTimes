@@ -4,9 +4,10 @@ import os
 from typing import Optional
 
 import boto3
-from aws_lambda_powertools import Logger, Tracer
+from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.parser import parse
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from opentelemetry import trace
 from pydantic import BaseModel
 
 from .lib.cache import CacheService
@@ -15,7 +16,7 @@ from .lib.models import CacheResponse
 from .lib.summarizer import AlertSummarizer, RateLimitedException
 
 logger = Logger()
-tracer = Tracer()
+tracer = trace.get_tracer(__name__)
 summarizer = AlertSummarizer()
 
 
@@ -29,7 +30,6 @@ class SummarizeEvent(BaseModel):
 
 
 @logger.inject_lambda_context
-@tracer.capture_lambda_handler
 def summarize(event: dict, context: LambdaContext):
     logger.info("Received new request")
     logger.debug(f"Event: {json.dumps(event)}")
@@ -45,7 +45,7 @@ def summarize(event: dict, context: LambdaContext):
         )
 
     except RateLimitedException as e:
-        logger.exception(f"Rate limit exceeded {e}")
+        logger.exception(f"Rate limit exceeded. {e}")
         return {
             "statusCode": 429,
             "body": json.dumps({"error": "Rate limit exceeded"}),
@@ -61,7 +61,7 @@ def summarize(event: dict, context: LambdaContext):
         }
 
 
-@tracer.capture_method
+@tracer.start_as_current_span("create_summarize_response")
 def create_summarize_response(input_text: str, skip_cache: bool) -> dict:
     loop = asyncio.get_event_loop()
     result = loop.run_until_complete(
@@ -80,7 +80,7 @@ def create_summarize_response(input_text: str, skip_cache: bool) -> dict:
     }
 
 
-@tracer.capture_method
+@tracer.start_as_current_span("summarize_and_schedule")
 async def summarize_and_schedule(input_text: str, skip_cache: bool) -> CacheResponse:
     result = await summarizer.summarize(
         input_text=input_text,
@@ -101,7 +101,6 @@ class MultiSummarizeEvent(BaseModel):
 
 
 @logger.inject_lambda_context
-@tracer.capture_lambda_handler
 def multisummarize(event: dict, context: LambdaContext):
     logger.info("Received new request")
     logger.debug(f"Event: {json.dumps(event)}")
@@ -131,18 +130,16 @@ def multisummarize(event: dict, context: LambdaContext):
         }
 
 
-@tracer.capture_method
+@tracer.start_as_current_span("create_multisummarize_response")
 def create_multisummarize_response(original_text_key: str) -> dict:
     original_input_text = CacheResponse.model_validate_json(
         CacheService(BUCKET_NAME).get(original_text_key)
     ).input
     loop = asyncio.get_event_loop()
-    result = loop.run_until_complete(async_multisummarize(original_input_text))
+    loop.run_until_complete(async_multisummarize(original_input_text))
     logger.info("Successfully processed request")
-    logger.debug(f"Response: {result.model_dump_json()}")
     return {
         "statusCode": 200,
-        "body": result.model_dump_json(),
         "headers": {
             "Content-Type": "application/json",
             "Cache-Control": "max-age=86400",  # Cache for 24 hours
@@ -150,6 +147,7 @@ def create_multisummarize_response(original_text_key: str) -> dict:
     }
 
 
+@tracer.start_as_current_span("async_multisummarize")
 async def async_multisummarize(input_text: str) -> None:
     tasks = [
         summarizer.summarize(input_text, skip_cache=False, model=client)

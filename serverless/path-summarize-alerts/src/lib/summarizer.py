@@ -4,8 +4,9 @@ import os
 import time
 
 import boto3
-from aws_lambda_powertools import Logger, Tracer
+from aws_lambda_powertools import Logger
 from baml_py import ClientRegistry
+from opentelemetry import trace
 
 from baml_client import b
 from baml_client.types import (
@@ -20,7 +21,7 @@ from .constants import BUCKET_NAME, BUCKET_NAME_RATE_LIMIT, OpenRouterClient
 from .models import CacheResponse, AlertSummaryContainer
 
 logger = Logger()
-tracer = Tracer()
+tracer = trace.get_tracer(__name__)
 
 
 class RateLimitedException(Exception):
@@ -33,7 +34,7 @@ class AlertSummarizer:
         self.cache_service = CacheService(BUCKET_NAME)
         logger.info("Initialized AlertSummarizer")
 
-    @tracer.capture_method
+    @tracer.start_as_current_span("summarizer.summarize")
     async def summarize(
         self, input_text: str, skip_cache: bool, model: OpenRouterClient
     ) -> CacheResponse:
@@ -77,6 +78,7 @@ class AlertSummarizer:
             logger.error(f"Input text length: {len(input_text)}")
             raise
 
+    @tracer.start_as_current_span("summarizer.should_be_rate_limited")
     def should_be_rate_limited(self, hash_key: str):
         try:
             # Get the object from S3
@@ -99,13 +101,14 @@ class AlertSummarizer:
             )
         return should_be_rate_limited
 
-    @tracer.capture_method
+    @tracer.start_as_current_span("summarizer.get_ai_response")
     async def get_ai_response(
         self, input_text: str, model: OpenRouterClient
     ) -> AlertSummaryContainer:
         cr = self.client_registry()
         cr.set_primary(model.value[0])
-        tracer.put_annotation(key="llm", value=model.value[1])
+        trace.get_current_span().set_attribute(key="llm", value=model.value[1])
+
         summary_task = self.get_alert_summary(cr, input_text)
         delay_task = self.is_delay_alert(cr, input_text)
         relevance_task = self.is_relevant_alert(cr, input_text)
@@ -122,23 +125,27 @@ class AlertSummarizer:
             affected_area=affected_area,
         )
 
+    @tracer.start_as_current_span("summarizer.get_affected_area")
     async def get_affected_area(
         self, cr: object, input_text: str
     ) -> AffectedStations | AffectedRoutes | None:
-        async with tracer.provider.in_subsegment_async("get_affected_area"):
-            return await b.GetAffectedArea(input_text, {"client_registry": cr})
+        # async with tracer.provider.in_subsegment_async("get_affected_area"):
+        return await b.GetAffectedArea(input_text, {"client_registry": cr})
 
+    @tracer.start_as_current_span("summarizer.is_relevant_alert")
     async def is_relevant_alert(self, cr: object, input_text: str) -> IsRelevant:
-        async with tracer.provider.in_subsegment_async("is_relevant_alert"):
-            return await b.IsRelevantAlert(input_text, {"client_registry": cr})
+        #         async with tracer.provider.in_subsegment_async("is_relevant_alert"):
+        return await b.IsRelevantAlert(input_text, {"client_registry": cr})
 
+    @tracer.start_as_current_span("summarizer.is_delay_alert")
     async def is_delay_alert(self, cr: object, input_text: str) -> IsDelay:
-        async with tracer.provider.in_subsegment_async("is_delay_alert"):
-            return await b.IsDelayAlert(input_text, {"client_registry": cr})
+        #         async with tracer.provider.in_subsegment_async("is_delay_alert"):
+        return await b.IsDelayAlert(input_text, {"client_registry": cr})
 
+    @tracer.start_as_current_span("summarizer.get_alert_summary")
     async def get_alert_summary(self, cr: object, input_text: str) -> AlertSummary:
-        async with tracer.provider.in_subsegment_async("get_alert_summary"):
-            return await b.GetAlertSummary(input_text, {"client_registry": cr})
+        #         async with tracer.provider.in_subsegment_async("get_alert_summary"):
+        return await b.GetAlertSummary(input_text, {"client_registry": cr})
 
     @staticmethod
     def client_registry() -> ClientRegistry:

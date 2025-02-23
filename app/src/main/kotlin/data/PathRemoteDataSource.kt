@@ -93,7 +93,6 @@ data class AlertDatas(
                 AlertData.Single(
                     text = it.second
                         .removeUnnecessaryText()
-                        .removeUrls()
                         .addPeriod()
                         .trim(),
                     date = date,
@@ -200,13 +199,6 @@ data class AlertDatas(
 
             return containedAlerts
         }
-
-        private fun String.removeUrls(): String = this
-            .trim()
-            .split(". ")
-            .filter { !it.contains("http") }
-            .joinToString(". ")
-            .trim()
 
         private fun String.removeUnnecessaryText(): String = this
             .trim()

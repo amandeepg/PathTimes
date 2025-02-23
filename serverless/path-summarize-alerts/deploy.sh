@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 uvx ruff format
-uvx ruff check
+uvx ruff check --fix
 
 rm requirements.txt
 uv pip freeze > requirements.txt
