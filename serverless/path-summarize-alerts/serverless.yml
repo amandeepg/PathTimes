@@ -20,6 +20,7 @@ provider:
         - Effect: Allow
           Action:
             - s3:ListObject
+            - s3:ListBucket
             - s3:GetObject
             - s3:PutObject
           Resource:
@@ -34,6 +35,11 @@ provider:
             - xray:PutTraceSegments
             - xray:PutTelemetryRecords
           Resource: "*"
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+          Resource: "arn:aws:bedrock:*:*:*/*"
         - Effect: Allow
           Action:
             - lambda:InvokeFunction

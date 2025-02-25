@@ -11,7 +11,11 @@ from opentelemetry import trace
 from pydantic import BaseModel
 
 from .lib.cache import CacheService
-from .lib.constants import BUCKET_NAME, OpenRouterClient
+from .lib.constants import (
+    BUCKET_NAME,
+    ALL_LLM_CLIENTS,
+    LlamaThreeThree70b,
+)
 from .lib.models import CacheResponse
 from .lib.summarizer import AlertSummarizer, RateLimitedException
 
@@ -85,7 +89,7 @@ async def summarize_and_schedule(input_text: str, skip_cache: bool) -> CacheResp
     result = await summarizer.summarize(
         input_text=input_text,
         skip_cache=skip_cache,
-        model=OpenRouterClient.GEMINI_FLASH,
+        model=LlamaThreeThree70b(),
     )
     if not result.cached:
         boto3.client("lambda").invoke(
@@ -150,7 +154,6 @@ def create_multisummarize_response(original_text_key: str) -> dict:
 @tracer.start_as_current_span("async_multisummarize")
 async def async_multisummarize(input_text: str) -> None:
     tasks = [
-        summarizer.summarize(input_text, skip_cache=False, model=client)
-        for client in OpenRouterClient
+        summarizer.summarize(input_text, model=client) for client in ALL_LLM_CLIENTS
     ]
     await asyncio.gather(*tasks)

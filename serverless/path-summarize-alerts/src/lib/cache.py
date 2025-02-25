@@ -5,7 +5,7 @@ from typing import Optional
 import boto3
 from aws_lambda_powertools import Logger
 
-from .constants import CACHE_INT, OpenRouterClient
+from .constants import CACHE_INT, LlmClient
 from .hash_constants import LLM_HASH
 
 logger = Logger()
@@ -23,11 +23,13 @@ class CacheService:
         return f"{LLM_HASH}-{CACHE_INT}"
 
     @staticmethod
-    def hash_key(input_string: str, model: OpenRouterClient) -> str:
+    def hash_key(input_string: str, model: LlmClient) -> str:
         """Create an SHA-1 hash of the input string."""
         input_hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
-        model_hash_value = hashlib.sha1(model.value[1].encode("utf-8")).hexdigest()
-        hash_value = f"{input_hash_value}/{model.value[0]}-{model.value[1].replace('/', '--')}-{model_hash_value}"
+        model_hash_value = hashlib.sha1(model.id().encode("utf-8")).hexdigest()
+        hash_value = (
+            f"{input_hash_value}/{model.id().replace('/', '--')}-{model_hash_value}"
+        )
         logger.debug(f"Generated hash_key: {hash_value}")
         return hash_value
 
