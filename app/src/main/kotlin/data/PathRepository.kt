@@ -1,7 +1,7 @@
 package ca.amandeep.path.data
 
 import ca.amandeep.path.data.model.StationName
-import ca.amandeep.path.data.model.UpcomingTrain
+import ca.amandeep.path.data.model.UpcomingTrains
 import ca.amandeep.path.util.tickFlow
 import com.github.ajalt.timberkt.d
 import kotlinx.collections.immutable.ImmutableList
@@ -91,7 +91,7 @@ class PathRepository(
 
     data class ArrivalsResult(
         val metadata: Metadata = Metadata(),
-        val arrivals: ImmutableMap<StationName, ImmutableList<UpcomingTrain>> = persistentMapOf(),
+        val arrivals: ImmutableMap<StationName, ImmutableList<UpcomingTrains>> = persistentMapOf(),
     )
 
     data class AlertsResult(

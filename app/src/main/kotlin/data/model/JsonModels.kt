@@ -277,11 +277,6 @@ data class UpcomingTrain(
 
     val arrivalDate = Date(lastUpdated.time + secondsToArrival * 1000)
 
-    val direction: Direction = when (target.state) {
-        State.NJ -> Direction.ToNJ
-        State.NY -> Direction.ToNY
-    }
-
     val route: Route = when (lineColor) {
         "FF9900" -> Route.JSQ_33
         "4D92FB" -> Route.HOB_33

@@ -47,6 +47,7 @@ typealias AlertsUiModel = AlertDatas
 
 data class UiUpcomingTrain(
     val upcomingTrain: UpcomingTrain,
+    val direction: Direction,
     val arrivalInMinutesFromNow: Int,
     val isDepartedTrain: Boolean = false,
     val isInOppositeDirection: Boolean = false,
@@ -59,20 +60,28 @@ fun Iterable<UpcomingTrain>.toUiTrains(
     currentLocation: Coordinates,
     now: Long,
     alerts: ImmutableList<AlertData>,
+    direction: Direction,
 ): ImmutableList<UiUpcomingTrain> = this
-    .map { it.toUiTrain(currentLocation, now, alerts) }
+    .map { it.toUiTrain(
+        currentLocation = currentLocation,
+        now = now,
+        alerts = alerts,
+        direction = direction,
+    ) }
     .toImmutableList()
 
 fun UpcomingTrain.toUiTrain(
     currentLocation: Coordinates,
     now: Long,
     alerts: ImmutableList<AlertData>,
+    direction: Direction,
 ): UiUpcomingTrain {
     val minsFromNow = relativeArrivalMins(now).roundToInt()
     return UiUpcomingTrain(
         upcomingTrain = this,
         arrivalInMinutesFromNow = minsFromNow,
         isDepartedTrain = minsFromNow < 0,
+        direction = direction,
         isInOppositeDirection = when (direction) {
             Direction.ToNJ -> !currentLocation.isInNJ
             Direction.ToNY -> currentLocation.isInNJ
@@ -122,7 +131,7 @@ fun Iterable<UiUpcomingTrain>.sortedByDirectionAndTime(
 
 // Return -1 if the train is going in the opposite direction, 1 otherwise
 fun UiUpcomingTrain.directionFromCurrentLocation(coords: Coordinates): Int =
-    when (upcomingTrain.direction) {
+    when (direction) {
         Direction.ToNJ -> if (coords.isInNJ) -1 else 1
         Direction.ToNY -> if (coords.isInNJ) 1 else -1
     }

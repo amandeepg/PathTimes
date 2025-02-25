@@ -106,13 +106,15 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             val arrivals = arrivalsResult.asValid()?.data?.arrivals.orEmpty()
             val closestStations = arrivalsResult.asValid()?.data?.arrivals?.keys
                 ?.sortedWith(SortPlaces(currentLocation)).orEmpty()
-            val closestArrivals = closestStations.mapToNotNullPairs {
-                it to arrivals[it]
-                    ?.toUiTrains(
+            val closestArrivals = closestStations.mapToNotNullPairs { stationName ->
+                stationName to arrivals[stationName]?.flatMap { upcomingTrains ->
+                    upcomingTrains.trains.toUiTrains(
                         currentLocation = currentLocation,
                         now = System.currentTimeMillis(),
                         alerts = alertsResult.asValid()?.data?.alerts?.alerts ?: persistentListOf(),
+                        direction = upcomingTrains.direction,
                     )
+                }
                     ?.sortedByDirectionAndTime(currentLocation)
                     ?.toImmutableList()
             }
@@ -173,8 +175,8 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
 
 private fun List<Pair<StationName, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<StationName, ImmutableList<UiUpcomingTrain>>> {
     val allTrains = flatMap { it.second }
-    val firstNjTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.ToNJ }
-    val firstNycTrain = allTrains.firstOrNull { it.upcomingTrain.direction == Direction.ToNY }
+    val firstNjTrain = allTrains.firstOrNull { it.direction == Direction.ToNJ }
+    val firstNycTrain = allTrains.firstOrNull { it.direction == Direction.ToNY }
 
     return map {
         it.copy(

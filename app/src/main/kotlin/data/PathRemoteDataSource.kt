@@ -8,7 +8,7 @@ import ca.amandeep.path.data.AlertDatas.Companion.toAlertDatas
 import ca.amandeep.path.data.model.AlertContainer
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName
-import ca.amandeep.path.data.model.UpcomingTrain
+import ca.amandeep.path.data.model.UpcomingTrains
 import com.github.ajalt.timberkt.Timber.d
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -33,11 +33,11 @@ class PathRemoteDataSource(
             alertParser.parse(alertsApi.getAlerts())
         }
 
-    suspend fun getArrivals(): Map<StationName, List<UpcomingTrain>> =
+    suspend fun getArrivals(): Map<StationName, List<UpcomingTrains>> =
         withContext(ioDispatcher) {
             d { "getArrivals" }
             pathRestApi.getArrivals().stations
-                .associate { it.name to it.upcomingTrains.flatMap { it.trains } }
+                .associate { it.name to it.upcomingTrains }
         }
 }
 

@@ -137,7 +137,7 @@ fun Train(
                     ),
                 ) {
                     append(
-                        when (train.upcomingTrain.direction) {
+                        when (train.direction) {
                             Direction.ToNY -> stringResource(R.string.east_bound_help_text, nbsp)
                             Direction.ToNJ -> stringResource(R.string.west_bound_help_text, nbsp)
                         },
@@ -224,29 +224,29 @@ private fun RowScope.TrainMainRowContent(
                 modifier = Modifier
                     .size(22.dp)
                     .align(
-                        when (train.upcomingTrain.direction) {
+                        when (train.direction) {
                             Direction.ToNJ -> Alignment.CenterStart
                             Direction.ToNY -> Alignment.CenterEnd
                         },
                     )
                     .offset(
-                        x = when (train.upcomingTrain.direction) {
+                        x = when (train.direction) {
                             Direction.ToNJ -> (-6).dp
                             Direction.ToNY -> (6).dp
                         },
                     ),
-                imageVector = when (train.upcomingTrain.direction) {
+                imageVector = when (train.direction) {
                     Direction.ToNJ -> Icons.Filled.ArrowBackIosNew
                     Direction.ToNY -> Icons.AutoMirrored.Filled.ArrowForwardIos
                 },
-                contentDescription = stringResource(R.string.to) + train.upcomingTrain.direction.stateNameShort,
+                contentDescription = stringResource(R.string.to) + train.direction.stateNameShort,
             )
             Text(
-                modifier = when (train.upcomingTrain.direction) {
+                modifier = when (train.direction) {
                     Direction.ToNJ -> Modifier.align(Alignment.CenterEnd)
                     Direction.ToNY -> Modifier.align(Alignment.CenterStart)
                 },
-                text = train.upcomingTrain.direction.stateNameShort,
+                text = train.direction.stateNameShort,
                 fontSize = 8.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
@@ -479,6 +479,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 direction = Direction.ToNY,
                 minsToArrival = 0,
             ),
+            direction = Direction.ToNY,
             arrivalInMinutesFromNow = 0,
             isInOppositeDirection = false,
             showDirectionHelpText = true,
@@ -489,6 +490,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 direction = Direction.ToNJ,
                 minsToArrival = 1,
             ),
+            direction = Direction.ToNJ,
             arrivalInMinutesFromNow = 1,
             isInOppositeDirection = false,
             alerts = persistentListOf(
@@ -508,6 +510,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 direction = Direction.ToNJ,
                 minsToArrival = 33,
             ),
+            direction = Direction.ToNJ,
             arrivalInMinutesFromNow = 33,
             isInOppositeDirection = false,
         ),
@@ -517,6 +520,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
                 direction = Direction.ToNJ,
                 minsToArrival = 5,
             ),
+            direction = Direction.ToNJ,
             arrivalInMinutesFromNow = 5,
             isInOppositeDirection = false,
         ),
