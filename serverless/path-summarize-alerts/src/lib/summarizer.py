@@ -30,11 +30,11 @@ class RateLimitedException(Exception):
 
 class AlertSummarizer:
     def __init__(self):
-        self.s3_client = boto3.client("s3")
-        self.cache_service = CacheService(BUCKET_NAME)
+        self._s3_client = boto3.client("s3")
+        self._cache_service = CacheService(BUCKET_NAME)
         logger.info("Initialized AlertSummarizer")
 
-    @tracer.start_as_current_span("summarizer.summarize")
+    @tracer.start_as_current_span("summ.summarize")
     async def summarize(
         self, input_text: str, model: LlmClient, skip_cache: bool = False
     ) -> CacheResponse:
@@ -44,17 +44,17 @@ class AlertSummarizer:
         )
         logger.debug(f"Raw input text: {input_text}")
 
-        hash_key = self.cache_service.hash_key(input_text, model)
+        hash_key = self._cache_service.hash_key(input_text, model)
 
         # Check cache
-        cached_response = self.cache_service.get(hash_key) if not skip_cache else None
+        cached_response = self._cache_service.get(hash_key) if not skip_cache else None
         if cached_response:
             logger.info(f"Cache hit for hash: {hash_key}")
             response_data = CacheResponse.model_validate_json(cached_response)
             response_data.cached = True
             return response_data
 
-        if self.should_be_rate_limited(hash_key):
+        if self._should_be_rate_limited(hash_key):
             logger.info("Rate limited")
             raise RateLimitedException("Rate limited")
 
@@ -63,13 +63,13 @@ class AlertSummarizer:
                 input=input_text,
                 model=model.id(),
                 cache_version=CacheService.hash_category_key(),
-                response=await self.get_ai_response(input_text, model),
+                response=await self._get_ai_response(input_text, model),
                 cached=False,
                 hash_key=hash_key,
             )
 
             # Save to cache
-            self.cache_service.save(hash_key, response_data.model_dump_json())
+            self._cache_service.save(hash_key, response_data.model_dump_json())
 
             return response_data
 
@@ -78,11 +78,11 @@ class AlertSummarizer:
             logger.error(f"Input text length: {len(input_text)}")
             raise
 
-    @tracer.start_as_current_span("summarizer.should_be_rate_limited")
-    def should_be_rate_limited(self, hash_key: str):
+    @tracer.start_as_current_span("summ.should_be_rate_limited")
+    def _should_be_rate_limited(self, hash_key: str):
         try:
             # Get the object from S3
-            response = self.s3_client.get_object(
+            response = self._s3_client.get_object(
                 Bucket=BUCKET_NAME_RATE_LIMIT, Key=hash_key
             )
             # read json from the s3 response body
@@ -99,7 +99,7 @@ class AlertSummarizer:
             logger.exception(f"Error checking if rate limited {e}")
             should_be_rate_limited = False
         if not should_be_rate_limited:
-            self.s3_client.put_object(
+            self._s3_client.put_object(
                 Bucket=BUCKET_NAME_RATE_LIMIT,
                 Key=hash_key,
                 Body=json.dumps({"LastModified": str(time.time())}),
@@ -107,42 +107,18 @@ class AlertSummarizer:
             )
         return should_be_rate_limited
 
-    # [ERROR]
-    # 2025 - 02 - 25
-    # T05: 01:10.658
-    # Z
-    # 9193869
-    # d - a9f8 - 45
-    # c1 - 9
-    # a0d - d6e40b80bc41
-    # Error
-    # checking if rate
-    # limited
-    # An
-    # error
-    # occurred(NoSuchKey)
-    # when
-    # calling
-    # the
-    # GetObject
-    # operation: The
-    # specified
-    # key
-    # does
-    # not exist.
-
-    @tracer.start_as_current_span("summarizer.get_ai_response")
-    async def get_ai_response(
+    @tracer.start_as_current_span("summ.get_ai_response")
+    async def _get_ai_response(
         self, input_text: str, model: LlmClient
     ) -> AlertSummaryContainer:
         trace.get_current_span().set_attribute(key="llm", value=model.id())
-        cr = self.client_registry(model)
+        cr = self._client_registry(model)
 
         summary, is_delay, is_relevant, affected_area = await asyncio.gather(
-            self.get_alert_summary(cr, input_text),
-            self.is_delay_alert(cr, input_text),
-            self.is_relevant_alert(cr, input_text),
-            self.get_affected_area(cr, input_text),
+            self._get_alert_summary(cr, input_text),
+            self._is_delay_alert(cr, input_text),
+            self._is_relevant_alert(cr, input_text),
+            self._get_affected_area(cr, input_text),
         )
 
         return AlertSummaryContainer(
@@ -152,26 +128,26 @@ class AlertSummarizer:
             affected_area=affected_area,
         )
 
-    @tracer.start_as_current_span("summarizer.get_affected_area")
-    async def get_affected_area(
+    @tracer.start_as_current_span("summ.get_affected_area")
+    async def _get_affected_area(
         self, cr: object, input_text: str
     ) -> AffectedStations | AffectedRoutes | None:
         return await b.GetAffectedArea(input_text, {"client_registry": cr})
 
-    @tracer.start_as_current_span("summarizer.is_relevant_alert")
-    async def is_relevant_alert(self, cr: object, input_text: str) -> IsRelevant:
+    @tracer.start_as_current_span("summ.is_relevant_alert")
+    async def _is_relevant_alert(self, cr: object, input_text: str) -> IsRelevant:
         return await b.IsRelevantAlert(input_text, {"client_registry": cr})
 
-    @tracer.start_as_current_span("summarizer.is_delay_alert")
-    async def is_delay_alert(self, cr: object, input_text: str) -> IsDelay:
+    @tracer.start_as_current_span("summ.is_delay_alert")
+    async def _is_delay_alert(self, cr: object, input_text: str) -> IsDelay:
         return await b.IsDelayAlert(input_text, {"client_registry": cr})
 
-    @tracer.start_as_current_span("summarizer.get_alert_summary")
-    async def get_alert_summary(self, cr: object, input_text: str) -> AlertSummary:
+    @tracer.start_as_current_span("summ.get_alert_summary")
+    async def _get_alert_summary(self, cr: object, input_text: str) -> AlertSummary:
         return await b.GetAlertSummary(input_text, {"client_registry": cr})
 
     @staticmethod
-    def client_registry(model: LlmClient) -> ClientRegistry:
+    def _client_registry(model: LlmClient) -> ClientRegistry:
         cr = ClientRegistry()
         model.add_to_registry(cr)
         cr.set_primary(model.id())

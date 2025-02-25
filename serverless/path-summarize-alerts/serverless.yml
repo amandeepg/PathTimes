@@ -61,7 +61,7 @@ provider:
 
 functions:
   summarize:
-    handler: src.handler.summarize
+    handler: src.handlers.summarize.handle
     timeout: 29
     events:
       - http:
@@ -71,8 +71,18 @@ functions:
     layers:
       - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
   multisummarize:
-    handler: src.handler.multisummarize
-    timeout: 200
+    handler: src.handlers.multisummarize.handle
+    timeout: 500
+    layers:
+      - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
+  viewcache:
+    handler: src.handlers.view_cache.handle
+    timeout: 29
+    events:
+      - http:
+          path: /viewcache
+          method: get
+          cors: true
     layers:
       - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
 
