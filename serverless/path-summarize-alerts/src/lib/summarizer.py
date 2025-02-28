@@ -34,49 +34,72 @@ class AlertSummarizer:
         self._cache_service = CacheService(BUCKET_NAME)
         logger.info("Initialized AlertSummarizer")
 
-    @tracer.start_as_current_span("summ.summarize")
-    async def summarize(
+    class __Token:
+        def __init__(
+            self, data: CacheResponse | None, input_text: str, model: LlmClient
+        ):
+            self.data = data
+            self.input_text = input_text
+            self.model = model
+
+    @tracer.start_as_current_span("summ.check_for_cached")
+    async def check_for_cached(
         self, input_text: str, model: LlmClient, skip_cache: bool = False
-    ) -> CacheResponse:
-        """Summarize the input text using OpenAI API with caching."""
-        logger.info(
-            f"Processing new summarization request. Input length: {len(input_text)}"
-        )
-        logger.debug(f"Raw input text: {input_text}")
-
+    ) -> tuple[bool, str, __Token]:
         hash_key = self._cache_service.hash_key(input_text, model)
-
-        # Check cache
-        cached_response = self._cache_service.get(hash_key) if not skip_cache else None
-        if cached_response:
-            logger.info(f"Cache hit for hash: {hash_key}")
-            response_data = CacheResponse.model_validate_json(cached_response)
-            response_data.cached = True
-            return response_data
+        if not skip_cache and (
+            response_data := await self.summarize_from_cache(input_text, model)
+        ):
+            return True, hash_key, self.__Token(response_data, input_text, model)
 
         if self._should_be_rate_limited(hash_key):
             logger.info("Rate limited")
             raise RateLimitedException("Rate limited")
 
+        return False, hash_key, self.__Token(None, input_text, model)
+
+    @tracer.start_as_current_span("summ.summarize")
+    async def summarize(
+        self,
+        token: __Token,
+    ) -> CacheResponse:
+        if token.data:
+            return token.data
+
         try:
+            hash_key = self._cache_service.hash_key(token.input_text, token.model)
+
             response_data = CacheResponse(
-                input=input_text,
-                model=model.id(),
+                input=token.input_text,
+                model=token.model.id(),
                 cache_version=CacheService.hash_category_key(),
-                response=await self._get_ai_response(input_text, model),
+                response=await self._get_ai_response(token.input_text, token.model),
                 cached=False,
                 hash_key=hash_key,
             )
 
-            # Save to cache
             self._cache_service.save(hash_key, response_data.model_dump_json())
 
             return response_data
 
         except Exception as e:
-            logger.error(f"Error calling OpenAI API: {str(e)}", exc_info=True)
-            logger.error(f"Input text length: {len(input_text)}")
+            logger.error(f"Error calling LLM API: {str(e)}", exc_info=True)
             raise
+
+    @tracer.start_as_current_span("summ.summarize_from_cache")
+    async def summarize_from_cache(
+        self, input_text: str, model: LlmClient
+    ) -> CacheResponse | None:
+        hash_key = self._cache_service.hash_key(input_text, model)
+        cache_content = self._cache_service.get(hash_key)
+        if cache_content:
+            logger.info(f"Cache hit for hash: {hash_key}")
+            response_data = CacheResponse.model_validate_json(cache_content)
+            response_data.cached = True
+            return response_data
+        else:
+            logger.info(f"Cache miss for hash: {hash_key}")
+            return None
 
     @tracer.start_as_current_span("summ.should_be_rate_limited")
     def _should_be_rate_limited(self, hash_key: str):

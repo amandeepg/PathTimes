@@ -134,3 +134,6 @@ ALL_LLM_CLIENTS: list[LlmClient] = [
     O3(),
     NovaLite(),
 ]
+
+FAST_LLM = LlamaThreeThree70b()
+PREFERRED_LLM = R1()

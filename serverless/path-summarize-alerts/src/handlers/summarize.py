@@ -10,7 +10,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 from pydantic import BaseModel
 
-from ..lib.constants import LlamaThreeThree70b
+from ..lib.constants import FAST_LLM, PREFERRED_LLM
 from ..lib.models import CacheResponse
 from ..lib.summarizer import AlertSummarizer, RateLimitedException
 
@@ -34,40 +34,55 @@ class SummarizerLambda:
 
     @tracer.start_as_current_span("create_summarize_response")
     def _create_response(self, input_text: str, skip_cache: bool) -> dict:
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(
+        result = asyncio.run(
             self._summarize_and_schedule(input_text, skip_cache=skip_cache)
         )
+        result_json = result[0].model_dump_json()
+        is_preferred = result[1]
+
         logger.info("Successfully processed request")
-        logger.debug(f"Response: {result.model_dump_json()}")
+        logger.debug(f"Response: {result_json}")
+        logger.debug(f"Is preferred: {is_preferred}")
 
         return {
             "statusCode": 200,
-            "body": result.model_dump_json(),
+            "body": result_json,
             "headers": {
                 "Content-Type": "application/json",
-                "Cache-Control": "max-age=86400",  # Cache for 24 hours
+                # if preferred then cached for 24 hours, otherwise 5 mins
+                "Cache-Control": "max-age=86400" if is_preferred else "max-age=300",
             },
         }
 
     @tracer.start_as_current_span("summarize_and_schedule")
     async def _summarize_and_schedule(
         self, input_text: str, skip_cache: bool
-    ) -> CacheResponse:
-        result = await self._summarizer.summarize(
+    ) -> tuple[CacheResponse, bool]:
+        pref_result = await self._summarizer.summarize_from_cache(
             input_text=input_text,
+            model=PREFERRED_LLM,
+        )
+        if pref_result:
+            logger.info("Returning preferred result from cache")
+            return pref_result, True
+
+        is_cached, hash_key, token = await self._summarizer.check_for_cached(
+            input_text=input_text,
+            model=FAST_LLM,
             skip_cache=skip_cache,
-            model=LlamaThreeThree70b(),
         )
 
-        if not result.cached:
+        asyncio.get_event_loop().set_task_factory(asyncio.eager_task_factory)
+        summarize_task = asyncio.create_task(self._summarizer.summarize(token))
+
+        if not is_cached:
             self._lambda_client.invoke(
                 FunctionName=os.environ["MULTISUMMARIZER_LAMBDA_NAME"],
                 InvocationType="Event",
-                Payload=json.dumps({"original_text_key": result.hash_key}),
+                Payload=json.dumps({"original_text_key": hash_key}),
             )
 
-        return result
+        return await summarize_task, False
 
     def summarize(self, event: dict) -> dict:
         logger.info("Received new request")

@@ -311,6 +311,8 @@ class CacheViewer:
 
         files_by_input: Dict[str, List[CacheResponse]] = {}
         for data in files_data:
+            if "testinput" in data.input:
+                continue
             if data.input not in files_by_input:
                 files_by_input[data.input] = []
             files_by_input[data.input].append(data)

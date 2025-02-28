@@ -22,12 +22,12 @@ class MultiSummarizeEvent(BaseModel):
 
 class MultiSummarizer:
     def __init__(self) -> None:
-        self.summarizer = AlertSummarizer()
-        self.cache_service = CacheService(BUCKET_NAME)
+        self._summarizer = AlertSummarizer()
+        self._cache_service = CacheService(BUCKET_NAME)
 
     @tracer.start_as_current_span("multisumm.create_multisummarize_response")
     async def _create_multisummarize_response(self, original_text_key: str) -> dict:
-        cached_response = self.cache_service.get(original_text_key)
+        cached_response = self._cache_service.get(original_text_key)
         original_input_text = CacheResponse.model_validate_json(cached_response).input
 
         await self._async_multisummarize(original_input_text)
@@ -44,7 +44,13 @@ class MultiSummarizer:
     @tracer.start_as_current_span("multisumm.async_multisummarize")
     async def _async_multisummarize(self, input_text: str) -> None:
         tasks = [
-            self.summarizer.summarize(input_text, model=client)
+            self._summarizer.summarize(
+                (
+                    await self._summarizer.check_for_cached(
+                        input_text=input_text, model=client
+                    )
+                )[2]
+            )
             for client in ALL_LLM_CLIENTS
         ]
         await asyncio.gather(*tasks)
