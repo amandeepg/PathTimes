@@ -41,6 +41,7 @@ import ca.amandeep.path.R
 import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.AlertDatas
 import ca.amandeep.path.data.model.Route
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.ui.HEADING_LIGHT_TEXT_COLOR
 import ca.amandeep.path.ui.NWK_WTC_COLOR
 import ca.amandeep.path.ui.collapsing.ExpandableContainerView
@@ -55,7 +56,6 @@ import kotlinx.collections.immutable.toImmutableList
 import java.util.Date
 import kotlin.time.Duration.Companion.minutes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpandableAlerts(
     connectivityState: ConnectionState,
@@ -262,6 +262,16 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
                     "Crew reported a bird. Update in 10 mins.",
                     date = Date().apply { time -= 24.minutes.inWholeMilliseconds },
                 ),
+            ),
+        )
+        val GROUPED_MANY_STATION_ALERT1 = GROUPED_ALERT1.copy(
+            title = AlertData.Grouped.Title.StationTitle(
+                persistentListOf(StationName.S14, StationName.WTC),
+                "",
+            ),
+            main = AlertData.Single(
+                "Entrances closed.",
+                date = Date().apply { time -= 4.minutes.inWholeMilliseconds },
             ),
         )
         val GROUPED_MANY_LINE_ALERT1 = GROUPED_ALERT1.copy(

@@ -9,7 +9,7 @@ class PathApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(DebugTree())
-        
+
         // Schedule the background worker
         PathDataSyncWorker.schedule(this)
     }

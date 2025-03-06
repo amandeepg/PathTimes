@@ -169,10 +169,10 @@ enum class StationName(
             "HOB" -> HOB
             "WTC" -> WTC
             "CHR" -> CHR
-            "09S","S09" -> S9
-            "14S","S14" -> S14
-            "23S","S23" -> S23
-            "33S","S33" -> S33
+            "09S", "S09" -> S9
+            "14S", "S14" -> S14
+            "23S", "S23" -> S23
+            "33S", "S33" -> S33
             else -> throw IllegalArgumentException("Station name not found")
         }
     }

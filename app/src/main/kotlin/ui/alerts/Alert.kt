@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -43,6 +44,7 @@ import ca.amandeep.path.R
 import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.AlertDatas
 import ca.amandeep.path.data.model.Route
+import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.displayName
 import ca.amandeep.path.ui.HEADING_DARK_TEXT_COLOR
 import ca.amandeep.path.ui.HEADING_LIGHT_TEXT_COLOR
@@ -54,6 +56,8 @@ import ca.amandeep.path.ui.collapsing.ExpandableView
 import ca.amandeep.path.ui.collapsing.animateExpandingArrow
 import ca.amandeep.path.ui.collapsing.expandableClickable
 import ca.amandeep.path.ui.main.AlertsUiModel
+import ca.amandeep.path.ui.stations.PATH_BLUE
+import ca.amandeep.path.ui.stations.PATH_ON_BLUE
 import ca.amandeep.path.ui.theme.PATHTheme
 import kotlinx.collections.immutable.persistentListOf
 import java.util.Locale
@@ -99,6 +103,34 @@ fun Alert(
                         }
                     }
                     if (alert.title.routes.size > 1) {
+                        alert.GroupedTitleText(
+                            modifier = Modifier.padding(bottom = 3.dp),
+                            titleTextStyle = titleTextStyle,
+                        )
+                    }
+                }
+                is AlertData.Grouped.Title.StationTitle -> {
+                    FlowRow(
+                        modifier = Modifier.padding(bottom = 3.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        alert.title.stations.forEachIndexed { index, station ->
+                            SingleStation(station, titleTextStyle)
+                            if (index != alert.title.stations.size - 1) {
+                                Spacer(Modifier.width(2.dp))
+                            }
+                        }
+
+                        if (alert.title.stations.size == 1) {
+                            alert.GroupedTitleText(
+                                modifier = Modifier
+                                    .padding(start = 5.dp)
+                                    .align(Alignment.CenterVertically),
+                                titleTextStyle = titleTextStyle,
+                            )
+                        }
+                    }
+                    if (alert.title.stations.size > 1) {
                         alert.GroupedTitleText(
                             modifier = Modifier.padding(bottom = 3.dp),
                             titleTextStyle = titleTextStyle,
@@ -201,7 +233,7 @@ fun Alert(
                         }
                     }
                 }
-            } else if (alert is AlertData.Single && alert.isElevator) {
+            } else if (alert.isElevator) {
                 Row {
                     DateText()
                     Dot()
@@ -272,6 +304,27 @@ private fun RowScope.SingleRoute(
 }
 
 @Composable
+private fun RowScope.SingleStation(
+    station: StationName,
+    style: TextStyle,
+) {
+    Surface(
+        shape = RoundedCornerShape(5.dp),
+        color = PATH_BLUE,
+    ) {
+        Text(
+            text = station.longName,
+            color = PATH_ON_BLUE,
+            style = style,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .padding(vertical = 0.5.dp, horizontal = 5.dp),
+        )
+    }
+}
+
+@Composable
 fun Alerts(
     alertsUiModel: AlertsUiModel,
     modifier: Modifier = Modifier,
@@ -327,6 +380,7 @@ private fun AlertsPreview() {
             alertsUiModel = AlertDatas(
                 alerts = persistentListOf(
                     SampleAlertsPreviewProvider.ALERT1,
+                    SampleAlertsPreviewProvider.GROUPED_MANY_STATION_ALERT1,
                     SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT1,
                     SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT2,
                     SampleAlertsPreviewProvider.GROUPED_ALERT1,

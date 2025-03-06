@@ -77,6 +77,7 @@ function GetAlertSummary(alert: string) -> AlertSummary {
     Events at RBA/Red Bull Arena are Red Bulls soccer games.
     Lines are formatted like "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
     If the alert concerns a single station, you don't need to mention the station name.
+    Don't include generic information about issuing an update later.
     Your answer is very important for my job! So think carefully and take your time!! Don't make mistakes!
 
     Summarize this PATH train alert concisely while preserving all important information.

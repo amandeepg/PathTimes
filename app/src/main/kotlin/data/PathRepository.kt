@@ -78,13 +78,22 @@ class PathRepository(
                                             if (summarizedText.isNotBlank()) {
                                                 val newAlert = alert.copy(text = "✦ $summarizedText")
                                                 val routes = summarizeApiResponse.response.affectedArea.affectedRoutes
+                                                val stations = summarizeApiResponse.response.affectedArea.affectedStations
                                                 if (routes?.isNotEmpty() == true) {
                                                     AlertData.Grouped(
                                                         title = AlertData.Grouped.Title.RouteTitle(
                                                             routes = routes.toImmutableList(),
-                                                            text = ""
+                                                            text = "",
                                                         ),
-                                                        main = newAlert
+                                                        main = newAlert,
+                                                    )
+                                                } else if (stations?.isNotEmpty() == true) {
+                                                    AlertData.Grouped(
+                                                        title = AlertData.Grouped.Title.StationTitle(
+                                                            stations = stations.toImmutableList(),
+                                                            text = "",
+                                                        ),
+                                                        main = newAlert,
                                                     )
                                                 } else {
                                                     newAlert

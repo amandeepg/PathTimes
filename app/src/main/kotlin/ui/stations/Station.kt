@@ -31,8 +31,8 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.util.Locale
 
-private val PATH_BLUE = Color(0xff003da0)
-private val PATH_ON_BLUE = Color(0xeeeeeeee)
+ val PATH_BLUE = Color(0xff003da0)
+ val PATH_ON_BLUE = Color(0xeeeeeeee)
 
 @Composable
 fun Station(

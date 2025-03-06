@@ -570,12 +570,8 @@ fun LoadedScreen(
                     is Result.Valid -> uiModel.alerts.copy(
                         data = uiModel.alerts.data.copy(
                             alerts = uiModel.alerts.data.alerts.filter {
-                                when {
-                                    userState.showElevatorAlerts -> true
-                                    it is AlertData.Single -> !it.isElevator
-                                    it is AlertData.Grouped -> !(it.history + it.main).all { it.isElevator }
-                                    else -> true
-                                }
+                                if (userState.showElevatorAlerts) true
+                                else !it.isElevator
                             }.toImmutableList(),
                         ),
                     )

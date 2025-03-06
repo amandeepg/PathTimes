@@ -225,14 +225,18 @@ data class AlertDatas(
     }
 }
 
+private fun String.isElevator() = contains("elevator", ignoreCase = true) == true
+
 @Immutable
 sealed interface AlertData {
+    val isElevator: Boolean
+
     @Immutable
     data class Single(
         val text: String?,
         val date: Date?,
     ) : AlertData {
-        val isElevator: Boolean = text?.contains("elevator", ignoreCase = true) == true
+        override val isElevator: Boolean = text?.isElevator() == true
     }
 
     @Immutable
@@ -241,6 +245,9 @@ sealed interface AlertData {
         val main: Single,
         val history: ImmutableList<Single> = persistentListOf(),
     ) : AlertData {
+        override val isElevator: Boolean = (main.isElevator || (title is Title.FreeformTitle && title.text?.isElevator() == true)) &&
+                history.all { it.isElevator }
+
         @Immutable
         sealed interface Title {
             val text: String?
@@ -248,6 +255,12 @@ sealed interface AlertData {
             @Immutable
             data class RouteTitle(
                 val routes: ImmutableList<Route>,
+                override val text: String?,
+            ) : Title
+
+            @Immutable
+            data class StationTitle(
+                val stations: ImmutableList<StationName>,
                 override val text: String?,
             ) : Title
 
