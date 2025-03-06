@@ -62,12 +62,14 @@ fun Iterable<UpcomingTrain>.toUiTrains(
     alerts: ImmutableList<AlertData>,
     direction: Direction,
 ): ImmutableList<UiUpcomingTrain> = this
-    .map { it.toUiTrain(
-        currentLocation = currentLocation,
-        now = now,
-        alerts = alerts,
-        direction = direction,
-    ) }
+    .map {
+        it.toUiTrain(
+            currentLocation = currentLocation,
+            now = now,
+            alerts = alerts,
+            direction = direction,
+        )
+    }
     .toImmutableList()
 
 fun UpcomingTrain.toUiTrain(

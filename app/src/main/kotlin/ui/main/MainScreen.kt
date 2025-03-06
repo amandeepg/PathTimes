@@ -70,7 +70,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.amandeep.path.R
-import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.model.State
 import ca.amandeep.path.ui.ErrorBar
 import ca.amandeep.path.ui.ErrorScreen
@@ -570,8 +569,11 @@ fun LoadedScreen(
                     is Result.Valid -> uiModel.alerts.copy(
                         data = uiModel.alerts.data.copy(
                             alerts = uiModel.alerts.data.alerts.filter {
-                                if (userState.showElevatorAlerts) true
-                                else !it.isElevator
+                                if (userState.showElevatorAlerts) {
+                                    true
+                                } else {
+                                    !it.isElevator
+                                }
                             }.toImmutableList(),
                         ),
                     )

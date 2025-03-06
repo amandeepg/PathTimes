@@ -4,8 +4,6 @@ import androidx.compose.runtime.Immutable
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.ToJson
 import java.util.Date
 import kotlin.math.asin
 import kotlin.math.cos

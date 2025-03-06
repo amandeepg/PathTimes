@@ -1,7 +1,6 @@
 package ca.amandeep.path.data
 
 import android.content.Context
-import ca.amandeep.path.data.model.AffectedArea
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.SummarizeApiResponse
 import com.squareup.moshi.Moshi

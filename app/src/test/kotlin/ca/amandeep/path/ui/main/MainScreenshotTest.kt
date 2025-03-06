@@ -435,9 +435,10 @@ class MainScreenshotTest(
         showDirectionHelpText = showDirectionHelpText,
         alerts = alerts,
         forceAlertsOpen = forceAlertsOpen,
+        direction = direction,
     ).takeUnless { !showOppositeDirection && !isInOppositeDirection }
 
     private fun List<UiUpcomingTrain?>.toTrainList() = filterNotNull()
-        .sortedWith(compareBy({ it.upcomingTrain.direction }, { it.arrivalInMinutesFromNow }))
+        .sortedWith(compareBy({ it.direction }, { it.arrivalInMinutesFromNow }))
         .toImmutableList()
 }
