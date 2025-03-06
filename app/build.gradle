@@ -98,6 +98,7 @@ dependencies {
     implementation AndroidX.lifecycle.runtime.ktx
     implementation AndroidX.lifecycle.viewModelKtx
     implementation AndroidX.navigation.compose
+    implementation AndroidX.work.runtimeKtx
     implementation KotlinX.collections.immutable
 
     //noinspection GradleDependency breaking permissions changes, TODO handle them

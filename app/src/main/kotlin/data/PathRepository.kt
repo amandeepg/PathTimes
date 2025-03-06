@@ -10,6 +10,9 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
@@ -64,21 +67,37 @@ class PathRepository(
                 emit(
                     alertsResult.copy(
                         alerts = alertsResult.alerts.copy(
-                            alerts = alertsResult.alerts.alerts.map {
-                                if (it is AlertData.Single) {
-                                    d { "starting summary... of ${it.text}" }
-                                    val summarizeApiResponse = summarizerApi.summarize(it.text)
-                                    val summarizedText = summarizeApiResponse.response.text
-                                    d { "summarized alert: $summarizedText" }
-                                    if (summarizedText.isNotBlank()) {
-                                        it.copy(text = "✦ $summarizedText")
-                                    } else {
-                                        it
+                            alerts = coroutineScope {
+                                alertsResult.alerts.alerts.map { alert ->
+                                    async {
+                                        if (alert is AlertData.Single && !alert.text.isNullOrBlank()) {
+                                            d { "starting summary... of ${alert.text}" }
+                                            val summarizeApiResponse = summarizerApi.summarize(alert.text)
+                                            val summarizedText = summarizeApiResponse.response.text
+                                            d { "summarized alert: $summarizedText" }
+                                            if (summarizedText.isNotBlank()) {
+                                                val newAlert = alert.copy(text = "✦ $summarizedText")
+                                                val routes = summarizeApiResponse.response.affectedArea.affectedRoutes
+                                                if (routes?.isNotEmpty() == true) {
+                                                    AlertData.Grouped(
+                                                        title = AlertData.Grouped.Title.RouteTitle(
+                                                            routes = routes.toImmutableList(),
+                                                            text = ""
+                                                        ),
+                                                        main = newAlert
+                                                    )
+                                                } else {
+                                                    newAlert
+                                                }
+                                            } else {
+                                                alert
+                                            }
+                                        } else {
+                                            alert
+                                        }
                                     }
-                                } else {
-                                    it
-                                }
-                            }.toImmutableList(),
+                                }.awaitAll().toImmutableList()
+                            },
                         ),
                     ),
                 )

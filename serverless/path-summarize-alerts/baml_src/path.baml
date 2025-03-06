@@ -9,20 +9,30 @@ template_string ChainOfThought() #"
     }
 "#
 
+template_string ChainOfThoughtIf() #"
+    {%if ctx.client.name == "deepseek/deepseek-r1:price" %}
+    {%elif ctx.client.name == "deepseek/deepseek-r1:free" %}
+    {%elif ctx.client.name == "anthropic/claude-3.7-sonnet:thinking" %}
+    {%elif ctx.client.name == "openai/o3-mini-high" %}
+    {% else %}
+      {{ ChainOfThought() }}
+    {% endif %}
+"#
+
 enum PathStation {
-  NEWARK @description("Newark Penn Station")
-  HARRISON @description("Harrison")
-  JOURNAL_SQUARE @description("Journal Square")
-  GROVE_STREET @description("Grove Street") 
-  EXCHANGE_PLACE @description("Exchange Place")
-  WORLD_TRADE_CENTER @description("World Trade Center")
-  HOBOKEN @description("Hoboken")
-  NEWPORT @description("Newport")
-  CHRISTOPHER_STREET @description("Christopher Street")
-  NINTH_STREET @description("9th Street")
-  FOURTEENTH_STREET @description("14th Street")
-  TWENTY_THIRD_STREET @description("23rd Street")
-  THIRTY_THIRD_STREET @description("33rd Street")
+  NWK @description("Newark Penn Station")
+  HAR @description("Harrison")
+  JSQ @description("Journal Square")
+  GRV @description("Grove Street")
+  EXP @description("Exchange Place")
+  WTC @description("World Trade Center")
+  HOB @description("Hoboken")
+  NEW @description("Newport")
+  CHR @description("Christopher Street")
+  S09 @description("9th Street")
+  S14 @description("14th Street")
+  S23 @description("23rd Street")
+  S33 @description("33rd Street")
 }
 
 enum PathLine {
@@ -66,11 +76,15 @@ function GetAlertSummary(alert: string) -> AlertSummary {
     Don't say the word "tips" but just give the advice from the tips succinctly.
     Events at RBA/Red Bull Arena are Red Bulls soccer games.
     Lines are formatted like "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
+    If the alert concerns a single station, you don't need to mention the station name.
     Your answer is very important for my job! So think carefully and take your time!! Don't make mistakes!
 
     Summarize this PATH train alert concisely while preserving all important information.
 
     {{ ctx.output_format }}
+    .
+    {{ ChainOfThoughtIf() }}
+    .
 
     {{ _.role("user") }} {{ alert }}
   "#
@@ -83,6 +97,9 @@ function IsDelayAlert(alert: string) -> IsDelay {
     Return true only if the alert explicitly mentions delays or service disruptions that cause delays.
 
     {{ ctx.output_format }}
+    .
+    {{ ChainOfThoughtIf() }}
+    .
 
     {{ _.role("user") }} {{ alert }}
   "#
@@ -96,6 +113,9 @@ function IsRelevantAlert(alert: string) -> IsRelevant {
     Return false for general announcements or updates that don't affect travel.
 
     {{ ctx.output_format }}
+    .
+    {{ ChainOfThoughtIf() }}
+    .
 
     {{ _.role("user") }} {{ alert }}
   "#
@@ -109,6 +129,9 @@ function GetAffectedArea(alert: string) -> (AffectedStations | AffectedRoutes)? 
     Choose based on which is more specifically impacted by the alert.
 
     {{ ctx.output_format }}
+    .
+    {{ ChainOfThoughtIf() }}
+    .
 
     {{ _.role("user") }} {{ alert }}
   "#

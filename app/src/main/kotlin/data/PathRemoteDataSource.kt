@@ -105,11 +105,11 @@ data class AlertDatas(
 
         fun Iterable<AlertData.Single>.getGroupedAlerts(): ImmutableList<AlertData> = this
             .groupBy {
-                if ("Service Advisory" in it.text) {
+                if ("Service Advisory" in it.text.orEmpty()) {
                     it.text
                 } else {
-                    it.text.extractRoutesTitle()?.routes?.joinToString()
-                        ?: it.text.split(".").first()
+                    it.text?.extractRoutesTitle()?.routes?.joinToString()
+                        ?: it.text?.split(".")?.first()
                 }
             }
             .map { group ->
@@ -119,25 +119,25 @@ data class AlertDatas(
                 } else {
                     val alertsWithBlanks = group.value.mapIndexed { index, alert ->
                         val newText = alert.text
-                            .dropBefore(".")
-                            .let {
+                            ?.dropBefore(".")
+                            ?.let {
                                 when (index) {
                                     0 -> it
                                     else -> it.replace(UPDATE_IN_MINS_REGEX, "")
                                 }
                             }
-                            .trim()
-                            .takeIf { it.any { char -> char.isLetter() } }
-                            ?: ""
+                            ?.trim()
+                            ?.takeIf { it.any { char -> char.isLetter() } }
+                            .orEmpty()
                         alert.copy(text = newText)
                     }
                     val alerts = alertsWithBlanks.mapIndexed { index, alert ->
-                        if (alert.text.isBlank() && index != 0) {
+                        if (alert.text.isNullOrBlank() && index != 0) {
                             alert.copy(
-                                text = group.value[index].toTitle().text.capitalize().addPeriod(),
+                                text = group.value[index].toTitle()?.text?.capitalize()?.addPeriod(),
                             )
                         } else {
-                            alert.copy(text = alert.text.capitalize().addPeriod())
+                            alert.copy(text = alert.text?.capitalize()?.addPeriod())
                         }
                     }
                     AlertData.Grouped(
@@ -175,10 +175,10 @@ data class AlertDatas(
             }
             .toImmutableList()
 
-        private fun AlertData.Single.toTitle(): AlertData.Grouped.Title =
-            text.getBefore(".").toTitle()
+        private fun AlertData.Single.toTitle(): AlertData.Grouped.Title? =
+            text?.getBefore(".")?.toTitle()
 
-        fun Iterable<AlertData>.findContainedRouteAlerts(): List<Pair<AlertData.Grouped, AlertData.Grouped>> {
+        private fun Iterable<AlertData>.findContainedRouteAlerts(): List<Pair<AlertData.Grouped, AlertData.Grouped>> {
             val routeAlerts = this.filterIsInstance<AlertData.Grouped>()
                 .filter { it.title is AlertData.Grouped.Title.RouteTitle }
 
@@ -229,30 +229,30 @@ data class AlertDatas(
 sealed interface AlertData {
     @Immutable
     data class Single(
-        val text: String,
+        val text: String?,
         val date: Date?,
     ) : AlertData {
-        val isElevator: Boolean = text.contains("elevator", ignoreCase = true)
+        val isElevator: Boolean = text?.contains("elevator", ignoreCase = true) == true
     }
 
     @Immutable
     data class Grouped(
-        val title: Title,
+        val title: Title?,
         val main: Single,
         val history: ImmutableList<Single> = persistentListOf(),
     ) : AlertData {
         @Immutable
         sealed interface Title {
-            val text: String
+            val text: String?
 
             @Immutable
             data class RouteTitle(
                 val routes: ImmutableList<Route>,
-                override val text: String,
+                override val text: String?,
             ) : Title
 
             @Immutable
-            data class FreeformTitle(override val text: String) : Title
+            data class FreeformTitle(override val text: String?) : Title
 
             companion object {
                 private val ROUTE_STRINGS = listOf(

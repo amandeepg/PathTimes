@@ -114,7 +114,7 @@ fun Alert(
                 else -> Unit
             }
         }
-        if (singleAlert.text.isNotEmpty()) {
+        if (!singleAlert.text.isNullOrBlank()) {
             Text(
                 text = singleAlert.text,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -214,7 +214,7 @@ fun Alert(
                         style = timeTextStyle,
                     )
                 }
-            } else if (singleAlert.text.isNotEmpty() || alert is AlertData.Grouped) {
+            } else if (!singleAlert.text.isNullOrBlank() || alert is AlertData.Grouped) {
                 DateText()
             }
         }
@@ -226,8 +226,10 @@ private fun AlertData.Grouped.GroupedTitleText(
     titleTextStyle: TextStyle,
     modifier: Modifier = Modifier,
 ) {
+    if (title?.text.isNullOrBlank())
+        return
     Text(
-        text = title.text,
+        text = title?.text!!,
         color = MaterialTheme.colorScheme.onBackground,
         style = titleTextStyle,
         modifier = modifier,

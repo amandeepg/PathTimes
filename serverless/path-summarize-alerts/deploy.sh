@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+uv run baml-cli generate
 uvx ruff format
 uvx ruff check --fix
 

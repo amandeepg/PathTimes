@@ -47,7 +47,7 @@ class OpenRouterClient(LlmClient, ABC):
             provider="openai-generic",
             options={
                 "model": self.model(),
-                "temperature": 0.4,
+                "temperature": 0.1,
                 "api_key": os.environ.get("OPENROUTER_API_KEY"),
                 "base_url": "https://openrouter.ai/api/v1",
                 "headers": {
@@ -73,14 +73,22 @@ class BedrockClient(LlmClient):
             options={
                 "region": "us-east-1",
                 "model": self.model(),
-                "inference_configuration": {"temperature": 0.4},
+                "inference_configuration": {"temperature": 0.1},
             },
         )
 
 
 class R1(OpenRouterClient):
     def model(self) -> str:
-        return "deepseek/deepseek-r1"
+        return "deepseek/deepseek-r1:price"
+
+    def _version(self) -> int:
+        return 1
+
+
+class R1Free(OpenRouterClient):
+    def model(self) -> str:
+        return "deepseek/deepseek-r1:free"
 
     def _version(self) -> int:
         return 1
@@ -88,7 +96,31 @@ class R1(OpenRouterClient):
 
 class V3(OpenRouterClient):
     def model(self) -> str:
-        return "deepseek/deepseek-chat"
+        return "deepseek/deepseek-chat:price"
+
+    def _version(self) -> int:
+        return 1
+
+
+class Claude37Thinking(OpenRouterClient):
+    def model(self) -> str:
+        return "anthropic/claude-3.7-sonnet:thinking"
+
+    def _version(self) -> int:
+        return 1
+
+
+class Qwq32b(OpenRouterClient):
+    def model(self) -> str:
+        return "qwen/qwq-32b:free"
+
+    def _version(self) -> int:
+        return 1
+
+
+class Moonlight(OpenRouterClient):
+    def model(self) -> str:
+        return "moonshotai/moonlight-16b-a3b-instruct:free"
 
     def _version(self) -> int:
         return 1
@@ -128,6 +160,10 @@ class NovaLite(BedrockClient):
 
 ALL_LLM_CLIENTS: list[LlmClient] = [
     R1(),
+    R1Free(),
+    Claude37Thinking(),
+    Qwq32b(),
+    Moonlight(),
     V3(),
     GeminiFlash(),
     LlamaThreeThree70b(),

@@ -4,6 +4,8 @@ import androidx.compose.runtime.Immutable
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.ToJson
 import java.util.Date
 import kotlin.math.asin
 import kotlin.math.cos
@@ -167,10 +169,10 @@ enum class StationName(
             "HOB" -> HOB
             "WTC" -> WTC
             "CHR" -> CHR
-            "09S" -> S9
-            "14S" -> S14
-            "23S" -> S23
-            "33S" -> S33
+            "09S","S09" -> S9
+            "14S","S14" -> S14
+            "23S","S23" -> S23
+            "33S","S33" -> S33
             else -> throw IllegalArgumentException("Station name not found")
         }
     }
@@ -301,7 +303,7 @@ data class SummarizeApiResponse(
     val model: String,
     @Json(name = "cache_version") val cacheVersion: String,
     val cached: Boolean,
-    @Json(name = "hash_key") val hashKey: String
+    @Json(name = "hash_key") val hashKey: String,
 )
 
 @JsonClass(generateAdapter = true)
@@ -309,6 +311,13 @@ data class LlmResponse(
     val text: String,
     @Json(name = "is_delay") val isDelay: Boolean,
     @Json(name = "is_relevant") val isRelevant: Boolean,
+    @Json(name = "affected_area") val affectedArea: AffectedArea,
+)
+
+@JsonClass(generateAdapter = true)
+data class AffectedArea(
+    @Json(name = "affected_stations") val affectedStations: List<StationName>?,
+    @Json(name = "affected_routes") val affectedRoutes: List<Route>?,
 )
 
 class SortPlaces(private val currentLocation: Coordinates) : Comparator<StationName> {

@@ -96,7 +96,7 @@ fun UpcomingTrain.toUiTrain(
                     if (matchingRoute) {
                         // If the alert is a "resuming" type, i.e. it's been resolved then we
                         // only want to see it if it's within an hour
-                        val isResuming = title.text.startsWith("Resuming", ignoreCase = true)
+                        val isResuming = title.text?.startsWith("Resuming", ignoreCase = true) == true
                         if (isResuming) {
                             it.main.date?.lessThanDurationAgo(1.hours) ?: true
                         } else {

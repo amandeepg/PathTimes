@@ -43,15 +43,19 @@ class MultiSummarizer:
 
     @tracer.start_as_current_span("multisumm.async_multisummarize")
     async def _async_multisummarize(self, input_text: str) -> None:
+        async def summarize_with_exception_handling(client):
+            try:
+                cached_result = await self._summarizer.check_for_cached(
+                    input_text=input_text, model=client
+                )
+                summary = await self._summarizer.summarize(cached_result[2])
+                return summary
+            except Exception as e:
+                print(f"Exception occurred while summarizing with {client}: {e}")
+                return None
+
         tasks = [
-            self._summarizer.summarize(
-                (
-                    await self._summarizer.check_for_cached(
-                        input_text=input_text, model=client
-                    )
-                )[2]
-            )
-            for client in ALL_LLM_CLIENTS
+            summarize_with_exception_handling(client) for client in ALL_LLM_CLIENTS
         ]
         await asyncio.gather(*tasks)
 

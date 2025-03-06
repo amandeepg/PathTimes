@@ -58,6 +58,7 @@ provider:
     GOOGLE_API_KEY: ${file(./config.yml):GOOGLE_API_KEY}
     MULTISUMMARIZER_LAMBDA_NAME: ${self:service}-${self:provider.stage}-multisummarize
     AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
+    BAML_LOG: info
 
 functions:
   summarize:

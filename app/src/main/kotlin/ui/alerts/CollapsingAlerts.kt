@@ -273,7 +273,7 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
         val GROUPED_MANY_LINE_ALERT2 = GROUPED_MANY_LINE_ALERT1.copy(
             title = AlertData.Grouped.Title.RouteTitle(
                 (Route.entries + Route.entries).toImmutableList(),
-                GROUPED_MANY_LINE_ALERT1.title.text,
+                GROUPED_MANY_LINE_ALERT1.title!!.text,
             ),
         )
         val GROUPED_ALERT2 = AlertData.Grouped(

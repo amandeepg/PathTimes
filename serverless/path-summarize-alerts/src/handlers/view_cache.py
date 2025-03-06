@@ -331,15 +331,9 @@ class CacheViewer:
         if hasattr(affected_area, "affected_routes"):
             return f"Routes: {', '.join(str(r).replace('PathLine.', '') for r in affected_area.affected_routes)}"
         elif hasattr(affected_area, "affected_stations"):
-            return f"Stations: {', '.join(CacheViewer._upper_snake_to_title_sentence(str(s).replace('PathStation.', '')) for s in affected_area.affected_stations)}"
+            return f"Stations: {', '.join(str(s).replace('PathStation.', '') for s in affected_area.affected_stations)}"
 
         return "None"
-
-    @staticmethod
-    def _upper_snake_to_title_sentence(upper_snake_str):
-        words = upper_snake_str.split("_")
-        title_sentence = " ".join(word.lower().capitalize() for word in words)
-        return title_sentence
 
 
 handler = CacheViewer()
