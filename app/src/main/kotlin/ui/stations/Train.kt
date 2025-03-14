@@ -5,7 +5,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +18,8 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.rounded.SubdirectoryArrowLeft
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -64,16 +59,15 @@ import ca.amandeep.path.ui.HOB_33_COLOR
 import ca.amandeep.path.ui.HOB_WTC_COLOR
 import ca.amandeep.path.ui.JSQ_33_COLOR
 import ca.amandeep.path.ui.NWK_WTC_COLOR
-import ca.amandeep.path.ui.alerts.Alert
+import ca.amandeep.path.ui.alerts.Alerts
+import ca.amandeep.path.ui.alerts.ExpandedAlertArrowContent
 import ca.amandeep.path.ui.alerts.HAS_ALERTS_COLOR
 import ca.amandeep.path.ui.collapsing.ExpandableView
-import ca.amandeep.path.ui.collapsing.animateExpandingArrow
 import ca.amandeep.path.ui.collapsing.expandableClickable
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
 import ca.amandeep.path.ui.theme.surfaceColorAtElevation
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -123,7 +117,7 @@ fun Train(
                         .fillMaxWidth(),
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        ExpandableTrainAlerts(train.alerts)
+                        Alerts(train.alerts)
                     }
                 }
             }
@@ -188,24 +182,6 @@ fun Train(
 }
 
 @Composable
-private fun ColumnScope.ExpandableTrainAlerts(alerts: ImmutableList<AlertData.Grouped>) {
-    alerts.forEachIndexed { index, alert ->
-        Alert(
-            alert = alert,
-            alertTextStyle = MaterialTheme.typography.bodyMedium,
-            timeTextStyle = MaterialTheme.typography.labelSmall,
-            setShowElevatorAlerts = {},
-        )
-        if (index != alerts.size - 1) {
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 6.dp),
-                color = DividerDefaults.color.copy(alpha = 0.5f),
-            )
-        }
-    }
-}
-
-@Composable
 private fun RowScope.TrainMainRowContent(
     userState: UserState,
     train: UiUpcomingTrain,
@@ -255,7 +231,6 @@ private fun RowScope.TrainMainRowContent(
     }
 
     if (train.alerts.isNotEmpty()) {
-        val arrowRotationDegree by animateExpandingArrow(alertsExpanded)
         Surface(
             shape = RoundedCornerShape(5.dp),
             modifier = Modifier
@@ -265,27 +240,10 @@ private fun RowScope.TrainMainRowContent(
             color = HAS_ALERTS_COLOR,
             contentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 3.dp),
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .size(20.dp)
-                        .rotate(arrowRotationDegree),
-                    imageVector = Icons.Filled.ExpandLess,
-                    contentDescription = stringResource(R.string.expandable_arrow_content_description),
-                )
-                Icon(
-                    imageVector = Icons.Rounded.Warning,
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(vertical = 3.dp)
-                        .size(20.dp)
-                        .offset(x = (-3).dp),
-                    contentDescription = stringResource(R.string.alerts_on_this_route),
-                )
-            }
+            ExpandedAlertArrowContent(
+                alertsExpanded = alertsExpanded,
+                contentDescription = stringResource(R.string.alerts_on_this_route),
+            )
         }
     }
     TrainHeading(train.upcomingTrain, userState)

@@ -225,7 +225,7 @@ data class AlertDatas(
     }
 }
 
-private fun String.isElevator() = contains("elevator", ignoreCase = true) == true
+private fun String.isElevator() = contains("elevator", ignoreCase = true)
 
 @Immutable
 sealed interface AlertData {

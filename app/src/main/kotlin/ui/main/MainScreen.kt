@@ -630,7 +630,7 @@ fun LoadedScreen(
             arrivals.data
         } else {
             arrivals.data.filter {
-                it.first.state == (if (userState.isInNJ) State.NJ else State.NY)
+                it.first.stationName.state == (if (userState.isInNJ) State.NJ else State.NY)
             }
         }
         items(

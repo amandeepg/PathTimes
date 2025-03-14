@@ -42,7 +42,7 @@ data class MainUiModel(
     val alerts: Result<AlertsUiModel> = Result.Loading(),
 )
 
-typealias ArrivalsUiModel = ImmutableList<Pair<StationName, ImmutableList<UiUpcomingTrain>>>
+typealias ArrivalsUiModel = ImmutableList<Pair<UiStation, ImmutableList<UiUpcomingTrain>>>
 typealias AlertsUiModel = AlertDatas
 
 data class UiUpcomingTrain(
@@ -102,16 +102,12 @@ fun UpcomingTrain.toUiTrain(
                         if (isResuming) {
                             it.main.date?.lessThanDurationAgo(1.hours) ?: true
                         } else {
-                            // If it's not a "resuming" type, i.e. it's ongoing then we want to
-                            // see it
                             true
                         }
                     } else {
-                        // If it doesn't match the route, it's not for this route
                         false
                     }
                 } else {
-                    // If it's not a route type, it's not for this route
                     false
                 }
             }
@@ -148,3 +144,39 @@ infix fun Date.lessThanDurationAgo(duration: Duration): Boolean {
     // Check if the input date falls between the current date and the end time
     return inputInstant.isBefore(currentDate) && inputInstant.isAfter(timeDurationAgo)
 }
+
+data class UiStation(
+    val stationName: StationName,
+    val alerts: ImmutableList<AlertData.Grouped> = persistentListOf(),
+    val forceAlertsOpen: Boolean = false,
+)
+
+fun StationName.toUiStation(
+    alerts: ImmutableList<AlertData> = persistentListOf(),
+): UiStation = UiStation(
+    this,
+    alerts = alerts
+        .filterIsInstance<AlertData.Grouped>()
+        .filter { it.title is AlertData.Grouped.Title.StationTitle }
+        .filter {
+            val title = it.title
+            if (title is AlertData.Grouped.Title.StationTitle) {
+                val matchingStation = this@toUiStation in title.stations
+                if (matchingStation) {
+                    // If the alert is a "resuming" type, i.e. it's been resolved then we
+                    // only want to see it if it's within an hour
+                    val isResuming = title.text?.startsWith("Resuming", ignoreCase = true) == true
+                    if (isResuming) {
+                        it.main.date?.lessThanDurationAgo(1.hours) ?: true
+                    } else {
+                        true
+                    }
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        }
+        .toImmutableList(),
+)

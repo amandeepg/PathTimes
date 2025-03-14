@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.SignalWifiOff
 import androidx.compose.material.icons.filled.SyncProblem
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -103,11 +105,42 @@ fun ExpandableAlerts(
             },
             expandableContent = {
                 Alerts(
-                    modifier = Modifier.padding(horizontal = 5.dp),
-                    alertsUiModel = alertsResult.asValid()?.data ?: AlertDatas(),
+                    modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 4.dp),
+                    alerts = alertsResult.asValid()?.data?.alerts.orEmpty().toImmutableList(),
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
             },
+        )
+    }
+}
+
+@Composable
+fun ExpandedAlertArrowContent(
+    alertsExpanded: Boolean,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+) {
+    val arrowRotationDegree by animateExpandingArrow(alertsExpanded)
+
+    Row(
+        modifier = modifier.padding(horizontal = 3.dp),
+    ) {
+        Icon(
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .size(20.dp)
+                .rotate(arrowRotationDegree),
+            imageVector = Icons.Filled.ExpandLess,
+            contentDescription = stringResource(R.string.expandable_arrow_content_description),
+        )
+        Icon(
+            imageVector = Icons.Rounded.Warning,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .padding(vertical = 3.dp)
+                .size(20.dp)
+                .offset(x = (-3).dp),
+            contentDescription = contentDescription,
         )
     }
 }

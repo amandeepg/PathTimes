@@ -3,15 +3,24 @@ package ca.amandeep.path.ui.stations
 import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -20,13 +29,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.amandeep.path.R
+import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.UpcomingTrain
+import ca.amandeep.path.ui.alerts.Alerts
+import ca.amandeep.path.ui.alerts.ExpandedAlertArrowContent
+import ca.amandeep.path.ui.collapsing.ExpandableView
+import ca.amandeep.path.ui.collapsing.expandableClickable
+import ca.amandeep.path.ui.main.UiStation
 import ca.amandeep.path.ui.main.UiUpcomingTrain
 import ca.amandeep.path.ui.main.UserState
 import ca.amandeep.path.ui.theme.PATHTheme
+import ca.amandeep.path.util.darken
+import ca.amandeep.path.util.lighten
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.util.Locale
@@ -36,29 +53,74 @@ val PATH_ON_BLUE = Color(0xeeeeeeee)
 
 @Composable
 fun Station(
-    station: Pair<StationName, ImmutableList<UiUpcomingTrain>>,
+    station: Pair<UiStation, ImmutableList<UiUpcomingTrain>>,
     now: Long,
     userState: UserState,
     modifier: Modifier = Modifier,
     autoRefreshingNow: Boolean = false,
     setShowHelpGuide: (Boolean) -> Unit,
 ) {
+    val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
+
     ElevatedCard(
         modifier = modifier,
     ) {
         Column {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(PATH_BLUE),
+                    .background(PATH_BLUE)
+                    .padding(horizontal = 15.dp),
             ) {
-                Text(
-                    text = station.first.longName.uppercase(Locale.US),
-                    color = PATH_ON_BLUE,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 24.sp,
-                    modifier = Modifier.padding(15.dp),
-                )
+                val alertsBackgroundColor =
+                    Color(if (isSystemInDarkTheme()) 0xff5d5224 else 0xfff4eab9)
+                        .darken(if (isSystemInDarkTheme()) 0.0f else 0.15f)
+                        .lighten(if (isSystemInDarkTheme()) 0.15f else 0.0f)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    if (station.first.alerts.isNotEmpty()) {
+                        Surface(
+                            shape = RoundedCornerShape(5.dp),
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .padding(end = 10.dp)
+                                .expandableClickable { setAlertsExpanded(!alertsExpanded) },
+                            color = alertsBackgroundColor,
+                            contentColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                        ) {
+                            ExpandedAlertArrowContent(
+                                alertsExpanded = alertsExpanded,
+                                contentDescription = stringResource(R.string.alerts_at_this_station),
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = station.first.stationName.longName.uppercase(Locale.US),
+                        color = PATH_ON_BLUE,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(vertical = 15.dp),
+                    )
+                }
+                if (station.first.alerts.isNotEmpty()) {
+                    ExpandableView(
+                        modifier = Modifier.offset(y = (-8).dp),
+                        isExpanded = alertsExpanded || station.first.forceAlertsOpen,
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = alertsBackgroundColor,
+                            modifier = Modifier
+                                .padding(bottom = 7.dp)
+                                .fillMaxWidth(),
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Alerts(station.first.alerts)
+                            }
+                        }
+                    }
+                }
             }
             Column(
                 modifier = Modifier.padding(15.dp),
@@ -84,7 +146,7 @@ fun Station(
                             )
                         } else {
                             stringResource(R.string.no_trains)
-                        } + station.first.longName,
+                        } + station.first.stationName.longName,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
                 }
@@ -111,7 +173,7 @@ fun Station(
 private fun StationPreview() {
     PATHTheme {
         Station(
-            StationName.WTC to persistentListOf(
+            UiStation(StationName.WTC) to persistentListOf(
                 UiUpcomingTrain(
                     UpcomingTrain(
                         route = Route.JSQ_33,
@@ -175,7 +237,26 @@ private fun StationPreview() {
 private fun EmptyStationPreview() {
     PATHTheme {
         Station(
-            station = StationName.HOB to persistentListOf(),
+            station = UiStation(
+                StationName.HOB,
+                alerts = persistentListOf(
+                    AlertData.Grouped(
+                        title = AlertData.Grouped.Title.StationTitle(
+                            stations = persistentListOf(StationName.HOB),
+                            text = "closed",
+                        ),
+                        main = AlertData.Single(text = "Station flooded.", date = null),
+                    ),
+                    AlertData.Grouped(
+                        title = AlertData.Grouped.Title.StationTitle(
+                            stations = persistentListOf(StationName.HOB),
+                            text = "closed also",
+                        ),
+                        main = AlertData.Single(text = "Station flooded.", date = null),
+                    ),
+                ),
+                forceAlertsOpen = true,
+            ) to persistentListOf(),
             now = System.currentTimeMillis(),
             userState = UserState(
                 shortenNames = false,

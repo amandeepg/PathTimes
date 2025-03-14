@@ -12,7 +12,6 @@ import ca.amandeep.path.data.PathRepository
 import ca.amandeep.path.data.model.Coordinates
 import ca.amandeep.path.data.model.Direction
 import ca.amandeep.path.data.model.SortPlaces
-import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
@@ -106,12 +105,13 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             val arrivals = arrivalsResult.asValid()?.data?.arrivals.orEmpty()
             val closestStations = arrivalsResult.asValid()?.data?.arrivals?.keys
                 ?.sortedWith(SortPlaces(currentLocation)).orEmpty()
+            val alertsList = alertsResult.asValid()?.data?.alerts?.alerts ?: persistentListOf()
             val closestArrivals = closestStations.mapToNotNullPairs { stationName ->
-                stationName to arrivals[stationName]?.flatMap { upcomingTrains ->
+                stationName.toUiStation(alertsList) to arrivals[stationName]?.flatMap { upcomingTrains ->
                     upcomingTrains.trains.toUiTrains(
                         currentLocation = currentLocation,
                         now = System.currentTimeMillis(),
-                        alerts = alertsResult.asValid()?.data?.alerts?.alerts ?: persistentListOf(),
+                        alerts = alertsList,
                         direction = upcomingTrains.direction,
                     )
                 }
@@ -165,6 +165,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             true
         }
     }
+
     override val isInNJ: Flow<Boolean> by lazy { locationUseCase.coordinates.map { it.isInNJ } }
 
     override suspend fun refreshTrainsFromNetwork() = pathRepository.refresh()
@@ -173,7 +174,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
         locationUseCase.permissionsUpdated(currentPermissions)
 }
 
-private fun List<Pair<StationName, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<StationName, ImmutableList<UiUpcomingTrain>>> {
+private fun List<Pair<UiStation, ImmutableList<UiUpcomingTrain>>>.addHelpText(): List<Pair<UiStation, ImmutableList<UiUpcomingTrain>>> {
     val allTrains = flatMap { it.second }
     val firstNjTrain = allTrains.firstOrNull { it.direction == Direction.ToNJ }
     val firstNycTrain = allTrains.firstOrNull { it.direction == Direction.ToNY }
