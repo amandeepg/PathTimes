@@ -260,7 +260,7 @@ class MainScreenshotTest(
     )
 
     private fun arrivalsData() = persistentListOf(
-        StationName.WTC to listOf(
+        StationName.WTC.toUiStation() to listOf(
             mockTrain(
                 route = Route.HOB_WTC,
                 direction = Direction.ToNJ,
@@ -280,7 +280,7 @@ class MainScreenshotTest(
                 minsToArrival = 12,
             ),
         ).toTrainList(),
-        StationName.CHR to listOf(
+        StationName.CHR.toUiStation() to listOf(
             mockTrain(
                 route = Route.JSQ_33,
                 direction = Direction.ToNJ,
@@ -327,7 +327,7 @@ class MainScreenshotTest(
                 isInOppositeDirection = false,
             ),
         ).toTrainList(),
-        StationName.S9 to listOf(
+        StationName.S9.toUiStation() to listOf(
             mockTrain(
                 route = Route.JSQ_33,
                 direction = Direction.ToNJ,
@@ -373,7 +373,7 @@ class MainScreenshotTest(
                 isInOppositeDirection = false,
             ),
         ).toTrainList(),
-        StationName.S14 to listOf(
+        StationName.S14.toUiStation() to listOf(
             mockTrain(
                 route = Route.JSQ_33,
                 direction = Direction.ToNJ,

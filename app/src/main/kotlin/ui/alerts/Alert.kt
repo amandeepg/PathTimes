@@ -41,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.R
 import ca.amandeep.path.data.AlertData
-import ca.amandeep.path.data.AlertDatas
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.displayName
@@ -54,10 +53,10 @@ import ca.amandeep.path.ui.NWK_WTC_COLOR
 import ca.amandeep.path.ui.collapsing.ExpandableView
 import ca.amandeep.path.ui.collapsing.animateExpandingArrow
 import ca.amandeep.path.ui.collapsing.expandableClickable
-import ca.amandeep.path.ui.main.AlertsUiModel
 import ca.amandeep.path.ui.stations.PATH_BLUE
 import ca.amandeep.path.ui.stations.PATH_ON_BLUE
 import ca.amandeep.path.ui.theme.PATHTheme
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.util.Locale
 
@@ -326,12 +325,12 @@ private fun RowScope.SingleStation(
 
 @Composable
 fun Alerts(
-    alertsUiModel: AlertsUiModel,
+    alerts: ImmutableList<AlertData>,
     modifier: Modifier = Modifier,
-    setShowElevatorAlerts: (Boolean) -> Unit,
+    setShowElevatorAlerts: (Boolean) -> Unit = {},
 ) {
     Column(modifier) {
-        alertsUiModel.alerts
+        alerts
             .forEachIndexed { index, alert ->
                 Alert(
                     alert = alert,
@@ -339,13 +338,11 @@ fun Alerts(
                     timeTextStyle = MaterialTheme.typography.labelSmall,
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
-                if (index != alertsUiModel.size - 1) {
+                if (index != alerts.size - 1) {
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 6.dp),
                         color = DividerDefaults.color.copy(alpha = 0.5f),
                     )
-                } else {
-                    Spacer(Modifier.height(4.dp))
                 }
             }
     }
@@ -377,16 +374,14 @@ private fun AlertsPreview() {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
-            alertsUiModel = AlertDatas(
-                alerts = persistentListOf(
-                    SampleAlertsPreviewProvider.ALERT1,
-                    SampleAlertsPreviewProvider.GROUPED_MANY_STATION_ALERT1,
-                    SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT1,
-                    SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT2,
-                    SampleAlertsPreviewProvider.GROUPED_ALERT1,
-                    SampleAlertsPreviewProvider.ALERT2,
-                    SampleAlertsPreviewProvider.GROUPED_ALERT2,
-                ),
+            alerts = persistentListOf(
+                SampleAlertsPreviewProvider.ALERT1,
+                SampleAlertsPreviewProvider.GROUPED_MANY_STATION_ALERT1,
+                SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT1,
+                SampleAlertsPreviewProvider.GROUPED_MANY_LINE_ALERT2,
+                SampleAlertsPreviewProvider.GROUPED_ALERT1,
+                SampleAlertsPreviewProvider.ALERT2,
+                SampleAlertsPreviewProvider.GROUPED_ALERT2,
             ),
             setShowElevatorAlerts = {},
         )
