@@ -10,7 +10,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 from pydantic import BaseModel
 
-from ..lib.constants import FAST_LLM, PREFERRED_LLM
+from ..lib.llm_clients import PREFERRED_LLM, FAST_LLM
 from ..lib.models import CacheResponse
 from ..lib.summarizer import AlertSummarizer, RateLimitedException
 
@@ -66,7 +66,7 @@ class SummarizerLambda:
             logger.info("Returning preferred result from cache")
             return pref_result, True
 
-        is_cached, hash_key, token = await self._summarizer.check_for_cached(
+        _, hash_key, token = await self._summarizer.check_for_cached(
             input_text=input_text,
             model=FAST_LLM,
             skip_cache=skip_cache,
@@ -75,12 +75,11 @@ class SummarizerLambda:
         asyncio.get_event_loop().set_task_factory(asyncio.eager_task_factory)
         summarize_task = asyncio.create_task(self._summarizer.summarize(token))
 
-        if not is_cached:
-            self._lambda_client.invoke(
-                FunctionName=os.environ["MULTISUMMARIZER_LAMBDA_NAME"],
-                InvocationType="Event",
-                Payload=json.dumps({"original_text_key": hash_key}),
-            )
+        self._lambda_client.invoke(
+            FunctionName=os.environ["MULTISUMMARIZER_LAMBDA_NAME"],
+            InvocationType="Event",
+            Payload=json.dumps({"original_text_key": hash_key}),
+        )
 
         return await summarize_task, False
 

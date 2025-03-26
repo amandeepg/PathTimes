@@ -8,7 +8,8 @@ from opentelemetry import trace
 from pydantic import BaseModel
 
 from ..lib.cache import CacheService
-from ..lib.constants import ALL_LLM_CLIENTS, BUCKET_NAME
+from ..lib.constants import BUCKET_NAME
+from ..lib.llm_clients import ALL_LLM_CLIENTS
 from ..lib.models import CacheResponse
 from ..lib.summarizer import AlertSummarizer
 
@@ -28,6 +29,13 @@ class MultiSummarizer:
     @tracer.start_as_current_span("multisumm.create_multisummarize_response")
     async def _create_multisummarize_response(self, original_text_key: str) -> dict:
         cached_response = self._cache_service.get(original_text_key)
+        if not cached_response:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "Original text not found"}),
+                "headers": {"Content-Type": "application/json"},
+            }
+
         original_input_text = CacheResponse.model_validate_json(cached_response).input
 
         await self._async_multisummarize(original_input_text)
@@ -35,10 +43,7 @@ class MultiSummarizer:
 
         return {
             "statusCode": 200,
-            "headers": {
-                "Content-Type": "application/json",
-                "Cache-Control": "max-age=86400",  # Cache for 24 hours
-            },
+            "headers": {"Content-Type": "application/json"},
         }
 
     @tracer.start_as_current_span("multisumm.async_multisummarize")
@@ -51,7 +56,7 @@ class MultiSummarizer:
                 summary = await self._summarizer.summarize(cached_result[2])
                 return summary
             except Exception as e:
-                print(f"Exception occurred while summarizing with {client}: {e}")
+                logger.error(f"Exception occurred while summarizing with {client}: {e}")
                 return None
 
         tasks = [

@@ -11,7 +11,6 @@ template_string ChainOfThought() #"
 
 template_string ChainOfThoughtIf() #"
     {%if ctx.client.name == "deepseek/deepseek-r1:price" %}
-    {%elif ctx.client.name == "deepseek/deepseek-r1:free" %}
     {%elif ctx.client.name == "anthropic/claude-3.7-sonnet:thinking" %}
     {%elif ctx.client.name == "openai/o3-mini-high" %}
     {% else %}
@@ -73,14 +72,17 @@ function GetAlertSummary(alert: string) -> AlertSummary {
     References to PATH should be removed if implied, keeping in mind that the target audience is familiar with PATH and utilizes an app exclusive to this transit line.
     Represent dates using American formats with month names, like "Sunday January 26th" or "Monday December 2nd". 
     If no day of the week is specified, then simply use a format like "January 26th".
-    Don't say the word "tips" but just give the advice from the tips succinctly.
+    Remove the word "tips" but just give the advice from the tips succinctly.
     Events at RBA/Red Bull Arena are Red Bulls soccer games.
     Lines are formatted like "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
     If the alert concerns a single station, you don't need to mention the station name.
-    Don't include generic information about issuing an update later.
-    Your answer is very important for my job! So think carefully and take your time!! Don't make mistakes!
+    Remove any generic information text about issuing an update later.
+    Remove any links or URLs.
+    Make sure to keep information about cross-honoring.
+    Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
 
-    Summarize this PATH train alert concisely while preserving all important information.
+    This is your job: Summarize this PATH train alert concisely while preserving all important information.
+    .
 
     {{ ctx.output_format }}
     .
@@ -96,6 +98,7 @@ function IsDelayAlert(alert: string) -> IsDelay {
   prompt #"
     Determine if this PATH train alert is about a service delay.
     Return true only if the alert explicitly mentions delays or service disruptions that cause delays.
+    .
 
     {{ ctx.output_format }}
     .
@@ -112,6 +115,7 @@ function IsRelevantAlert(alert: string) -> IsRelevant {
     Determine if this PATH train alert directly affects rider experience.
     Return true if the alert impacts service, schedules, or station access.
     Return false for general announcements or updates that don't affect travel.
+    .
 
     {{ ctx.output_format }}
     .
@@ -128,6 +132,7 @@ function GetAffectedArea(alert: string) -> (AffectedStations | AffectedRoutes)? 
     Analyze which stations or lines are affected by this PATH alert.
     Return either a list of specific stations OR a list of affected lines, but not both.
     Choose based on which is more specifically impacted by the alert.
+    .
 
     {{ ctx.output_format }}
     .

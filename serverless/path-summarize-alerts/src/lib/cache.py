@@ -5,8 +5,9 @@ from typing import Optional
 import boto3
 from aws_lambda_powertools import Logger
 
-from .constants import CACHE_INT, LlmClient
+from .constants import CACHE_INT
 from .hash_constants import LLM_HASH
+from .llm_client_base import LlmClient
 
 logger = Logger()
 
@@ -23,7 +24,7 @@ class CacheService:
         return f"{LLM_HASH}-{CACHE_INT}"
 
     @staticmethod
-    def hash_key(input_string: str, model: LlmClient) -> str:
+    def hash_llm_key(input_string: str, model: LlmClient) -> str:
         """Create an SHA-1 hash of the input string."""
         input_hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
         model_hash_value = hashlib.sha1(model.id().encode("utf-8")).hexdigest()
@@ -32,6 +33,12 @@ class CacheService:
         )
         logger.debug(f"Generated hash_key: {hash_value}")
         return hash_value
+
+    @staticmethod
+    def hash_key(input_string: str) -> str:
+        """Create an SHA-1 hash of the input string."""
+        input_hash_value = hashlib.sha1(input_string.encode("utf-8")).hexdigest()
+        return input_hash_value
 
     @staticmethod
     def create_versioned_key(hash_key: str) -> str:

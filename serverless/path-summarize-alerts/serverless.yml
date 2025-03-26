@@ -53,9 +53,6 @@ provider:
     SKIP_CACHE_MAGIC_WORD: ${file(./config.yml):SKIP_CACHE_MAGIC_WORD}
     OPENROUTER_APP_NAME: ${file(./config.yml):OPENROUTER_APP_NAME}
     OPENROUTER_APP_URL: ${file(./config.yml):OPENROUTER_APP_URL}
-    BOUNDARY_PROJECT_ID: ${file(./config.yml):BOUNDARY_PROJECT_ID}
-    BOUNDARY_SECRET: ${file(./config.yml):BOUNDARY_SECRET}
-    GOOGLE_API_KEY: ${file(./config.yml):GOOGLE_API_KEY}
     MULTISUMMARIZER_LAMBDA_NAME: ${self:service}-${self:provider.stage}-multisummarize
     AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
     BAML_LOG: info

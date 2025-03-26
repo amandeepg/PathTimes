@@ -17,7 +17,8 @@ from baml_client.types import (
     IsDelay,
 )
 from .cache import CacheService
-from .constants import BUCKET_NAME, BUCKET_NAME_RATE_LIMIT, LlmClient
+from .constants import BUCKET_NAME, BUCKET_NAME_RATE_LIMIT
+from .llm_client_base import LlmClient
 from .models import CacheResponse, AlertSummaryContainer
 
 logger = Logger()
@@ -46,7 +47,7 @@ class AlertSummarizer:
     async def check_for_cached(
         self, input_text: str, model: LlmClient, skip_cache: bool = False
     ) -> tuple[bool, str, __Token]:
-        hash_key = self._cache_service.hash_key(input_text, model)
+        hash_key = self._cache_service.hash_llm_key(input_text, model)
         if not skip_cache and (
             response_data := await self.summarize_from_cache(input_text, model)
         ):
@@ -67,7 +68,7 @@ class AlertSummarizer:
             return token.data
 
         try:
-            hash_key = self._cache_service.hash_key(token.input_text, token.model)
+            hash_key = self._cache_service.hash_llm_key(token.input_text, token.model)
 
             response_data = CacheResponse(
                 input=token.input_text,
@@ -90,7 +91,7 @@ class AlertSummarizer:
     async def summarize_from_cache(
         self, input_text: str, model: LlmClient
     ) -> CacheResponse | None:
-        hash_key = self._cache_service.hash_key(input_text, model)
+        hash_key = self._cache_service.hash_llm_key(input_text, model)
         cache_content = self._cache_service.get(hash_key)
         if cache_content:
             logger.info(f"Cache hit for hash: {hash_key}")
@@ -153,21 +154,25 @@ class AlertSummarizer:
 
     @tracer.start_as_current_span("summ.get_affected_area")
     async def _get_affected_area(
-        self, cr: object, input_text: str
+        self, cr: ClientRegistry, input_text: str
     ) -> AffectedStations | AffectedRoutes | None:
-        return await b.GetAffectedArea(input_text, {"client_registry": cr})
+        return await b.GetAffectedArea(input_text, baml_options={"client_registry": cr})
 
     @tracer.start_as_current_span("summ.is_relevant_alert")
-    async def _is_relevant_alert(self, cr: object, input_text: str) -> IsRelevant:
-        return await b.IsRelevantAlert(input_text, {"client_registry": cr})
+    async def _is_relevant_alert(
+        self, cr: ClientRegistry, input_text: str
+    ) -> IsRelevant:
+        return await b.IsRelevantAlert(input_text, baml_options={"client_registry": cr})
 
     @tracer.start_as_current_span("summ.is_delay_alert")
-    async def _is_delay_alert(self, cr: object, input_text: str) -> IsDelay:
-        return await b.IsDelayAlert(input_text, {"client_registry": cr})
+    async def _is_delay_alert(self, cr: ClientRegistry, input_text: str) -> IsDelay:
+        return await b.IsDelayAlert(input_text, baml_options={"client_registry": cr})
 
     @tracer.start_as_current_span("summ.get_alert_summary")
-    async def _get_alert_summary(self, cr: object, input_text: str) -> AlertSummary:
-        return await b.GetAlertSummary(input_text, {"client_registry": cr})
+    async def _get_alert_summary(
+        self, cr: ClientRegistry, input_text: str
+    ) -> AlertSummary:
+        return await b.GetAlertSummary(input_text, baml_options={"client_registry": cr})
 
     @staticmethod
     def _client_registry(model: LlmClient) -> ClientRegistry:

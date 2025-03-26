@@ -26,15 +26,14 @@ def compute_directory_hash(directory: str):
         # Hash the relative path
         sha1.update(rel_path.encode("utf-8"))
 
-        # Hash file contents in chunks
+        # Hash file contents in chunks, normalizing line endings
         full_path = os.path.join(directory, rel_path)
         try:
             with open(full_path, "rb") as f:
-                while True:
-                    chunk = f.read(4096)  # Read in 4KB chunks
-                    if not chunk:
-                        break
-                    sha1.update(chunk)
+                content = f.read()
+                # Normalize line endings to LF (\n) by replacing CRLF (\r\n) with LF
+                normalized_content = content.replace(b"\r\n", b"\n")
+                sha1.update(normalized_content)
         except IOError as e:
             raise RuntimeError(f"Error reading {full_path}: {e}")
 
