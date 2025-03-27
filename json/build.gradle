@@ -1,0 +1,64 @@
+plugins {
+    id 'com.android.library'
+    id 'com.google.devtools.ksp'
+    id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jmailen.kotlinter'
+}
+
+android {
+    namespace 'ca.amandeep.path.json'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 29
+
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    kotlin {
+        jvmToolchain(17)
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    }
+
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
+}
+
+dependencies {
+    implementation(project(":util"))
+
+    implementation KotlinX.collections.immutable
+
+    implementation Square.moshi
+    ksp Square.moshi.kotlinCodegen
+
+    implementation 'com.github.ajalt:timberkt:_'
+    implementation JakeWharton.timber
+
+    implementation AndroidX.compose.ui.tooling
+    debugImplementation AndroidX.compose.ui.toolingPreview
+
+    testImplementation(Testing.junit4)
+    testImplementation "com.google.truth:truth:_"
+    testImplementation "com.google.truth.extensions:truth-java8-extension:_"
+}

@@ -1,5 +1,15 @@
 import de.fayard.refreshVersions.core.StabilityLevel
 
+include(":app")
+include(":data")
+include(":json")
+include(":main-core")
+include(":strings")
+include(":ui-alerts")
+include(":ui-core")
+include(":ui-stations")
+include(":util")
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -27,4 +37,3 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "PATH"
-include(":app")

@@ -1,7 +1,6 @@
 @file:OptIn(
     ExperimentalMaterialApi::class,
     ExperimentalMaterial3Api::class,
-    ExperimentalTime::class,
 )
 
 package ca.amandeep.path.ui.main
@@ -67,23 +66,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ca.amandeep.path.R
 import ca.amandeep.path.data.model.State
-import ca.amandeep.path.ui.ErrorBar
-import ca.amandeep.path.ui.ErrorScreen
-import ca.amandeep.path.ui.KeepUpdatedEffect
-import ca.amandeep.path.ui.LastUpdatedInfoRow
-import ca.amandeep.path.ui.LastUpdatedUiModel
-import ca.amandeep.path.ui.alerts.ExpandableAlerts
-import ca.amandeep.path.ui.rememberLastUpdatedState
-import ca.amandeep.path.ui.requireOptionalLocationItem
-import ca.amandeep.path.ui.stations.DirectionWarning
-import ca.amandeep.path.ui.stations.Station
+import ca.amandeep.path.main.core.ArrivalsUiModel
+import ca.amandeep.path.main.core.MainUiModel
+import ca.amandeep.path.main.core.Result
+import ca.amandeep.path.main.core.UserState
+import ca.amandeep.path.strings.R
 import ca.amandeep.path.util.ConnectionState
 import ca.amandeep.path.util.checkPermission
 import ca.amandeep.path.util.observeConnectivity
+import ca.amandeep.ui.core.ErrorBar
+import ca.amandeep.ui.core.ErrorScreen
+import ca.amandeep.ui.core.KeepUpdatedEffect
+import ca.amandeep.ui.core.LastUpdatedInfoRow
+import ca.amandeep.ui.core.LastUpdatedUiModel
+import ca.amandeep.ui.core.rememberLastUpdatedState
+import ca.amandeep.ui.core.requireOptionalLocationItem
+import com.example.ui.alerts.ExpandableAlerts
+import com.example.ui.stations.DirectionWarning
+import com.example.ui.stations.Station
 import com.github.ajalt.timberkt.d
 import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
 import kotlinx.collections.immutable.ImmutableList
@@ -95,7 +97,6 @@ import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 
 @Composable
 fun MainScreen(
@@ -300,8 +301,10 @@ private fun setAndComputeLastGoodState(
     )
 
     // If all trains are empty, force a refresh, and show a loading screen
-    val allTrainsEmpty = lastGoodState.arrivals is Result.Valid &&
-        lastGoodState.arrivals.data.all { it.second.all { it.isDepartedTrain } }
+    val allTrainsEmpty = lastGoodState.arrivals.let {
+        it is Result.Valid &&
+            it.data.all { it.second.all { it.isDepartedTrain } }
+    }
     LaunchedEffect(allTrainsEmpty, forceUpdate) {
         if (allTrainsEmpty) {
             forceUpdate()
@@ -461,16 +464,16 @@ private fun MainScreenContent(
             targetState = uiModel.arrivals is Result.Loading,
             label = "loading crossfade",
         ) { isLoading ->
-            when (isLoading || uiModel.arrivals !is Result.Valid) {
+            val uiModelArrivals = uiModel.arrivals
+            when (isLoading || uiModelArrivals !is Result.Valid) {
                 true -> LoadingScreen()
                 false -> {
-                    val lastUpdatedState = rememberLastUpdatedState(uiModel.arrivals.lastUpdated)
-                    lastUpdatedState.KeepUpdatedEffect(uiModel.arrivals.lastUpdated, 1.seconds)
+                    val lastUpdatedState = rememberLastUpdatedState(uiModelArrivals.lastUpdated)
+                    lastUpdatedState.KeepUpdatedEffect(uiModelArrivals.lastUpdated, 1.seconds)
                     val requireOptionalLocationItem = requireOptionalLocationItem(
                         permissionsUpdated = locationPermissionsUpdated,
                         navigateToSettingsScreen = {
-                            startActivity(
-                                it,
+                            it.startActivity(
                                 Intent(
                                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                                     Uri.fromParts("package", it.packageName, null),
@@ -565,10 +568,10 @@ fun LoadedScreen(
             Column {
                 requireOptionalLocationItem(spacingModifier)
 
-                val alertsModel = when (uiModel.alerts) {
-                    is Result.Valid -> uiModel.alerts.copy(
-                        data = uiModel.alerts.data.copy(
-                            alerts = uiModel.alerts.data.alerts.filter {
+                val alertsModel = when (val uiModelAlerts = uiModel.alerts) {
+                    is Result.Valid -> uiModelAlerts.copy(
+                        data = uiModelAlerts.data.copy(
+                            alerts = uiModelAlerts.data.alerts.filter {
                                 if (userState.showElevatorAlerts) {
                                     true
                                 } else {
@@ -578,7 +581,7 @@ fun LoadedScreen(
                         ),
                     )
 
-                    else -> uiModel.alerts
+                    else -> uiModelAlerts
                 }
                 ExpandableAlerts(
                     modifier = spacingModifier,
@@ -670,13 +673,5 @@ private fun LoadingScreen() {
         Text(text = stringResource(R.string.loading), color = MaterialTheme.colorScheme.secondary)
     }
 }
-
-data class UserState(
-    val shortenNames: Boolean,
-    val showOppositeDirection: Boolean,
-    val showElevatorAlerts: Boolean,
-    val showHelpGuide: Boolean,
-    val isInNJ: Boolean,
-)
 
 const val TOP_LAST_UPDATED_THRESHOLD_SECS: Long = 60 * 2

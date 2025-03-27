@@ -6,7 +6,6 @@ plugins {
     id 'app.cash.licensee'
     id 'app.cash.paparazzi'
     id 'com.android.application'
-    id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
@@ -86,6 +85,14 @@ tasks.withType(KotlinCompile) {
 }
 
 dependencies {
+    implementation(project(":data"))
+    implementation(project(":main-core"))
+    implementation(project(":strings"))
+    implementation(project(":ui-alerts"))
+    implementation(project(":ui-core"))
+    implementation(project(":ui-stations"))
+    implementation(project(":util"))
+
     implementation AndroidX.activity.compose
     implementation AndroidX.compose.material
     implementation AndroidX.compose.material.icons.extended
@@ -98,22 +105,9 @@ dependencies {
     implementation AndroidX.lifecycle.runtime.ktx
     implementation AndroidX.lifecycle.viewModelKtx
     implementation AndroidX.navigation.compose
-    implementation AndroidX.work.runtimeKtx
     implementation KotlinX.collections.immutable
 
-    //noinspection GradleDependency breaking permissions changes, TODO handle them
-    implementation Google.accompanist.permissions
-    implementation Google.android.playServices.location
-
-    implementation Square.moshi.adapters
-    implementation Square.moshi
-    ksp Square.moshi.kotlinCodegen
-    implementation Square.retrofit2.converter.moshi
-    implementation Square.retrofit2.converter.scalars
-    implementation Square.retrofit2
-
     implementation "dev.burnoo:compose-remember-preference:_"
-    implementation "org.jsoup:jsoup:_"
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber
@@ -139,4 +133,6 @@ licensee {
 
 tasks.withType(Test) {
     android.sourceSets.main.res.srcDirs += 'src/test/res'
+    maxParallelForks = 4
 }
+

@@ -16,7 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ca.amandeep.path.ui.main.MainScreen
 import ca.amandeep.path.ui.main.MainViewModelImpl
-import ca.amandeep.path.ui.theme.PATHTheme
+import ca.amandeep.ui.core.theme.PATHTheme
 
 class MainActivity : ComponentActivity() {
     private val mainViewModelImpl by viewModels<MainViewModelImpl>()
