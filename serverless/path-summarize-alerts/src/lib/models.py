@@ -5,7 +5,6 @@ from baml_client.types import AffectedStations, AffectedRoutes
 class AlertSummaryContainer(BaseModel):
     text: str
     is_delay: bool
-    is_relevant: bool
     affected_area: AffectedStations | AffectedRoutes | None
 
 
@@ -15,4 +14,5 @@ class CacheResponse(BaseModel):
     model: str
     cache_version: str
     cached: bool
+    generated_at: int
     hash_key: str

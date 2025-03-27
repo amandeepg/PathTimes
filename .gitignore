@@ -320,3 +320,4 @@ obj/
 gradlew.bat
 
 .kotlin/sessions
+.aider*

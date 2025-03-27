@@ -179,7 +179,7 @@ class CacheViewer:
                         <td colspan="6">
                             {{ data_group[0].hash_key.split('/', 1)[0] }} 
                             <span style="color: #757575; font-size: 0.8em; margin-left: 8px;">
-                                ({{ data_group[0].response.generatedAt|format_date }})
+                                ({{ data_group[0].generated_at|format_date }})
                             </span>
                         </td>
                     </tr>
@@ -225,8 +225,9 @@ class CacheViewer:
         self._main_template = self._template_env.from_string(self.HTML_TEMPLATE)
 
     @staticmethod
-    def _format_generated_date(dt: datetime) -> str:
-        return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else "N/A"
+    def _format_generated_date(epoch: int) -> str:
+        dt = datetime.fromtimestamp(epoch) if epoch else None
+        return dt.strftime("%B %d, %Y %I:%M:%S %p").replace(" 0", " ") if dt else "N/A"
 
     def handle(self, event: dict) -> dict:
         """Renders HTML with a table showing data from the S3 bucket."""

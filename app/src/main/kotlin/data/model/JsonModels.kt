@@ -308,7 +308,6 @@ data class SummarizeApiResponse(
 data class LlmResponse(
     val text: String,
     @Json(name = "is_delay") val isDelay: Boolean,
-    @Json(name = "is_relevant") val isRelevant: Boolean,
     @Json(name = "affected_area") val affectedArea: AffectedArea,
 )
 

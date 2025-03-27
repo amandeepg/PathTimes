@@ -55,10 +55,6 @@ class IsDelay {
   is_delay bool
 }
 
-class IsRelevant {
-  is_relevant bool
-}
-
 class AlertSummary {
   alert_summary string
 }
@@ -66,16 +62,16 @@ class AlertSummary {
 function GetAlertSummary(alert: string) -> AlertSummary {
   client PlaygroundDefault
   prompt #"
-    You are a very helpful transit agency alert summarizer to take alert text from a transit agency (the PATH subway transit system in NYC and NJ) and make it more digestible for transit riders. 
+    You are a very helpful transit agency alert summarizer to take alert text from a transit agency (the PATH transit system in NYC and NJ) and make it more digestible for transit riders.
     Shorten the text by omitting unnecessary fluff and politeness, assuming the rider is an experienced traveler, they don't need to be coddled by telling them to pay attention or that to leave extra time for delays.
     Riders already know that delays do cause inconvenience and that it will slow their journey.
     References to PATH should be removed if implied, keeping in mind that the target audience is familiar with PATH and utilizes an app exclusive to this transit line.
     Represent dates using American formats with month names, like "Sunday January 26th" or "Monday December 2nd". 
     If no day of the week is specified, then simply use a format like "January 26th".
     Remove the word "tips" but just give the advice from the tips succinctly.
-    Events at RBA/Red Bull Arena are Red Bulls soccer games.
+    Events at "Sports Illustrated Stadium" are Red Bulls soccer games. Refer to the stadium as "Sports Illustrated Stadium (formerly Red Bull Area) in Harrison".
     Lines are formatted like "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
-    If the alert concerns a single station, you don't need to mention the station name.
+    If the alert concerns a single station, you must omit mentioning the station name.
     Remove any generic information text about issuing an update later.
     Remove any links or URLs.
     Make sure to keep information about cross-honoring.
@@ -98,23 +94,6 @@ function IsDelayAlert(alert: string) -> IsDelay {
   prompt #"
     Determine if this PATH train alert is about a service delay.
     Return true only if the alert explicitly mentions delays or service disruptions that cause delays.
-    .
-
-    {{ ctx.output_format }}
-    .
-    {{ ChainOfThoughtIf() }}
-    .
-
-    {{ _.role("user") }} {{ alert }}
-  "#
-}
-
-function IsRelevantAlert(alert: string) -> IsRelevant {
-  client PlaygroundDefault
-  prompt #"
-    Determine if this PATH train alert directly affects rider experience.
-    Return true if the alert impacts service, schedules, or station access.
-    Return false for general announcements or updates that don't affect travel.
     .
 
     {{ ctx.output_format }}
@@ -156,14 +135,6 @@ test DelayTest {
     alert "Due to signal problems at Journal Square, JSQ-33rd Street via HOB service is operating with delays."
   }
   @@assert(isRight, {{ this|attr('is_delay') == true }})
-}
-
-test RelevanceTest {
-  functions [IsRelevantAlert]
-  args {
-    alert "Happy Holidays from everyone at PATH! Have a great Christmas-time."
-  }
-  @@assert(isRight, {{ this|attr('is_relevant') == false }})
 }
 
 test AffectedAreaTest {

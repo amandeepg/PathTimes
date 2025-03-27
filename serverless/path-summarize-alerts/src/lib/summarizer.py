@@ -13,7 +13,6 @@ from baml_client.types import (
     AlertSummary,
     AffectedStations,
     AffectedRoutes,
-    IsRelevant,
     IsDelay,
 )
 from .cache import CacheService
@@ -75,6 +74,7 @@ class AlertSummarizer:
                 model=token.model.id(),
                 cache_version=CacheService.hash_category_key(),
                 response=await self._get_ai_response(token.input_text, token.model),
+                generated_at=int(time.time()),
                 cached=False,
                 hash_key=hash_key,
             )
@@ -138,17 +138,15 @@ class AlertSummarizer:
         trace.get_current_span().set_attribute(key="llm", value=model.id())
         cr = self._client_registry(model)
 
-        summary, is_delay, is_relevant, affected_area = await asyncio.gather(
+        summary, is_delay, affected_area = await asyncio.gather(
             self._get_alert_summary(cr, input_text),
             self._is_delay_alert(cr, input_text),
-            self._is_relevant_alert(cr, input_text),
             self._get_affected_area(cr, input_text),
         )
 
         return AlertSummaryContainer(
             text=summary.alert_summary,
             is_delay=is_delay.is_delay,
-            is_relevant=is_relevant.is_relevant,
             affected_area=affected_area,
         )
 
@@ -157,12 +155,6 @@ class AlertSummarizer:
         self, cr: ClientRegistry, input_text: str
     ) -> AffectedStations | AffectedRoutes | None:
         return await b.GetAffectedArea(input_text, baml_options={"client_registry": cr})
-
-    @tracer.start_as_current_span("summ.is_relevant_alert")
-    async def _is_relevant_alert(
-        self, cr: ClientRegistry, input_text: str
-    ) -> IsRelevant:
-        return await b.IsRelevantAlert(input_text, baml_options={"client_registry": cr})
 
     @tracer.start_as_current_span("summ.is_delay_alert")
     async def _is_delay_alert(self, cr: ClientRegistry, input_text: str) -> IsDelay:

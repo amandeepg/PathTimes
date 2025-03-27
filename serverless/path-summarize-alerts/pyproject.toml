@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aws-lambda-powertools[parser]>=3.6.0",
-    "baml-py>=0.78.0",
+    "baml-py>=0.81.1",
     "boto3>=1.36.23",
     "botocore>=1.36.23",
     "jinja2>=3.1.5",

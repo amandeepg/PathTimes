@@ -122,7 +122,17 @@ class PathRepository(
         summarizedText: String,
         summarizeApiResponse: SummarizeApiResponse,
     ): AlertData {
-        val newAlert = copy(text = "✦ $summarizedText")
+        val modelStrSimple = summarizeApiResponse.model.let {
+             when {
+                it.contains("o3-mini") -> "O3m"
+                it.contains("us.meta.llama3") -> "L3"
+                it.contains("gemini-2.0-flash") -> "G2f"
+                it.contains("chat-v3") -> "V3"
+                it.contains("deepseek-r1") -> "R1"
+                else -> it
+            }
+        }
+        val newAlert = copy(text = "✦ ($modelStrSimple) $summarizedText")
         val routes = summarizeApiResponse.response.affectedArea.affectedRoutes
         val stations = summarizeApiResponse.response.affectedArea.affectedStations
         return if (routes?.isNotEmpty() == true) {
