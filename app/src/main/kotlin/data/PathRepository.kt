@@ -123,7 +123,7 @@ class PathRepository(
         summarizeApiResponse: SummarizeApiResponse,
     ): AlertData {
         val modelStrSimple = summarizeApiResponse.model.let {
-             when {
+            when {
                 it.contains("o3-mini") -> "O3m"
                 it.contains("us.meta.llama3") -> "L3"
                 it.contains("gemini-2.0-flash") -> "G2f"
