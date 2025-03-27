@@ -1,6 +1,7 @@
 import asyncio
 import json
 from typing import Optional, List, Dict
+from datetime import datetime
 
 import boto3
 import jinja2
@@ -175,7 +176,12 @@ class CacheViewer:
                     </tr>
                     {% endif %}
                     <tr class="group-header">
-                        <td colspan="6">{{ data_group[0].hash_key.split('/', 1)[0] }}</td>
+                        <td colspan="6">
+                            {{ data_group[0].hash_key.split('/', 1)[0] }} 
+                            <span style="color: #757575; font-size: 0.8em; margin-left: 8px;">
+                                ({{ data_group[0].response.generatedAt|format_date }})
+                            </span>
+                        </td>
                     </tr>
                     {% for data in data_group %}
                         <tr>
@@ -214,8 +220,13 @@ class CacheViewer:
             self.PAGE_TEMPLATE
         )
         self._template_env.globals["format_affected_area"] = self._format_affected_area
+        self._template_env.filters["format_date"] = self._format_generated_date
         self._error_template = self._template_env.from_string(self.ERROR_TEMPLATE)
         self._main_template = self._template_env.from_string(self.HTML_TEMPLATE)
+
+    @staticmethod
+    def _format_generated_date(dt: datetime) -> str:
+        return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else "N/A"
 
     def handle(self, event: dict) -> dict:
         """Renders HTML with a table showing data from the S3 bucket."""
