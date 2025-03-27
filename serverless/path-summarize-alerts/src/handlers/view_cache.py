@@ -10,6 +10,7 @@ from opentelemetry import trace
 
 from ..lib.cache import CacheService
 from ..lib.constants import BUCKET_NAME
+from ..lib.llm_clients import ALL_LLM_CLIENTS
 from ..lib.models import CacheResponse
 from ..lib.summarizer import AlertSummarizer
 
@@ -129,14 +130,6 @@ class CacheViewer:
         background-color: #c8e6c9;
         color: #2e7d32;
     }
-    .chip.relevant {
-        background-color: #bbdefb;
-        color: #1565c0;
-    }
-    .chip.not-relevant {
-        background-color: #eeeeee;
-        color: #616161;
-    }
     .summary-text {
         max-width: 300px;
         white-space: pre-wrap;
@@ -171,7 +164,6 @@ class CacheViewer:
                     <th>Input</th>
                     <th>Summary</th>
                     <th>Delay</th>
-                    <th>Relevant</th>
                     <th>Affected Area</th>
                 </tr>
             </thead>
@@ -191,7 +183,6 @@ class CacheViewer:
                             <td class="input-text">{% if loop.first %}{{ input_text }}{% endif %}</td>
                             <td class="summary-text">{{ data.response.text }}</td>
                             <td><span class="chip {{ 'delay' if data.response.is_delay else 'normal' }}">{{ "Yes" if data.response.is_delay else "No" }}</span></td>
-                            <td><span class="chip {{ 'relevant' if data.response.is_relevant else 'not-relevant' }}">{{ "Yes" if data.response.is_relevant else "No" }}</span></td>
                             <td class="affected-area">{{ format_affected_area(data.response.affected_area) }}</td>
                         </tr>
                     {% endfor %}
@@ -262,7 +253,15 @@ class CacheViewer:
                 }
 
             html_content = self._generate_html_table(
-                asyncio.run(self._fetch_files_async(response["Contents"]))
+                asyncio.run(
+                    self._fetch_files_async(
+                        sorted(
+                            response["Contents"],
+                            key=lambda x: x["LastModified"],
+                            reverse=True,
+                        )
+                    )
+                )
             )
 
             return {
@@ -309,9 +308,14 @@ class CacheViewer:
                 title="No Data", message="No valid files found"
             )
 
+        # Extract the model IDs into a set for efficient lookup
+        all_llm_client_ids = {client.id() for client in ALL_LLM_CLIENTS}
+
         files_by_input: Dict[str, List[CacheResponse]] = {}
         for data in files_data:
             if "testinput" in data.input:
+                continue
+            if data is None or data.model not in all_llm_client_ids:
                 continue
             if data.input not in files_by_input:
                 files_by_input[data.input] = []
