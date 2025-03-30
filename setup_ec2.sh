@@ -200,4 +200,7 @@ sdk install gradle 8.13
 # --- Done ---
 echo ""
 echo " SCRIPT COMPLETE: Android build environment setup finished!"
+echo " RUN THE FOLLOWING: "
+echo "source \"/home/ec2-user/.sdkman/bin/sdkman-init.sh\""
+echo "source \"/etc/profile.d/android-sdk.sh\""
 echo ""
