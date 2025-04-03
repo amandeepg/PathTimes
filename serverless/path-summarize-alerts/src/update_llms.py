@@ -23,11 +23,10 @@ class {llm_name}({client_class}):
     return class_template
 
 
-def generate_all_llm_clients(llms: List[str], fast_llm: str) -> str:
+def generate_all_llm_clients(llms: List[str]) -> str:
     all_llm_clients = []
     for llm_name in llms:
-        if llm_name != fast_llm:  # Skip the fast LLM
-            all_llm_clients.append(f"{llm_name}()")
+        all_llm_clients.append(f"{llm_name}()")
     return (
         "ALL_LLM_CLIENTS: list[LlmClient] = [\n    "
         + ",\n    ".join(all_llm_clients)
@@ -48,7 +47,6 @@ def generate_python_file(config: Dict[str, Any]) -> None:
     openrouter_llms = config["openrouter"]
     bedrock_llms = config["bedrock"]
     preferences = config["preferences"]
-    fast_llm = preferences["fast_llm"]  # Get the fast LLM name
 
     with open("src/lib/llm_clients.py", "w") as f:
         f.write(
@@ -66,7 +64,7 @@ def generate_python_file(config: Dict[str, Any]) -> None:
         # Generate ALL_LLM_CLIENTS list
         all_llms = list(openrouter_llms.keys()) + list(bedrock_llms.keys())
         f.write("\n")
-        f.write(generate_all_llm_clients(all_llms, fast_llm))
+        f.write(generate_all_llm_clients(all_llms))
         f.write("\n\n")
 
         # Generate preferences
