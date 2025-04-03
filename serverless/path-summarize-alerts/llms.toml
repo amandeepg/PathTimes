@@ -1,13 +1,15 @@
 [openrouter]
-R1 = { model = "deepseek/deepseek-r1:price" }
-V3 = { model = "deepseek/deepseek-chat-v3-0324:price" }
-GeminiFlash = { model = "google/gemini-2.0-flash-001" }
-O3 = { model = "openai/o3-mini-high" }
-GPT4oMini = { model = "openai/gpt-4o-mini" }
+R1 = { model = "deepseek/deepseek-r1:price", cost = 1.4 }
+V3 = { model = "deepseek/deepseek-chat-v3-0324:price", cost = 0.7 }
+GeminiFlash = { model = "google/gemini-2.0-flash-001", cost = 0.3 }
+O3 = { model = "openai/o3-mini-high", cost = 2.8 }
+GPT4oMini = { model = "openai/gpt-4o-mini", cost = 0.5 }
+GPT4o = { model = "openai/chatgpt-4o-latest", cost = 10.0 }
+Haiku = { model = "anthropic/claude-3.5-haiku", cost = 2.4 }
 
 [bedrock]
-Llama3dot370b = { model = "us.meta.llama3-3-70b-instruct-v1:0" }
+Llama3dot370b = { model = "us.meta.llama3-3-70b-instruct-v1:0", cost = 0.72 }
 
 [preferences]
 fast_llm = "Llama3dot370b"
-preferred_llm = "O3"
+preferred_llm = "GPT4o"

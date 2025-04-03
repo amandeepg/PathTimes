@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from baml_client.types import AffectedStations, AffectedRoutes
+from ..baml_client.types import AffectedStations, AffectedRoutes
 
 
 class AlertSummaryContainer(BaseModel):

@@ -124,11 +124,13 @@ class PathRepository(
     ): AlertData {
         val modelStrSimple = summarizeApiResponse.model.let {
             when {
-                it.contains("o3-mini") -> "O3m"
-                it.contains("us.meta.llama3") -> "L3"
-                it.contains("gemini-2.0-flash") -> "G2f"
-                it.contains("chat-v3") -> "V3"
-                it.contains("deepseek-r1") -> "R1"
+                it.contains("o3-mini", ignoreCase = true) -> "o3m"
+                it.contains("us.meta.llama3", ignoreCase = true) -> "l3"
+                it.contains("gpt-4o", ignoreCase = true) -> "4o"
+                it.contains("haiku", ignoreCase = true) -> "haiku"
+                it.contains("gemini-2.0-flash", ignoreCase = true) -> "g2f"
+                it.contains("chat-v3", ignoreCase = true) -> "v3"
+                it.contains("deepseek-r1", ignoreCase = true) -> "r1"
                 else -> it
             }
         }

@@ -11,7 +11,9 @@ template_string ChainOfThought() #"
 
 template_string ChainOfThoughtIf() #"
     {%if ctx.client.name == "deepseek/deepseek-r1:price" %}
+    {%elif ctx.client.name == "deepseek/deepseek-r1" %}
     {%elif ctx.client.name == "anthropic/claude-3.7-sonnet:thinking" %}
+    {%elif ctx.client.name == "anthropic/claude-3.7-sonnet" %}
     {%elif ctx.client.name == "openai/o3-mini-high" %}
     {% else %}
       {{ ChainOfThought() }}
@@ -93,7 +95,9 @@ function IsDelayAlert(alert: string) -> IsDelay {
   client PlaygroundDefault
   prompt #"
     Determine if this PATH train alert is about a service delay.
-    Return true only if the alert explicitly mentions delays or service disruptions that cause delays.
+    Return true only if the alert mentions delays or service disruptions that cause delays for people on the train or waiting for the train.
+    Trains skipping stops or closed stations are not delays.
+    A delay means that the train will be running slower or arrive later than the rider anticipates.
     .
 
     {{ ctx.output_format }}

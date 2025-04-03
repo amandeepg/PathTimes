@@ -8,8 +8,8 @@ from baml_py import ClientRegistry
 from botocore.exceptions import ClientError
 from opentelemetry import trace
 
-from baml_client import b
-from baml_client.types import (
+from ..baml_client import b
+from ..baml_client.types import (
     AlertSummary,
     AffectedStations,
     AffectedRoutes,

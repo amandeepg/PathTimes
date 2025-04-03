@@ -7,6 +7,7 @@ def generate_llm_class(
 ) -> str:
     model = llm_config["model"]
     version = llm_config.get("version", 1)  # Default to 1 if version is not specified
+    cost = llm_config.get("cost", float(0.0))
 
     class_template = f"""
 class {llm_name}({client_class}):
@@ -15,6 +16,9 @@ class {llm_name}({client_class}):
 
     def _version(self) -> int:
         return {version}
+
+    def cost(self) -> float:
+        return {cost}
 """
     return class_template
 

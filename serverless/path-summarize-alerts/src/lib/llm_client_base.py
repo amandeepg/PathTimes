@@ -21,6 +21,10 @@ class LlmClient(ABC):
     def _version(self) -> int:
         pass
 
+    @abstractmethod
+    def cost(self) -> float:
+        pass
+
     def _add_to_registry(self, cr: ClientRegistry, provider: str, options: dict):
         cr.add_llm_client(
             name=self.id(),

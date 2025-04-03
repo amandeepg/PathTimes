@@ -9,6 +9,7 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 
+from ..baml_client.types import AffectedStations, AffectedRoutes
 from ..lib.cache import CacheService
 from ..lib.constants import BUCKET_NAME
 from ..lib.llm_clients import ALL_LLM_CLIENTS
@@ -185,7 +186,7 @@ class CacheViewer:
                     </tr>
                     {% for data in data_group %}
                         <tr>
-                            <td class="model-name">{{ data.model }}</td>
+                            <td class="model-name">{{ data.model }} ({{ data.model|get_model_price }})</td>
                             <td class="input-text">{% if loop.first %}{{ input_text }}{% endif %}</td>
                             <td class="summary-text">{{ data.response.text }}</td>
                             <td><span class="chip {{ 'delay' if data.response.is_delay else 'normal' }}">{{ "Yes" if data.response.is_delay else "No" }}</span></td>
@@ -220,6 +221,7 @@ class CacheViewer:
             self.PAGE_TEMPLATE
         )
         self._template_env.globals["format_affected_area"] = self._format_affected_area
+        self._template_env.filters["get_model_price"] = self._get_model_price
         self._template_env.filters["format_date"] = self._format_generated_date
         self._error_template = self._template_env.from_string(self.ERROR_TEMPLATE)
         self._main_template = self._template_env.from_string(self.HTML_TEMPLATE)
@@ -340,7 +342,9 @@ class CacheViewer:
         )
 
     @staticmethod
-    def _format_affected_area(affected_area):
+    def _format_affected_area(
+        affected_area: AffectedStations | AffectedRoutes | None,
+    ) -> str:
         if not affected_area:
             return "None"
 
@@ -350,6 +354,15 @@ class CacheViewer:
             return f"Stations: {', '.join(str(s).replace('PathStation.', '') for s in affected_area.affected_stations)}"
 
         return "None"
+
+    @staticmethod
+    def _get_model_price(model_id: str) -> str:
+        # find model_id in ALL_LLM_CLIENTS.map(id)
+        for client in ALL_LLM_CLIENTS:
+            if client.id() == model_id:
+                # format in $x.xx
+                return f"${client.cost():.2f}"
+        return "$0"
 
 
 handler = CacheViewer()

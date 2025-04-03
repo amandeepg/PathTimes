@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+uv sync
+
 uv run baml-cli generate
 
 rm src/lib/hash_constants.py

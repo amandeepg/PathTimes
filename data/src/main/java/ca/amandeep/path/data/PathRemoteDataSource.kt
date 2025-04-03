@@ -245,8 +245,9 @@ sealed interface AlertData {
         val main: Single,
         val history: ImmutableList<Single> = persistentListOf(),
     ) : AlertData {
-        override val isElevator: Boolean = (main.isElevator || (title is Title.FreeformTitle && title.text?.isElevator() == true)) &&
-            history.all { it.isElevator }
+        override val isElevator: Boolean = main.isElevator ||
+                (title is Title.FreeformTitle && title.text?.isElevator() == true) ||
+                (history.isNotEmpty() && history.all { it.isElevator })
 
         @Immutable
         sealed interface Title {
