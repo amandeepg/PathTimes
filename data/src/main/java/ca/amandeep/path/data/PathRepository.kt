@@ -131,6 +131,10 @@ class PathRepository(
                 it.contains("gemini-2.0-flash", ignoreCase = true) -> "g2f"
                 it.contains("chat-v3", ignoreCase = true) -> "v3"
                 it.contains("deepseek-r1", ignoreCase = true) -> "r1"
+                it.contains("scout", ignoreCase = true) -> "scout"
+                it.contains("maverick", ignoreCase = true) -> "maverick"
+                it.contains("gemini-2.5-pro", ignoreCase = true) -> "g25p"
+                it.contains("quasar-alpha", ignoreCase = true) -> "qa"
                 else -> it
             }
         }
