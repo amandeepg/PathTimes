@@ -6,10 +6,14 @@ O3 = { model = "openai/o3-mini-high", cost = 2.8 }
 GPT4oMini = { model = "openai/gpt-4o-mini", cost = 0.5 }
 GPT4o = { model = "openai/chatgpt-4o-latest", cost = 10.0 }
 Haiku = { model = "anthropic/claude-3.5-haiku", cost = 2.4 }
+Maverick = { model = "meta-llama/llama-4-maverick", cost = 0.4 }
+Scout = { model = "meta-llama/llama-4-scout", cost = 0.3 }
+GeminiTwoFive = { model = "google/gemini-2.5-pro-preview-03-25", cost = 6.0 }
+QuasarAlpha = { model = "openrouter/quasar-alpha", cost = 0.0 }
 
 [bedrock]
 Llama3dot370b = { model = "us.meta.llama3-3-70b-instruct-v1:0", cost = 0.72 }
 
 [preferences]
 fast_llm = "Llama3dot370b"
-preferred_llm = "GPT4o"
+preferred_llm = "GeminiTwoFive"
