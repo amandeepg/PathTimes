@@ -1,5 +1,5 @@
 [project]
-name = "path-summarize-alerts"
+name = "streamlit-viewcache"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -13,12 +13,5 @@ dependencies = [
     "opentelemetry-api>=1.30.0",
     "opentelemetry-sdk>=1.30.0",
     "pydantic>=2.10.6",
-    "tomli>=2.2.1",
-]
-
-[dependency-groups]
-dev = [
-    "deptry>=0.23.0",
-    "path-summarize-alerts",
-    "pip>=25.0.1",
+    "streamlit>=1.44.1",
 ]

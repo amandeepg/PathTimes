@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 import boto3
@@ -9,11 +9,11 @@ import streamlit as st
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError, NoCredentialsError
 
-from ..baml_client.types import AffectedStations, AffectedRoutes
-from ..lib.cache import CacheService
-from ..lib.constants import BUCKET_NAME
-from ..lib.llm_clients import ALL_LLM_CLIENTS
-from ..lib.models import CacheResponse
+from baml_client.types import AffectedStations, AffectedRoutes
+from lib.cache import CacheService
+from lib.constants import BUCKET_NAME
+from lib.llm_clients import ALL_LLM_CLIENTS
+from lib.models import CacheResponse
 
 # --- Configuration & Constants ---
 APP_TITLE = "LLM Output Cache Viewer"
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # Use Streamlit's caching decorators for efficiency
 
 
-@st.cache_resource(ttl=CACHE_TTL_SECONDS * 30)  # Cache resource longer
+@st.cache_resource(ttl=timedelta(hours=1))
 def get_s3_client() -> Optional[BaseClient]:
     """Creates and caches an S3 client."""
     logger.info("Attempting to create S3 client...")
@@ -83,7 +83,7 @@ def get_s3_client() -> Optional[BaseClient]:
         return None
 
 
-@st.cache_resource
+@st.cache_resource(ttl=timedelta(hours=1))
 def get_cache_service() -> Optional[CacheService]:
     """Creates and caches a CacheService instance."""
     logger.info("Creating CacheService instance.")
@@ -106,14 +106,9 @@ def get_cache_service() -> Optional[CacheService]:
 # --- Data Fetching and Processing ---
 
 
-async def list_s3_objects(
-    _s3_client: BaseClient, bucket: str, prefix: str
-) -> List[Dict[str, Any]]:
+async def list_s3_objects(bucket: str, prefix: str) -> List[Dict[str, Any]]:
     """
     Lists objects in the S3 bucket with the given prefix.
-    _s3_client is passed for cache invalidation but the actual client is retrieved inside if needed,
-    or better, assume it's passed correctly and is hashable or use a simpler cache key.
-    Using _ prefix suggests it's for cache key determination.
     """
     s3_client = get_s3_client()  # Get cached client
     if not s3_client:
@@ -149,18 +144,16 @@ async def list_s3_objects(
         logger.exception(f"Unexpected error listing S3 objects: {e}")
         return []
 
-
-async def fetch_and_parse_s3_object(
-    s3_client: BaseClient, bucket: str, key: str, cache_service: CacheService
-) -> Optional[CacheResponse]:
+async def fetch_and_parse_s3_object(key: str) -> CacheResponse | None:
     """Fetches and parses a single S3 object asynchronously."""
+    cache_service = get_cache_service()
     if not cache_service:
         return None
+
     prefix_to_remove = f"{cache_service.hash_category_key()}/"
     object_identifier = key.replace(prefix_to_remove, "")
     try:
-        # cache_service.get is synchronous, run it in a thread pool executor
-        file_content = await asyncio.to_thread(cache_service.get, object_identifier)
+        file_content = await asyncio.to_thread(get_from_cache, object_identifier)
         if file_content:
             try:
                 return CacheResponse.model_validate_json(file_content)
@@ -168,10 +161,9 @@ async def fetch_and_parse_s3_object(
                 logger.error(f"Failed to parse JSON for key {key}: {parse_error}")
                 return None
         else:
-            # logger.warning(f"Empty content for key: {key}") # Can be noisy
+            logger.warning(f"Empty content for key: {key}")
             return None
     except ClientError as e:
-        # Handle potential S3 errors during cache_service.get if it involves S3 reads
         logger.error(f"S3 client error fetching {key}: {e}")
         return None
     except Exception as e:
@@ -179,11 +171,14 @@ async def fetch_and_parse_s3_object(
         return None
 
 
+@st.cache_data(ttl=timedelta(hours=1))
+def get_from_cache(object_identifier: str) -> Optional[str]:
+    return get_cache_service().get(object_identifier)
+
+
 async def fetch_all_data(
-    _s3_client_key: str,  # Use a simple key for caching instead of the client object
-    _cache_service_key: str,  # Use a simple key
     object_keys: Tuple[str, ...],
-) -> List[CacheResponse]:  # Use tuple for hashability
+) -> List[CacheResponse]:
     """Fetches and parses multiple S3 objects concurrently."""
     s3_client = get_s3_client()
     cache_service = get_cache_service()
@@ -205,7 +200,7 @@ async def fetch_all_data(
     # BATCH_SIZE = 100 # Example
 
     for i, key in enumerate(object_keys):
-        tasks.append(fetch_and_parse_s3_object(s3_client, bucket, key, cache_service))
+        tasks.append(fetch_and_parse_s3_object(key))
         # Process in batches or update progress periodically
         if (i + 1) % 50 == 0 or i == len(object_keys) - 1:
             batch_results = await asyncio.gather(*tasks)
@@ -289,16 +284,7 @@ def process_and_group_data(
 
     logger.info(
         f"Processing complete: {valid_count} valid entries grouped into {len(sorted_groups)} inputs. "
-        f"Filtered: {filtered_test_count} test inputs, {filtered_model_count} unknown models, {filtered_type_count} invalid types."
     )
-    if filtered_test_count > 0:
-        st.sidebar.info(
-            f"Filtered out {filtered_test_count} entries containing 'testinput'."
-        )
-    if filtered_model_count > 0:
-        st.sidebar.info(
-            f"Filtered out {filtered_model_count} entries with unknown models."
-        )
 
     return sorted_groups
 
@@ -448,8 +434,6 @@ async def main():
 
     # --- Header ---
     st.title(f"{APP_ICON} {APP_TITLE}")
-    st.markdown("View and filter cached LLM responses stored in AWS S3.")
-    st.divider()
 
     # --- Initialize Services ---
     s3_client = get_s3_client()
@@ -473,7 +457,7 @@ async def main():
     # Perform data loading steps sequentially with spinners
     with st.spinner("Listing cached files from S3..."):
         s3_objects = await list_s3_objects(
-            s3_client, BUCKET_NAME, prefix
+            BUCKET_NAME, prefix
         )  # Pass client for cache key
 
     if not s3_objects:
@@ -484,22 +468,14 @@ async def main():
         st.stop()
 
     total_files = len(s3_objects)
-    files_to_process = s3_objects[:MAX_FILES_TO_PROCESS]
     keys_to_fetch = tuple(
-        obj["Key"] for obj in files_to_process
+        obj["Key"] for obj in s3_objects
     )  # Use tuple for caching
 
-    st.info(
-        f"Found {total_files} files. Processing the latest {len(files_to_process)}."
-    )
-
-    # Use simple strings derived from clients for cache keys
-    s3_client_key = f"s3_client_region_{s3_client.meta.region_name}"
-    cache_service_key = f"cache_service_bucket_{BUCKET_NAME}"
 
     # Fetch and parse data - spinner handled inside fetch_all_data now
     all_files_data = await fetch_all_data(
-        s3_client_key, cache_service_key, keys_to_fetch
+        keys_to_fetch
     )
 
     if not all_files_data:
@@ -544,40 +520,21 @@ async def main():
 
     # --- Main Content Area ---
     total_groups = len(filtered_grouped_data)
-    total_responses = sum(len(v) for v in filtered_grouped_data.values())
 
     if total_groups == 0:
         st.warning("No data matches the current filter criteria.")
     else:
-        st.success(
-            f"Displaying {total_responses} cached responses across {total_groups} unique inputs."
-        )
-
         # Display grouped data using expanders
         for i, (input_text, data_group) in enumerate(filtered_grouped_data.items()):
             first_item_date_str = _format_generated_date(data_group[0].generated_at)
-            model_count = len(data_group)
             expander_label = (
-                f"Input {i + 1}/{total_groups} ({model_count} model{'s' if model_count != 1 else ''}, "
-                f"Last: {first_item_date_str}): "
+                f"({first_item_date_str}): "
                 f"{input_text[:80]}{'...' if len(input_text) > 80 else ''}"
             )
 
             with st.expander(expander_label):
-                st.markdown("##### Original Input Text")
-                # Use markdown with a blockquote for better visual separation
-                st.markdown(f"```\n{input_text}\n```")
-                st.markdown("---")  # Divider
-                st.markdown("##### LLM Responses")
+                st.text(input_text)
 
-                # Option 1: Render as cards (more visual)
-                # for data in data_group:
-                #      render_response_details(data) # Renders details in columns
-
-                # Option 2: Render as enhanced DataFrame (more compact)
-                # Uncomment this section and comment out the card rendering loop above
-                # if you prefer the table view.
-                st.markdown("##### LLM Responses (Table View)")
                 display_data = []
                 for data in data_group:
                     display_data.append(
@@ -590,8 +547,6 @@ async def main():
                             "Affected Area": _format_affected_area(
                                 data.response.affected_area if data.response else None
                             ),
-                            "Generated At": _format_generated_date(data.generated_at),
-                            # "Hash Key": data.hash_key, # Maybe less important for user view
                         }
                     )
                 df = pd.DataFrame(display_data)

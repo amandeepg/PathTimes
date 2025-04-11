@@ -271,7 +271,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aws-lambda-powertools", extras = ["parser"], specifier = ">=3.6.0" },
-    { name = "baml-py", specifier = ">=0.82.0" },
+    { name = "baml-py", specifier = "==0.82.0" },
     { name = "boto3", specifier = ">=1.36.23" },
     { name = "botocore", specifier = ">=1.36.23" },
     { name = "jinja2", specifier = ">=3.1.5" },

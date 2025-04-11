@@ -15,3 +15,10 @@ uvx ruff check --fix
 
 rm requirements.txt
 uv pip freeze > requirements.txt
+
+rm -rf streamlit-viewcache/lib
+cp -r src/lib streamlit-viewcache/lib
+rm -rf streamlit-viewcache/baml_client
+cp -r src/baml_client streamlit-viewcache/baml_client
+
+find streamlit-viewcache/lib -type f -exec sed -i 's/from ..baml_client.types/from baml_client.types/g' {} +
