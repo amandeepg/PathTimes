@@ -23,48 +23,81 @@ class V3(OpenRouterClient):
         return 0.7
 
 
-class GeminiFlash(OpenRouterClient):
+class GeminiTwoDotFivePro(OpenRouterClient):
     def model(self) -> str:
-        return "google/gemini-2.0-flash-001"
+        return "google/gemini-2.5-pro-preview-03-25"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 0.3
+        return 6.0
 
 
-class GPT4oMini(OpenRouterClient):
+class GeminiTwoDotFiveFlash(OpenRouterClient):
     def model(self) -> str:
-        return "openai/gpt-4o-mini"
+        return "google/gemini-2.5-flash-preview"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 0.5
+        return 0.37
 
 
-class GPT4o(OpenRouterClient):
+class GeminiTwoDotFiveFlashThinking(OpenRouterClient):
     def model(self) -> str:
-        return "openai/chatgpt-4o-latest"
+        return "google/gemini-2.5-flash-preview:thinking"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 10.0
+        return 0.37
 
 
-class Haiku(OpenRouterClient):
+class GPT4Dot1(OpenRouterClient):
     def model(self) -> str:
-        return "anthropic/claude-3.5-haiku"
+        return "openai/gpt-4.1"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 2.4
+        return 5.0
+
+
+class GPT4Dot1Mini(OpenRouterClient):
+    def model(self) -> str:
+        return "openai/gpt-4.1-mini"
+
+    def _version(self) -> int:
+        return 1
+
+    def cost(self) -> float:
+        return 1.0
+
+
+class GPT4Dot1Nano(OpenRouterClient):
+    def model(self) -> str:
+        return "openai/gpt-4.1-nano"
+
+    def _version(self) -> int:
+        return 1
+
+    def cost(self) -> float:
+        return 0.25
+
+
+class O4mini(OpenRouterClient):
+    def model(self) -> str:
+        return "openai/o4-mini"
+
+    def _version(self) -> int:
+        return 1
+
+    def cost(self) -> float:
+        return 2.5
 
 
 class Maverick(OpenRouterClient):
@@ -89,39 +122,6 @@ class Scout(OpenRouterClient):
         return 0.3
 
 
-class GeminiTwoFive(OpenRouterClient):
-    def model(self) -> str:
-        return "google/gemini-2.5-pro-preview-03-25"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 6.0
-
-
-class OptimusAlpha(OpenRouterClient):
-    def model(self) -> str:
-        return "openrouter/optimus-alpha"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 0.0
-
-
-class Mistral(OpenRouterClient):
-    def model(self) -> str:
-        return "mistral/ministral-8b"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 0.1
-
-
 class Llama3dot370b(BedrockClient):
     def model(self) -> str:
         return "us.meta.llama3-3-70b-instruct-v1:0"
@@ -136,18 +136,18 @@ class Llama3dot370b(BedrockClient):
 ALL_LLM_CLIENTS: list[LlmClient] = [
     R1(),
     V3(),
-    GeminiFlash(),
-    GPT4oMini(),
-    GPT4o(),
-    Haiku(),
+    GeminiTwoDotFivePro(),
+    GeminiTwoDotFiveFlash(),
+    GeminiTwoDotFiveFlashThinking(),
+    GPT4Dot1(),
+    GPT4Dot1Mini(),
+    GPT4Dot1Nano(),
+    O4mini(),
     Maverick(),
     Scout(),
-    GeminiTwoFive(),
-    OptimusAlpha(),
-    Mistral(),
     Llama3dot370b(),
 ]
 
 
 FAST_LLM = Llama3dot370b()
-PREFERRED_LLM = GeminiTwoFive()
+PREFERRED_LLM = GeminiTwoDotFivePro()

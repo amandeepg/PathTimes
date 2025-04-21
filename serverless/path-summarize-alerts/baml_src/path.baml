@@ -15,6 +15,7 @@ template_string ChainOfThoughtIf() #"
     {%elif ctx.client.name == "anthropic/claude-3.7-sonnet:thinking" %}
     {%elif ctx.client.name == "anthropic/claude-3.7-sonnet" %}
     {%elif ctx.client.name == "openai/o3-mini-high" %}
+    {%elif ctx.client.name == "google/gemini-2.5-flash-preview:thinking" %}
     {% else %}
       {{ ChainOfThought() }}
     {% endif %}
@@ -53,12 +54,25 @@ class AffectedRoutes {
   affected_routes PathLine[]
 }
 
-class IsDelay {
-  is_delay bool
-}
-
 class AlertSummary {
   alert_summary string
+}
+
+function RemoveSingleLineOrRouteFromSummary(alert: string, singleArea: string) -> AlertSummary {
+  client PlaygroundDefault
+  prompt #"
+    I will give you an alert text, and I want you to remove references to {{ singleArea }}, but keep everything else the same. The alert should still be readable.
+    .
+    Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
+    .
+
+    {{ ctx.output_format }}
+    .
+    {{ ChainOfThoughtIf() }}
+    .
+
+    {{ _.role("user") }} {{ alert }}
+  "#
 }
 
 function GetAlertSummary(alert: string) -> AlertSummary {
@@ -71,33 +85,14 @@ function GetAlertSummary(alert: string) -> AlertSummary {
     Represent dates using American formats with month names, like "Sunday January 26th" or "Monday December 2nd". 
     If no day of the week is specified, then simply use a format like "January 26th".
     Remove the word "tips" but just give the advice from the tips succinctly.
-    Events at "Sports Illustrated Stadium" are Red Bulls soccer games. Refer to the stadium as "Sports Illustrated Stadium (formerly Red Bull Area) in Harrison".
-    Lines are formatted like "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
-    If the alert concerns a single station, you must omit mentioning the station name.
+    Refer to "Sports Illustrated Stadium" as "Sports Illustrated Stadium (formerly Red Bull Area) in Harrison, NJ".
+    Lines are formatted like "START-END", i.e. "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
     Remove any generic information text about issuing an update later.
     Remove any links or URLs.
     Make sure to keep information about cross-honoring.
     Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
 
     This is your job: Summarize this PATH train alert concisely while preserving all important information.
-    .
-
-    {{ ctx.output_format }}
-    .
-    {{ ChainOfThoughtIf() }}
-    .
-
-    {{ _.role("user") }} {{ alert }}
-  "#
-}
-
-function IsDelayAlert(alert: string) -> IsDelay {
-  client PlaygroundDefault
-  prompt #"
-    Determine if this PATH train alert is about a service delay.
-    Return true only if the alert mentions delays or service disruptions that cause delays for people on the train or waiting for the train.
-    Trains skipping stops or closed stations are not delays.
-    A delay means that the train will be running slower or arrive later than the rider anticipates.
     .
 
     {{ ctx.output_format }}
@@ -131,14 +126,6 @@ test SummaryTest {
   args {
     alert "Due to signal problems at Journal Square, JSQ-33rd Street via HOB service is operating with delays."
   }
-}
-
-test DelayTest {
-  functions [IsDelayAlert]
-  args {
-    alert "Due to signal problems at Journal Square, JSQ-33rd Street via HOB service is operating with delays."
-  }
-  @@assert(isRight, {{ this|attr('is_delay') == true }})
 }
 
 test AffectedAreaTest {

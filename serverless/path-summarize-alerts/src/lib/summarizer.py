@@ -8,12 +8,12 @@ from baml_py import ClientRegistry
 from botocore.exceptions import ClientError
 from opentelemetry import trace
 
+from .llm_clients import FAST_LLM
 from ..baml_client import b
 from ..baml_client.types import (
     AlertSummary,
     AffectedStations,
     AffectedRoutes,
-    IsDelay,
 )
 from .cache import CacheService
 from .constants import BUCKET_NAME, BUCKET_NAME_RATE_LIMIT
@@ -138,15 +138,37 @@ class AlertSummarizer:
         trace.get_current_span().set_attribute(key="llm", value=model.id())
         cr = self._client_registry(model)
 
-        summary, is_delay, affected_area = await asyncio.gather(
+        summary, affected_area = await asyncio.gather(
             self._get_alert_summary(cr, input_text),
-            self._is_delay_alert(cr, input_text),
             self._get_affected_area(cr, input_text),
         )
 
+        if model != FAST_LLM:
+            if hasattr(affected_area, "affected_routes"):
+                if len(affected_area.affected_routes) == 1:
+                    single_area_text = f"{affected_area.affected_routes[0]} route"
+                else:
+                    single_area_text = None
+            elif hasattr(affected_area, "affected_stations"):
+                if len(affected_area.affected_stations) == 1:
+                    single_area_text = f"{affected_area.affected_stations[0]} station"
+                else:
+                    single_area_text = None
+            else:
+                single_area_text = None
+
+            if single_area_text:
+                summary_text = await self._remove_single_line_or_route_from_summary(
+                    summary.alert_summary, single_area_text
+                )
+            else:
+                summary_text = summary.alert_summary
+        else:
+            summary_text = summary.alert_summary
+
         return AlertSummaryContainer(
-            text=summary.alert_summary,
-            is_delay=is_delay.is_delay,
+            text=summary_text,
+            is_delay=True,
             affected_area=affected_area,
         )
 
@@ -156,9 +178,16 @@ class AlertSummarizer:
     ) -> AffectedStations | AffectedRoutes | None:
         return await b.GetAffectedArea(input_text, baml_options={"client_registry": cr})
 
-    @tracer.start_as_current_span("summ.is_delay_alert")
-    async def _is_delay_alert(self, cr: ClientRegistry, input_text: str) -> IsDelay:
-        return await b.IsDelayAlert(input_text, baml_options={"client_registry": cr})
+    @tracer.start_as_current_span("summ.remove_single_line_or_route_from_summary")
+    async def _remove_single_line_or_route_from_summary(
+        self,
+        cr: ClientRegistry,
+        input_text: str,
+        single_area: str,
+    ) -> AlertSummary:
+        return await b.RemoveSingleLineOrRouteFromSummary(
+            input_text, single_area, baml_options={"client_registry": cr}
+        )
 
     @tracer.start_as_current_span("summ.get_alert_summary")
     async def _get_alert_summary(

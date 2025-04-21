@@ -6,13 +6,13 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aws-lambda-powertools[parser]>=3.6.0",
-    "baml-py==0.82.0",
-    "boto3>=1.36.23",
-    "botocore>=1.36.23",
+    "baml-py==0.84.4",
+    "boto3>=1.37.37",
+    "botocore>=1.37.37",
     "jinja2>=3.1.5",
-    "opentelemetry-api>=1.30.0",
-    "opentelemetry-sdk>=1.30.0",
-    "pydantic>=2.10.6",
+    "opentelemetry-api>=1.32.1",
+    "opentelemetry-sdk>=1.32.1",
+    "pydantic>=2.11.3",
     "tomli>=2.2.1",
 ]
 

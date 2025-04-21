@@ -41,14 +41,18 @@ class CacheService:
         return input_hash_value
 
     @staticmethod
-    def create_versioned_key(hash_key: str) -> str:
+    def create_versioned_key(hash_key: str, hash_category_key: str) -> str:
         """Create a versioned lib key."""
-        return f"{CacheService.hash_category_key()}/{hash_key}"
+        return f"{hash_category_key}/{hash_key}"
 
     # @tracer.capture_method
-    def get(self, hash_key: str) -> Optional[str]:
+    def get(
+        self, hash_key: str, hash_category_key: Optional[str] = None
+    ) -> Optional[str]:
         """Try to get cached response from S3."""
-        versioned_key = self.create_versioned_key(hash_key)
+        if hash_category_key is None:
+            hash_category_key = CacheService.hash_category_key()
+        versioned_key = self.create_versioned_key(hash_key, hash_category_key)
         logger.debug(
             f"Attempting to retrieve cached response for versioned key: {versioned_key}"
         )
@@ -71,9 +75,13 @@ class CacheService:
             return None
 
     #     @tracer.capture_method
-    def save(self, hash_key: str, data: str) -> None:
+    def save(
+        self, hash_key: str, data: str, hash_category_key: Optional[str] = None
+    ) -> None:
         """Save response to S3."""
-        versioned_key = self.create_versioned_key(hash_key)
+        if hash_category_key is None:
+            hash_category_key = CacheService.hash_category_key()
+        versioned_key = self.create_versioned_key(hash_key, hash_category_key)
         logger.debug(f"Attempting to lib response for versioned key: {versioned_key}")
         try:
             self._s3_client.put_object(

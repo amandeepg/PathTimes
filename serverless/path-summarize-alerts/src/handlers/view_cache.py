@@ -6,8 +6,10 @@ from datetime import datetime
 import boto3
 import jinja2
 from aws_lambda_powertools import Logger
+from aws_lambda_powertools.utilities.parser import parse
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
+from pydantic import BaseModel
 
 from ..baml_client.types import AffectedStations, AffectedRoutes
 from ..lib.cache import CacheService
@@ -18,6 +20,14 @@ from ..lib.summarizer import AlertSummarizer
 
 logger = Logger()
 tracer = trace.get_tracer(__name__)
+
+
+class ViewCacheEventQueryParams(BaseModel):
+    key: Optional[str] = None
+
+
+class ViewCacheEvent(BaseModel):
+    queryStringParameters: ViewCacheEventQueryParams
 
 
 class CacheViewer:
@@ -124,10 +134,6 @@ class CacheViewer:
         margin: 0;
         font-weight: 500;
     }
-    .chip.delay {
-        background-color: #ffcdd2;
-        color: #c62828;
-    }
     .chip.normal {
         background-color: #c8e6c9;
         color: #2e7d32;
@@ -165,7 +171,6 @@ class CacheViewer:
                     <th>Model</th>
                     <th>Input</th>
                     <th>Summary</th>
-                    <th>Delay</th>
                     <th>Affected Area</th>
                 </tr>
             </thead>
@@ -189,7 +194,6 @@ class CacheViewer:
                             <td class="model-name">{{ data.model }} ({{ data.model|get_model_price }})</td>
                             <td class="input-text">{% if loop.first %}{{ input_text }}{% endif %}</td>
                             <td class="summary-text">{{ data.response.text }}</td>
-                            <td><span class="chip {{ 'delay' if data.response.is_delay else 'normal' }}">{{ "Yes" if data.response.is_delay else "No" }}</span></td>
                             <td class="affected-area">{{ format_affected_area(data.response.affected_area) }}</td>
                         </tr>
                     {% endfor %}
@@ -236,8 +240,15 @@ class CacheViewer:
         logger.info("Received view_cache request")
         logger.debug(f"Event: {json.dumps(event)}")
 
+        # Ensure queryStringParameters exists for parsing, default to empty if not present
+        if "queryStringParameters" not in event or not event["queryStringParameters"]:
+            event["queryStringParameters"] = {}
+        parsed_event: ViewCacheEvent = parse(model=ViewCacheEvent, event=event)
+
         try:
-            return self._create_cache_view_response()
+            return self._create_cache_view_response(
+                parsed_event.queryStringParameters.key
+            )
         except Exception as e:
             logger.exception("Error processing view_cache request")
             return {
@@ -247,9 +258,15 @@ class CacheViewer:
             }
 
     @tracer.start_as_current_span("create_cache_view_response")
-    def _create_cache_view_response(self) -> dict:
+    def _create_cache_view_response(
+        self, hash_category_key: Optional[str] = None
+    ) -> dict:
         """Creates HTML response with data from S3 bucket files."""
-        prefix = self._cache_service.hash_category_key()
+        prefix = (
+            hash_category_key
+            if hash_category_key
+            else self._cache_service.hash_category_key()
+        )
 
         try:
             response = self._s3_client.list_objects_v2(
@@ -273,9 +290,10 @@ class CacheViewer:
                             response["Contents"],
                             key=lambda x: x["LastModified"],
                             reverse=True,
-                        )
+                        ),
                     )
-                )
+                ),
+                prefix,
             )
 
             return {
@@ -298,10 +316,16 @@ class CacheViewer:
         async def fetch_and_parse(obj: dict) -> Optional[CacheResponse]:
             key = obj["Key"]
             try:
-                # Get file content - run in executor since cache_service.get is synchronous
+                try:
+                    key_part1, key_part2 = key.split("/", 1)
+                except ValueError:
+                    logger.warning(f"Invalid key format: {key}. Skipping.")
+                    return None
+
                 file_content = await asyncio.to_thread(
                     self._cache_service.get,
-                    key.replace(f"{self._cache_service.hash_category_key()}/", ""),
+                    key_part2,
+                    key_part1,
                 )
                 if file_content:
                     return CacheResponse.model_validate_json(file_content)
@@ -314,7 +338,9 @@ class CacheViewer:
         results = await asyncio.gather(*tasks)
         return [result for result in results if result is not None]
 
-    def _generate_html_table(self, files_data: List[CacheResponse]) -> str:
+    def _generate_html_table(
+        self, files_data: List[CacheResponse], hash_category_key: str
+    ) -> str:
         """Generates HTML table from list of CacheResponse objects using Jinja2."""
 
         if not files_data:
@@ -337,7 +363,7 @@ class CacheViewer:
 
         return self._main_template.render(
             files_by_input=files_by_input,
-            hash_category_key=self._cache_service.hash_category_key(),
+            hash_category_key=hash_category_key,  # Use the passed in prefix
             title="LLM Outputs",
         )
 
