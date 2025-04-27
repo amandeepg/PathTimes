@@ -58,6 +58,18 @@ class AlertSummary {
   alert_summary string
 }
 
+class DateAndTime {
+  date string @description("The date of the event in 'Saturday May 24th' format")
+  time string @description("The time of the event in '10:30am' format")
+}
+
+class RedBullArenaInfo {
+  event_date string @description("The date of the event in 'Saturday May 24th' format")
+  event_time string @description("The time of the event in '10:30am' format")
+  event_type string @description("The type of event, such as 'soccer game' or 'concert', etc")
+  event_name string @description("The name of the event")
+}
+
 function RemoveSingleLineOrRouteFromSummary(alert: string, singleArea: string) -> AlertSummary {
   client PlaygroundDefault
   prompt #"
@@ -75,17 +87,68 @@ function RemoveSingleLineOrRouteFromSummary(alert: string, singleArea: string) -
   "#
 }
 
+function RemoveFromAlert(alert: string) -> AlertSummary {
+  client PlaygroundDefault
+  prompt #"
+    I will give you an alert text, and I want you to remove the following info, but keep everything else the same, the alert should still be readable:
+     - Remove the word "tips" but just give the advice from the tips succinctly.
+     - Riders already know that a delay will cause them extra time, so dont tell them that, focus on explaining what the delay is.
+     - Remove saying that an update will be issued later.
+
+    .
+    Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
+    .
+
+    {{ ctx.output_format }}
+    .
+    {{ ChainOfThoughtIf() }}
+    .
+
+    {{ _.role("user") }} {{ alert }}
+  "#
+}
+
+function GetRedBullsArenaDateTime(alert: string) -> DateAndTime {
+  client PlaygroundDefault
+  prompt #"
+    I will give you an alert text, and I want you to tell me just the date and time.
+   .
+    Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
+   .
+
+    {{ ctx.output_format }}
+   .
+    {{ ChainOfThoughtIf() }}
+   .
+
+    {{ _.role("user") }} {{ alert }}
+  "#
+}
+
+function GetRedBullsArenaText(alert: string) -> RedBullArenaInfo {
+  client PlaygroundDefault
+  prompt #"
+    I will give you an alert text, and I want you to tell me what is happening at Sports Illustrated Stadium at the time it says it is happening.
+   .
+    Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
+   .
+
+    {{ ctx.output_format }}
+   .
+    {{ ChainOfThoughtIf() }}
+   .
+
+    {{ _.role("user") }} {{ alert }}
+  "#
+}
+
 function GetAlertSummary(alert: string) -> AlertSummary {
   client PlaygroundDefault
   prompt #"
     You are a very helpful transit agency alert summarizer to take alert text from a transit agency (the PATH transit system in NYC and NJ) and make it more digestible for transit riders.
     Shorten the text by omitting unnecessary fluff and politeness, assuming the rider is an experienced traveler, they don't need to be coddled by telling them to pay attention or that to leave extra time for delays.
-    Riders already know that delays do cause inconvenience and that it will slow their journey.
-    References to PATH should be removed if implied, keeping in mind that the target audience is familiar with PATH and utilizes an app exclusive to this transit line.
     Represent dates using American formats with month names, like "Sunday January 26th" or "Monday December 2nd". 
     If no day of the week is specified, then simply use a format like "January 26th".
-    Remove the word "tips" but just give the advice from the tips succinctly.
-    Refer to "Sports Illustrated Stadium" as "Sports Illustrated Stadium (formerly Red Bull Area) in Harrison, NJ".
     Lines are formatted like "START-END", i.e. "JSQ-33" or "NWK-WTC" or "JSQ-33 via HOB".
     Remove any generic information text about issuing an update later.
     Remove any links or URLs.

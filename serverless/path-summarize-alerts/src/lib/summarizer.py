@@ -1,27 +1,59 @@
 import asyncio
 import json
+import os
 import time
 
-import boto3
 from aws_lambda_powertools import Logger
 from baml_py import ClientRegistry
+import boto3
 from botocore.exceptions import ClientError
 from opentelemetry import trace
 
-from .llm_clients import FAST_LLM
-from ..baml_client import b
-from ..baml_client.types import (
-    AlertSummary,
-    AffectedStations,
+from baml_client import b
+from baml_client.types import (
     AffectedRoutes,
+    AffectedStations,
+    AlertSummary,
+    DateAndTime,
+    PathLine,
+    PathStation,
+    RedBullArenaInfo,
 )
+
 from .cache import CacheService
 from .constants import BUCKET_NAME, BUCKET_NAME_RATE_LIMIT
 from .llm_client_base import LlmClient
-from .models import CacheResponse, AlertSummaryContainer
+from .llm_clients import FAST_LLM, PREFERRED_LLM
+from .models import AlertSummaryContainer, CacheResponse
 
 logger = Logger()
 tracer = trace.get_tracer(__name__)
+
+# Define mappings using descriptions from path.baml
+PATH_STATION_DESCRIPTIONS = {
+    PathStation.NWK: "Newark Penn Station",
+    PathStation.HAR: "Harrison",
+    PathStation.JSQ: "Journal Square",
+    PathStation.GRV: "Grove Street",
+    PathStation.EXP: "Exchange Place",
+    PathStation.WTC: "World Trade Center",
+    PathStation.HOB: "Hoboken",
+    PathStation.NEW: "Newport",
+    PathStation.CHR: "Christopher Street",
+    PathStation.S09: "9th Street",
+    PathStation.S14: "14th Street",
+    PathStation.S23: "23rd Street",
+    PathStation.S33: "33rd Street",
+}
+
+PATH_LINE_DESCRIPTIONS = {
+    PathLine.NWK_WTC: "NWK-WTC",
+    PathLine.JSQ_WTC: "JSQ-WTC",
+    PathLine.HOB_WTC: "HOB-WTC",
+    PathLine.JSQ_33: "JSQ-33",
+    PathLine.HOB_33: "HOB-33",
+    PathLine.JSQ_33_HOB: "JSQ-33 via HOB",
+}
 
 
 class RateLimitedException(Exception):
@@ -113,12 +145,8 @@ class AlertSummarizer:
             data = json.loads(response["Body"].read().decode("utf-8"))
             # Check if file is older than 30 seconds
             should_be_rate_limited = time.time() - float(data["LastModified"]) <= 30.0
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "404":
-                should_be_rate_limited = False
-            else:
-                logger.exception(f"Error checking if rate limited {e}")
-                should_be_rate_limited = False
+        except ClientError:
+            should_be_rate_limited = False
         except Exception as e:
             logger.exception(f"Error checking if rate limited {e}")
             should_be_rate_limited = False
@@ -138,29 +166,51 @@ class AlertSummarizer:
         trace.get_current_span().set_attribute(key="llm", value=model.id())
         cr = self._client_registry(model)
 
+        if "Sports Illustrated Stadium" in input_text and model.id() == PREFERRED_LLM.id():
+            date_and_time = await self._get_red_bull_arena_date_time(cr, input_text)
+            logger.info(f"Red Bull Arena date and time: {date_and_time}")
+            redbull_arena_info = await self._get_red_bull_arena_info(f"Sports Illustrated Stadium event at {date_and_time.date} at {date_and_time.time}")
+            event_date = redbull_arena_info.event_date.replace(",", "")
+            event_time = redbull_arena_info.event_time.replace(" ", "").lower()
+            summary_text = f"At Sports Illustrated Stadium (formerly Red Bull Arena), there is a {redbull_arena_info.event_name} {redbull_arena_info.event_type} on {event_date} at {event_time}. Allow extra travel time to get to the stadium."
+            logger.info(f"Red Bull Arena info: {redbull_arena_info}")
+            affected_area = AffectedStations(affected_stations=[PathStation.HAR])
+
+            return AlertSummaryContainer(
+                text=summary_text,
+                is_delay=True,
+                affected_area=affected_area,
+            )
+
         summary, affected_area = await asyncio.gather(
             self._get_alert_summary(cr, input_text),
             self._get_affected_area(cr, input_text),
         )
 
-        if model != FAST_LLM:
-            if hasattr(affected_area, "affected_routes"):
-                if len(affected_area.affected_routes) == 1:
-                    single_area_text = f"{affected_area.affected_routes[0]} route"
-                else:
-                    single_area_text = None
-            elif hasattr(affected_area, "affected_stations"):
+        if model.id() != FAST_LLM.id():
+            single_area_text = None
+            if isinstance(affected_area, AffectedStations):
                 if len(affected_area.affected_stations) == 1:
-                    single_area_text = f"{affected_area.affected_stations[0]} station"
-                else:
-                    single_area_text = None
-            else:
-                single_area_text = None
+                    station_enum = affected_area.affected_stations[0]
+                    station_description = PATH_STATION_DESCRIPTIONS.get(station_enum, str(station_enum))
+                    single_area_text = f"{station_description} station"
+            elif isinstance(affected_area, AffectedRoutes):
+                if len(affected_area.affected_routes) == 1:
+                    route_enum = affected_area.affected_routes[0]
+                    route_description = PATH_LINE_DESCRIPTIONS.get(route_enum, str(route_enum))
+                    single_area_text = f"{route_description} route"
 
             if single_area_text:
-                summary_text = await self._remove_single_line_or_route_from_summary(
-                    summary.alert_summary, single_area_text
+                logger.info(
+                    f"Single area text before: {single_area_text} \n Summary: {summary.alert_summary}"
                 )
+                summary_text_obj = await self._remove_single_line_or_route_from_summary(
+                    cr, summary.alert_summary, single_area_text
+                )
+                logger.info(
+                    f"Single area text after: {summary_text_obj.alert_summary}"
+                )
+                summary_text = summary_text_obj.alert_summary
             else:
                 summary_text = summary.alert_summary
         else:
@@ -194,6 +244,34 @@ class AlertSummarizer:
         self, cr: ClientRegistry, input_text: str
     ) -> AlertSummary:
         return await b.GetAlertSummary(input_text, baml_options={"client_registry": cr})
+
+    @tracer.start_as_current_span("summ.get_red_bull_arena_date_time")
+    async def _get_red_bull_arena_date_time(
+        self, cr: ClientRegistry, input_text: str
+    ) -> DateAndTime:
+        return await b.GetRedBullsArenaDateTime(input_text, baml_options={"client_registry": cr})
+
+    @tracer.start_as_current_span("summ.get_red_bull_arena_info")
+    async def _get_red_bull_arena_info(
+        self, input_text: str
+    ) -> RedBullArenaInfo:
+        cr = ClientRegistry()
+        cr.add_llm_client(
+            name="perplexity",
+            provider="openai-generic",
+            options={
+                "model": "perplexity/sonar",
+                "temperature": 0.0,
+                "api_key": os.environ.get("OPENROUTER_API_KEY"),
+                "base_url": "https://openrouter.ai/api/v1",
+                "headers": {
+                    "HTTP-Referer": os.environ.get("OPENROUTER_APP_URL"),
+                    "X-Title": os.environ.get("OPENROUTER_APP_NAME"),
+                },
+            },
+        )
+        cr.set_primary("perplexity")
+        return await b.GetRedBullsArenaText(input_text, baml_options={"client_registry": cr})
 
     @staticmethod
     def _client_registry(model: LlmClient) -> ClientRegistry:

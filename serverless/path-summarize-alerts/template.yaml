@@ -1,0 +1,250 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Provides APIs for summarizing content and viewing cache, using S3 for storage and Bedrock for AI.
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    Description: Deployment stage (e.g., dev, prod)
+  OpenRouterApiKey:
+    Type: String
+    Description: API Key for OpenRouter
+  SkipCacheMagicWord:
+    Type: String
+    Description: Magic word to skip cache lookup
+  OpenRouterAppName:
+    Type: String
+    Description: App name for OpenRouter identification
+  OpenRouterAppUrl:
+    Type: String
+    Description: App URL for OpenRouter identification
+
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 256
+    Timeout: 30
+    Tracing: Active 
+    Layers:
+      - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
+    Environment:
+      Variables:
+        POWERTOOLS_SERVICE_NAME: path-summarize-alerts
+        POWERTOOLS_METRICS_NAMESPACE: path-summarize-alerts
+        LOG_LEVEL: INFO
+        OPENROUTER_API_KEY: !Ref OpenRouterApiKey
+        SKIP_CACHE_MAGIC_WORD: !Ref SkipCacheMagicWord
+        OPENROUTER_APP_NAME: !Ref OpenRouterAppName
+        OPENROUTER_APP_URL: !Ref OpenRouterAppUrl
+        # We'll define MULTISUMMARIZER_LAMBDA_NAME dynamically using !Ref below
+        AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
+        BAML_LOG: info
+    Architectures:
+      - x86_64 # Ensure this matches the layer architecture
+
+Resources:
+  # --- API Gateway (REST API - V1) ---
+  # Note: The resource name "HttpApi" is just a logical ID in the template,
+  # the Type: AWS::Serverless::Api is what determines it's a REST API (V1).
+  # If you intended HTTP API (V2), the Type should be AWS::Serverless::HttpApi
+  # and CorsConfiguration would be valid there. Based on the original serverless.yml
+  # http events, REST API (V1) is the typical default.
+  ApiGateway: # Renamed for clarity to avoid confusion with HTTP API V2
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      MinimumCompressionSize: 0
+      # CORS is configured on the individual function events for REST APIs in SAM
+      # CorsConfiguration property is ONLY for AWS::Serverless::HttpApi (V2)
+
+
+  # --- Lambda Functions ---
+  SummarizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub path-summarize-alerts-${Stage}-summarize
+      CodeUri: src/
+      Handler: handlers.summarize.handle
+      Timeout: 29
+      # Add the Environment section here
+      Environment:
+        Variables:
+          MULTISUMMARIZER_LAMBDA_NAME: !Ref MultisummarizeFunction # <-- ADD THIS LINE
+      Events:
+        SummarizeApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /summarize
+            Method: get
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !GetAtt SummarizeDataBucket.Arn
+              - !GetAtt SummarizeDataRateLimitBucket.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource:
+              - !Sub ${SummarizeDataBucket.Arn}/*
+              - !Sub ${SummarizeDataRateLimitBucket.Arn}/*
+        - Statement:
+            Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: "arn:aws:bedrock:*:*:*/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+            Resource: !GetAtt MultisummarizeFunction.Arn
+
+  MultisummarizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub path-summarize-alerts-${Stage}-multisummarize
+      CodeUri: src/
+      Handler: handlers.multisummarize.handle
+      Timeout: 500
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !GetAtt SummarizeDataBucket.Arn
+              - !GetAtt SummarizeDataRateLimitBucket.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource:
+              - !Sub ${SummarizeDataBucket.Arn}/*
+              - !Sub ${SummarizeDataRateLimitBucket.Arn}/*
+        - Statement:
+            Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: "arn:aws:bedrock:*:*:*/*"
+
+  ViewCacheFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub path-summarize-alerts-${Stage}-viewcache
+      CodeUri: src/
+      Handler: handlers.view_cache.handle
+      Timeout: 29
+      Events:
+        ViewCacheApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /viewcache
+            Method: get
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !GetAtt SummarizeDataBucket.Arn
+              - !GetAtt SummarizeDataRateLimitBucket.Arn
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+            Resource:
+              - !Sub ${SummarizeDataBucket.Arn}/*
+              - !Sub ${SummarizeDataRateLimitBucket.Arn}/*
+        - Statement:
+            Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+              - bedrock:InvokeModelWithResponseStream
+            Resource: "arn:aws:bedrock:*:*:*/*"
+
+  # --- S3 Buckets ---
+  SummarizeDataBucket:
+    Type: AWS::S3::Bucket
+    # Note: Hardcoding bucket names can cause conflicts. Consider removing for auto-naming.
+    # If keeping hardcoded names, ensure they are globally unique and not in use.
+    Properties:
+      BucketName: path-summarize-data
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldData
+            Status: Enabled
+            ExpirationInDays: 90
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  SummarizeDataRateLimitBucket:
+    Type: AWS::S3::Bucket
+    # Note: Hardcoding bucket names can cause conflicts.
+    Properties:
+      BucketName: path-summarize-data-rate-limit
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldData
+            Status: Enabled
+            ExpirationInDays: 1
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+
+
+Outputs:
+  ApiEndpoint:
+    Description: "API Gateway endpoint URL for Dev stage"
+    # Reference the renamed ApiGateway resource
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
+  SummarizeFunctionArn:
+    Description: "Summarize Lambda Function ARN"
+    Value: !GetAtt SummarizeFunction.Arn
+  MultisummarizeFunctionArn:
+    Description: "Multisummarize Lambda Function ARN"
+    Value: !GetAtt MultisummarizeFunction.Arn
+  ViewCacheFunctionArn:
+    Description: "View Cache Lambda Function ARN"
+    Value: !GetAtt ViewCacheFunction.Arn
+  SummarizeDataBucketName:
+    Description: "S3 bucket for summarize data"
+    Value: !Ref SummarizeDataBucket # Output the name, not ARN for simpler use
+  SummarizeDataRateLimitBucketName:
+    Description: "S3 bucket for rate limiting data"
+    Value: !Ref SummarizeDataRateLimitBucket # Output the name, not ARN

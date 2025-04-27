@@ -21,7 +21,7 @@ interface PathAlertsSummarizerApiService {
     ): SummarizeApiResponse
 
     companion object {
-        private const val API_PATH = "https://v8qv31w7hh.execute-api.us-east-1.amazonaws.com/dev/"
+        private const val API_PATH = "https://jg6j16bqsa.execute-api.us-east-1.amazonaws.com/dev/"
 
         fun create(
             applicationContext: Context,

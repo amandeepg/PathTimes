@@ -15,3 +15,4 @@ uvx ruff check --fix
 
 rm requirements.txt
 uv pip freeze > requirements.txt
+uv pip freeze > src/requirements.txt

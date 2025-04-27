@@ -55,3 +55,5 @@ config.yml
 requirements.txt
 baml_client
 .pdm-python
+.aws-sam/
+samconfig.toml

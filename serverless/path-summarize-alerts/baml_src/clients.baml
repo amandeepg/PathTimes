@@ -6,7 +6,7 @@ client<llm> V3 {
   options {
     base_url "https://openrouter.ai/api/v1"
     api_key env.OPENROUTER_API_KEY
-    model "deepseek/deepseek-chat"
+    model "deepseek/deepseek-chat-v3-0324"
     headers {
       "HTTP-Referer" env.OPENROUTER_APP_URL
       "X-Title" env.OPENROUTER_APP_NAME

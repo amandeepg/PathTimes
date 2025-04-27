@@ -10,9 +10,9 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 from pydantic import BaseModel
 
-from ..lib.llm_clients import PREFERRED_LLM, FAST_LLM
-from ..lib.models import CacheResponse
-from ..lib.summarizer import AlertSummarizer, RateLimitedException
+from lib.llm_clients import PREFERRED_LLM, FAST_LLM
+from lib.models import CacheResponse
+from lib.summarizer import AlertSummarizer, RateLimitedException
 
 logger = Logger()
 tracer = trace.get_tracer(__name__)
@@ -74,6 +74,7 @@ class SummarizerLambda:
 
         asyncio.get_event_loop().set_task_factory(asyncio.eager_task_factory)
         summarize_task = asyncio.create_task(self._summarizer.summarize(token))
+        summarized_alert = await summarize_task
 
         self._lambda_client.invoke(
             FunctionName=os.environ["MULTISUMMARIZER_LAMBDA_NAME"],
@@ -81,7 +82,7 @@ class SummarizerLambda:
             Payload=json.dumps({"original_text_key": hash_key}),
         )
 
-        return await summarize_task, False
+        return summarized_alert, False
 
     def summarize(self, event: dict) -> dict:
         logger.info("Received new request")

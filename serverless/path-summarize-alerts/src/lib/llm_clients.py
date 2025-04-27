@@ -11,7 +11,6 @@ class R1(OpenRouterClient):
     def cost(self) -> float:
         return 1.4
 
-
 class V3(OpenRouterClient):
     def model(self) -> str:
         return "deepseek/deepseek-chat-v3-0324:price"
@@ -21,7 +20,6 @@ class V3(OpenRouterClient):
 
     def cost(self) -> float:
         return 0.7
-
 
 class GeminiTwoDotFivePro(OpenRouterClient):
     def model(self) -> str:
@@ -33,7 +31,6 @@ class GeminiTwoDotFivePro(OpenRouterClient):
     def cost(self) -> float:
         return 6.0
 
-
 class GeminiTwoDotFiveFlash(OpenRouterClient):
     def model(self) -> str:
         return "google/gemini-2.5-flash-preview"
@@ -43,7 +40,6 @@ class GeminiTwoDotFiveFlash(OpenRouterClient):
 
     def cost(self) -> float:
         return 0.37
-
 
 class GeminiTwoDotFiveFlashThinking(OpenRouterClient):
     def model(self) -> str:
@@ -55,7 +51,6 @@ class GeminiTwoDotFiveFlashThinking(OpenRouterClient):
     def cost(self) -> float:
         return 0.37
 
-
 class GPT4Dot1(OpenRouterClient):
     def model(self) -> str:
         return "openai/gpt-4.1"
@@ -65,7 +60,6 @@ class GPT4Dot1(OpenRouterClient):
 
     def cost(self) -> float:
         return 5.0
-
 
 class GPT4Dot1Mini(OpenRouterClient):
     def model(self) -> str:
@@ -77,7 +71,6 @@ class GPT4Dot1Mini(OpenRouterClient):
     def cost(self) -> float:
         return 1.0
 
-
 class GPT4Dot1Nano(OpenRouterClient):
     def model(self) -> str:
         return "openai/gpt-4.1-nano"
@@ -87,7 +80,6 @@ class GPT4Dot1Nano(OpenRouterClient):
 
     def cost(self) -> float:
         return 0.25
-
 
 class O4mini(OpenRouterClient):
     def model(self) -> str:
@@ -99,7 +91,6 @@ class O4mini(OpenRouterClient):
     def cost(self) -> float:
         return 2.5
 
-
 class Maverick(OpenRouterClient):
     def model(self) -> str:
         return "meta-llama/llama-4-maverick"
@@ -109,7 +100,6 @@ class Maverick(OpenRouterClient):
 
     def cost(self) -> float:
         return 0.4
-
 
 class Scout(OpenRouterClient):
     def model(self) -> str:
@@ -121,7 +111,6 @@ class Scout(OpenRouterClient):
     def cost(self) -> float:
         return 0.3
 
-
 class Llama3dot370b(BedrockClient):
     def model(self) -> str:
         return "us.meta.llama3-3-70b-instruct-v1:0"
@@ -131,7 +120,6 @@ class Llama3dot370b(BedrockClient):
 
     def cost(self) -> float:
         return 0.72
-
 
 ALL_LLM_CLIENTS: list[LlmClient] = [
     R1(),
