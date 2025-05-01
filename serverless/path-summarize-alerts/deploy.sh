@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 bash compile.sh
-sam build
+sam build --use-container
 sam deploy

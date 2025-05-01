@@ -23,4 +23,5 @@ jobs:
         java-version-file: ./android/.java-version
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v4
-      build-root-directory: ./android
+      with:
+        build-root-directory: ./android

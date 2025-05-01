@@ -10,7 +10,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 from pydantic import BaseModel
 
-from lib.llm_clients import PREFERRED_LLM, FAST_LLM
+from lib.llm_clients import PREFERRED_LLM, FAST_LLM, GPT4Dot1Mini
 from lib.models import CacheResponse
 from lib.summarizer import AlertSummarizer, RateLimitedException
 
@@ -58,9 +58,10 @@ class SummarizerLambda:
     async def _summarize_and_schedule(
         self, input_text: str, skip_cache: bool
     ) -> tuple[CacheResponse, bool]:
+        preferred_llm = GPT4Dot1Mini() if "elevator" in input_text else PREFERRED_LLM
         pref_result = await self._summarizer.summarize_from_cache(
             input_text=input_text,
-            model=PREFERRED_LLM,
+            model=preferred_llm,
         )
         if pref_result:
             logger.info("Returning preferred result from cache")

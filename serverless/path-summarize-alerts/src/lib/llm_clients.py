@@ -45,17 +45,6 @@ class GeminiTwoDotFiveFlash(OpenRouterClient):
         return 0.37
 
 
-class GeminiTwoDotFiveFlashThinking(OpenRouterClient):
-    def model(self) -> str:
-        return "google/gemini-2.5-flash-preview:thinking"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 0.37
-
-
 class GPT4Dot1(OpenRouterClient):
     def model(self) -> str:
         return "openai/gpt-4.1"
@@ -100,28 +89,6 @@ class O4mini(OpenRouterClient):
         return 2.5
 
 
-class Maverick(OpenRouterClient):
-    def model(self) -> str:
-        return "meta-llama/llama-4-maverick"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 0.4
-
-
-class Scout(OpenRouterClient):
-    def model(self) -> str:
-        return "meta-llama/llama-4-scout"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 0.3
-
-
 class Llama3dot370b(BedrockClient):
     def model(self) -> str:
         return "us.meta.llama3-3-70b-instruct-v1:0"
@@ -138,13 +105,10 @@ ALL_LLM_CLIENTS: list[LlmClient] = [
     V3(),
     GeminiTwoDotFivePro(),
     GeminiTwoDotFiveFlash(),
-    GeminiTwoDotFiveFlashThinking(),
     GPT4Dot1(),
     GPT4Dot1Mini(),
     GPT4Dot1Nano(),
     O4mini(),
-    Maverick(),
-    Scout(),
     Llama3dot370b(),
 ]
 

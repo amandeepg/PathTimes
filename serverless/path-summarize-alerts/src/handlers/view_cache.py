@@ -353,19 +353,45 @@ class CacheViewer:
 
         files_by_input: Dict[str, List[CacheResponse]] = {}
         for data in files_data:
+            # Skip test inputs
             if "testinput" in data.input:
                 continue
+            # Skip data if it's None or the model is not recognized
             if data is None or data.model not in all_llm_client_ids:
                 continue
+            # Group by input text
             if data.input not in files_by_input:
                 files_by_input[data.input] = []
             files_by_input[data.input].append(data)
 
+        # Sort each group by model cost (ascending)
+        for input_text in files_by_input:
+            files_by_input[input_text].sort(
+                key=lambda data: self._get_model_cost_float(data.model)
+            )
+
         return self._main_template.render(
             files_by_input=files_by_input,
-            hash_category_key=hash_category_key,  # Use the passed in prefix
+            hash_category_key=hash_category_key,
             title="LLM Outputs",
         )
+
+    @staticmethod
+    def _get_model_cost_float(model_id: str) -> float:
+        """Gets the numerical cost of a model."""
+        for client in ALL_LLM_CLIENTS:
+            if client.id() == model_id:
+                try:
+                    cost = client.cost()
+                    # Ensure cost is a number, default to 0.0 if None or invalid
+                    return float(cost) if cost is not None else 0.0
+                except (ValueError, TypeError):
+                    logger.warning(
+                        f"Could not convert cost for model {model_id} to float."
+                    )
+                    return 0.0
+        logger.warning(f"Could not find cost for model: {model_id}")
+        return 0.0  # Return 0.0 if model not found or has no cost defined
 
     @staticmethod
     def _format_affected_area(
@@ -383,12 +409,18 @@ class CacheViewer:
 
     @staticmethod
     def _get_model_price(model_id: str) -> str:
+        """Gets the formatted price string for a model."""
         # find model_id in ALL_LLM_CLIENTS.map(id)
         for client in ALL_LLM_CLIENTS:
             if client.id() == model_id:
-                # format in $x.xx
-                return f"${client.cost():.2f}"
-        return "$0"
+                try:
+                    # format in $x.xx
+                    cost = client.cost()
+                    return f"${float(cost):.2f}" if cost is not None else "$0.00"
+                except (ValueError, TypeError):
+                    logger.warning(f"Could not format cost for model {model_id}.")
+                    return "$?.??"  # Indicate unknown cost
+        return "$0.00"  # Default if model not found
 
 
 handler = CacheViewer()

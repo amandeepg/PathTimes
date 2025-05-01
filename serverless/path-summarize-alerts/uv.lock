@@ -264,6 +264,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "deptry" },
+    { name = "path-summarize-alerts" },
     { name = "pip" },
 ]
 
@@ -283,6 +284,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "deptry", specifier = "==0.23.0" },
+    { name = "path-summarize-alerts" },
     { name = "pip", specifier = "==25.1" },
 ]
 

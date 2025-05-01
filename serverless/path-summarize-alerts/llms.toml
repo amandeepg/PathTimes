@@ -3,13 +3,10 @@ R1 = { model = "deepseek/deepseek-r1:price", cost = 1.4 }
 V3 = { model = "deepseek/deepseek-chat-v3-0324:price", cost = 0.7 }
 GeminiTwoDotFivePro = { model = "google/gemini-2.5-pro-preview-03-25", cost = 6.0 }
 GeminiTwoDotFiveFlash = { model = "google/gemini-2.5-flash-preview", cost = 0.37 }
-GeminiTwoDotFiveFlashThinking = { model = "google/gemini-2.5-flash-preview:thinking", cost = 0.37 }
 GPT4Dot1 = { model = "openai/gpt-4.1", cost = 5.0 }
 GPT4Dot1Mini = { model = "openai/gpt-4.1-mini", cost = 1.0 }
 GPT4Dot1Nano = { model = "openai/gpt-4.1-nano", cost = 0.25 }
 O4mini = { model = "openai/o4-mini", cost = 2.5 }
-Maverick = { model = "meta-llama/llama-4-maverick", cost = 0.4 }
-Scout = { model = "meta-llama/llama-4-scout", cost = 0.3 }
 
 [bedrock]
 Llama3dot370b = { model = "us.meta.llama3-3-70b-instruct-v1:0", cost = 0.72 }
