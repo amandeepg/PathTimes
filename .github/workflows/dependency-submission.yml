@@ -16,11 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
+    - name: Set up JDK
       uses: actions/setup-java@v4
       with:
         distribution: temurin
         java-version-file: ./android/.java-version
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v4
-      build-root-director: ./android
+      build-root-directory: ./android
