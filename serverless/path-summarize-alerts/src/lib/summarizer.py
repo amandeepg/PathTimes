@@ -166,10 +166,15 @@ class AlertSummarizer:
         trace.get_current_span().set_attribute(key="llm", value=model.id())
         cr = self._client_registry(model)
 
-        if "Sports Illustrated Stadium" in input_text and model.id() == PREFERRED_LLM.id():
+        if (
+            "Sports Illustrated Stadium" in input_text
+            and model.id() == PREFERRED_LLM.id()
+        ):
             date_and_time = await self._get_red_bull_arena_date_time(cr, input_text)
             logger.info(f"Red Bull Arena date and time: {date_and_time}")
-            redbull_arena_info = await self._get_red_bull_arena_info(f"Sports Illustrated Stadium event at {date_and_time.date} at {date_and_time.time}")
+            redbull_arena_info = await self._get_red_bull_arena_info(
+                f"Sports Illustrated Stadium event at {date_and_time.date} at {date_and_time.time}"
+            )
             event_date = redbull_arena_info.event_date.replace(",", "")
             event_time = redbull_arena_info.event_time.replace(" ", "").lower()
             summary_text = f"At Sports Illustrated Stadium (formerly Red Bull Arena), there is a {redbull_arena_info.event_name} {redbull_arena_info.event_type} on {event_date} at {event_time}. Allow extra travel time to get to the stadium."
@@ -192,12 +197,16 @@ class AlertSummarizer:
             if isinstance(affected_area, AffectedStations):
                 if len(affected_area.affected_stations) == 1:
                     station_enum = affected_area.affected_stations[0]
-                    station_description = PATH_STATION_DESCRIPTIONS.get(station_enum, str(station_enum))
+                    station_description = PATH_STATION_DESCRIPTIONS.get(
+                        station_enum, str(station_enum)
+                    )
                     single_area_text = f"{station_description} station"
             elif isinstance(affected_area, AffectedRoutes):
                 if len(affected_area.affected_routes) == 1:
                     route_enum = affected_area.affected_routes[0]
-                    route_description = PATH_LINE_DESCRIPTIONS.get(route_enum, str(route_enum))
+                    route_description = PATH_LINE_DESCRIPTIONS.get(
+                        route_enum, str(route_enum)
+                    )
                     single_area_text = f"{route_description} route"
 
             if single_area_text:
@@ -207,9 +216,7 @@ class AlertSummarizer:
                 summary_text_obj = await self._remove_single_line_or_route_from_summary(
                     cr, summary.alert_summary, single_area_text
                 )
-                logger.info(
-                    f"Single area text after: {summary_text_obj.alert_summary}"
-                )
+                logger.info(f"Single area text after: {summary_text_obj.alert_summary}")
                 summary_text = summary_text_obj.alert_summary
             else:
                 summary_text = summary.alert_summary
@@ -249,12 +256,12 @@ class AlertSummarizer:
     async def _get_red_bull_arena_date_time(
         self, cr: ClientRegistry, input_text: str
     ) -> DateAndTime:
-        return await b.GetRedBullsArenaDateTime(input_text, baml_options={"client_registry": cr})
+        return await b.GetRedBullsArenaDateTime(
+            input_text, baml_options={"client_registry": cr}
+        )
 
     @tracer.start_as_current_span("summ.get_red_bull_arena_info")
-    async def _get_red_bull_arena_info(
-        self, input_text: str
-    ) -> RedBullArenaInfo:
+    async def _get_red_bull_arena_info(self, input_text: str) -> RedBullArenaInfo:
         cr = ClientRegistry()
         cr.add_llm_client(
             name="perplexity",
@@ -271,7 +278,9 @@ class AlertSummarizer:
             },
         )
         cr.set_primary("perplexity")
-        return await b.GetRedBullsArenaText(input_text, baml_options={"client_registry": cr})
+        return await b.GetRedBullsArenaText(
+            input_text, baml_options={"client_registry": cr}
+        )
 
     @staticmethod
     def _client_registry(model: LlmClient) -> ClientRegistry:
