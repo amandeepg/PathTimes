@@ -35,7 +35,10 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -68,7 +71,8 @@ android {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 }
 

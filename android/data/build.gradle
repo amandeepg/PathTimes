@@ -1,13 +1,14 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.jmailen.kotlinter'
 }
 
 android {
-    namespace 'ca.amandeep.path.main.core'
+    namespace 'ca.amandeep.path.data'
     compileSdk 35
 
     defaultConfig {
@@ -23,7 +24,10 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -32,17 +36,8 @@ android {
     kotlinOptions {
         jvmTarget = '17'
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-        freeCompilerArgs += "-P"
-        //noinspection GrDeprecatedAPIUsage
-        freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
-        freeCompilerArgs += "-P"
-        //noinspection GrDeprecatedAPIUsage
-        freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
     }
 
-    buildFeatures {
-        compose true
-    }
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -53,13 +48,43 @@ android {
     }
 }
 
-dependencies {
-    implementation(project(":ui-core"))
-    implementation(project(":data"))
-    implementation(project(":util"))
-    implementation(project(":strings"))
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+}
 
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+tasks.withType(KotlinCompile) {
+    //noinspection GrDeprecatedAPIUsage
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation(project(":util"))
+    api(project(":json"))
+
+    implementation AndroidX.work.runtimeKtx
     implementation KotlinX.collections.immutable
+
+    //noinspection GradleDependency breaking permissions changes, TODO handle them
+    implementation Google.accompanist.permissions
+    implementation Google.android.playServices.location
+
+    implementation Square.moshi.adapters
+    implementation Square.moshi
+    implementation Square.retrofit2.converter.moshi
+    implementation Square.retrofit2.converter.scalars
+    implementation Square.retrofit2
+
+    implementation "org.jsoup:jsoup:_"
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber

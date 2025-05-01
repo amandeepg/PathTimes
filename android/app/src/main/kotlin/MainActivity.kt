@@ -3,7 +3,6 @@ package ca.amandeep.path
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -57,8 +56,7 @@ class MainActivity : ComponentActivity() {
             context = this,
             onTriggered = {
                 d { "Developer menu activated!" }
-
-            }
+            },
         )
 
         // Get screen dimensions *after* the layout is drawn

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
@@ -7,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace 'ca.amandeep.path.ui.core'
+    namespace 'ca.amandeep.path.ui.alerts'
     compileSdk 35
 
     defaultConfig {
@@ -23,7 +25,10 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -53,8 +58,30 @@ android {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+tasks.withType(KotlinCompile) {
+    //noinspection GrDeprecatedAPIUsage
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
 dependencies {
+    implementation(project(":ui-core"))
+    implementation(project(":main-core"))
     implementation(project(":util"))
+    implementation(project(":data"))
     implementation(project(":strings"))
 
     implementation AndroidX.compose.material

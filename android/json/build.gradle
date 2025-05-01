@@ -1,12 +1,15 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'com.android.library'
+    id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.android'
     id 'org.jmailen.kotlinter'
 }
 
 android {
-    namespace 'ca.amandeep.path.util'
+    namespace 'ca.amandeep.path.json'
     compileSdk 35
 
     defaultConfig {
@@ -22,7 +25,10 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -31,7 +37,7 @@ android {
     kotlinOptions {
         jvmTarget = '17'
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-     }
+    }
 
     packagingOptions {
         resources {
@@ -43,13 +49,38 @@ android {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+tasks.withType(KotlinCompile) {
+    //noinspection GrDeprecatedAPIUsage
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
 dependencies {
-    implementation AndroidX.compose.ui
-    implementation AndroidX.core.ktx
+    implementation(project(":util"))
+
     implementation KotlinX.collections.immutable
+
+    implementation Square.moshi
+    ksp Square.moshi.kotlinCodegen
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber
+
+    implementation AndroidX.compose.ui.tooling
+    debugImplementation AndroidX.compose.ui.toolingPreview
 
     testImplementation(Testing.junit4)
     testImplementation "com.google.truth:truth:_"

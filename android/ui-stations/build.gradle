@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
@@ -23,7 +25,10 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -50,6 +55,25 @@ android {
     }
     testOptions {
         unitTests.includeAndroidResources = true
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+tasks.withType(KotlinCompile) {
+    //noinspection GrDeprecatedAPIUsage
+    kotlinOptions {
+        jvmTarget = '17'
     }
 }
 

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
@@ -7,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace 'ca.amandeep.path.ui.alerts'
+    namespace 'ca.amandeep.path.main.core'
     compileSdk 35
 
     defaultConfig {
@@ -23,7 +25,10 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+            vendor.set(JvmVendorSpec.ADOPTIUM)
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -53,22 +58,32 @@ android {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(project.rootProject.file(".java-version").getText().trim()))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+    }
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+tasks.withType(KotlinCompile) {
+    //noinspection GrDeprecatedAPIUsage
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
 dependencies {
     implementation(project(":ui-core"))
-    implementation(project(":main-core"))
-    implementation(project(":util"))
     implementation(project(":data"))
+    implementation(project(":util"))
     implementation(project(":strings"))
 
-    implementation AndroidX.compose.material
-    implementation AndroidX.compose.material.icons.extended
-    implementation AndroidX.compose.material3
-    implementation AndroidX.compose.ui
-    implementation AndroidX.core.ktx
     implementation KotlinX.collections.immutable
-
-    //noinspection GradleDependency breaking permissions changes, TODO handle them
-    implementation Google.accompanist.permissions
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber

@@ -24,8 +24,8 @@ class DeveloperMenuTrigger(
     private val waitTimeoutDuration: Duration = 25.seconds,
     private val cornerThresholdPercent: Float = 0.25f,
 ) {
-
     private enum class TriggerState { IDLE, HOLDING_FIRST, WAITING_SECOND, HOLDING_SECOND }
+
     private enum class Corner { TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT }
 
     private var currentState: TriggerState = TriggerState.IDLE
@@ -56,7 +56,12 @@ class DeveloperMenuTrigger(
             Corner.TOP_LEFT to RectF(0f, 0f, cornerSizeX, cornerSizeY),
             Corner.TOP_RIGHT to RectF(screenWidth - cornerSizeX, 0f, screenWidth.toFloat(), cornerSizeY),
             Corner.BOTTOM_LEFT to RectF(0f, screenHeight - cornerSizeY, cornerSizeX, screenHeight.toFloat()),
-            Corner.BOTTOM_RIGHT to RectF(screenWidth - cornerSizeX, screenHeight - cornerSizeY, screenWidth.toFloat(), screenHeight.toFloat())
+            Corner.BOTTOM_RIGHT to RectF(
+                screenWidth - cornerSizeX,
+                screenHeight - cornerSizeY,
+                screenWidth.toFloat(),
+                screenHeight.toFloat(),
+            ),
         )
         d { "Screen dimensions set: ($screenWidth, $screenHeight)" }
     }
@@ -79,7 +84,9 @@ class DeveloperMenuTrigger(
                     activePointers[id]?.set(event.getX(i), event.getY(i))
                 }
                 // Reset immediately if fingers slide out during holds
-                if ((currentState == TriggerState.HOLDING_FIRST || currentState == TriggerState.HOLDING_SECOND) && !areRequiredCornersHeld()) {
+                if (currentState in listOf(TriggerState.HOLDING_FIRST, TriggerState.HOLDING_SECOND) &&
+                    !areRequiredCornersHeld()
+                ) {
                     d { "Pointer slid out during $currentState. Resetting." }
                     reset()
                 }
@@ -87,7 +94,9 @@ class DeveloperMenuTrigger(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 activePointers.remove(pointerId)
                 // If a required pointer was lifted during hold, reset
-                if ((currentState == TriggerState.HOLDING_FIRST || currentState == TriggerState.HOLDING_SECOND) && !areRequiredCornersHeld()) {
+                if (currentState in listOf(TriggerState.HOLDING_FIRST, TriggerState.HOLDING_SECOND) &&
+                    !areRequiredCornersHeld()
+                ) {
                     d { "Required pointer lifted during $currentState. Resetting." }
                     reset()
                 } else if (activePointers.isEmpty() && currentState != TriggerState.WAITING_SECOND) {
@@ -109,7 +118,6 @@ class DeveloperMenuTrigger(
         activePointers.values.mapNotNull { point ->
             corners.entries.find { (_, rect) -> rect.contains(point.x, point.y) }?.key
         }.toSet()
-
 
     private fun areRequiredCornersHeld(): Boolean {
         val pressed = getPressedCorners()
