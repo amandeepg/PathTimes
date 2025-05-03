@@ -276,7 +276,7 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
                 "Please call 1-800-234-PATH for assistance or use the Pax Assistance Phone if no agent is available. " +
                 "We regret this inconvenience.",
         )
-        val GROUPED_ALERT1 = AlertData.Grouped(
+        val GROUPED_ALERT1 = AlertData.GroupedRaw(
             title = AlertData.Grouped.Title.RouteTitle(
                 persistentListOf(Route.NWK_WTC),
                 "delayed",
@@ -323,7 +323,7 @@ class SampleAlertsPreviewProvider : PreviewParameterProvider<Result<AlertsUiMode
                 GROUPED_MANY_LINE_ALERT1.title!!.text,
             ),
         )
-        val GROUPED_ALERT2 = AlertData.Grouped(
+        val GROUPED_ALERT2 = AlertData.GroupedRaw(
             title = AlertData.Grouped.Title.FreeformTitle("Bird incident"),
             main = AlertData.Single(
                 "Trains moving again.",

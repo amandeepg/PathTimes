@@ -3,6 +3,7 @@ package ca.amandeep.path
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -20,6 +21,7 @@ import ca.amandeep.path.ui.main.MainScreen
 import ca.amandeep.path.ui.main.MainViewModelImpl
 import ca.amandeep.ui.core.theme.PATHTheme
 import com.github.ajalt.timberkt.d
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
     private val mainViewModelImpl by viewModels<MainViewModelImpl>()
@@ -56,6 +58,9 @@ class MainActivity : ComponentActivity() {
             context = this,
             onTriggered = {
                 d { "Developer menu activated!" }
+                Toast.makeText(this, "Developer menu activated!", Toast.LENGTH_SHORT).show()
+
+                DeveloperStatus.developerModeFlow.value = true
             },
         )
 
@@ -71,17 +76,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Override dispatchTouchEvent to intercept all touch events before they reach child views
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         ev?.let {
             developerMenuTrigger.onTouchEvent(ev)
         }
-        // Always call super.dispatchTouchEvent to allow normal UI interaction
+
         return super.dispatchTouchEvent(ev)
     }
 
     override fun onDestroy() {
-        developerMenuTrigger.cleanup() // Important: Cancel coroutines and resources
+        developerMenuTrigger.cleanup()
         super.onDestroy()
     }
+}
+
+object DeveloperStatus {
+    val developerModeFlow = MutableStateFlow(false)
 }

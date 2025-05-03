@@ -17,6 +17,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Detects a hold of top-left & bottom right, then a hold of the top-right & bottom-left.
+ */
 class DeveloperMenuTrigger(
     private val context: Context,
     private val onTriggered: () -> Unit,

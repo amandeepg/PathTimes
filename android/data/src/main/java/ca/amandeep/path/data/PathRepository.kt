@@ -122,40 +122,28 @@ class PathRepository(
         summarizedText: String,
         summarizeApiResponse: SummarizeApiResponse,
     ): AlertData {
-        val modelStrSimple = summarizeApiResponse.model.let {
-            when {
-                it.contains("o3-mini", ignoreCase = true) -> "o3m"
-                it.contains("us.meta.llama3", ignoreCase = true) -> "l3"
-                it.contains("gpt-4o", ignoreCase = true) -> "4o"
-                it.contains("haiku", ignoreCase = true) -> "haiku"
-                it.contains("gemini-2.0-flash", ignoreCase = true) -> "g2f"
-                it.contains("chat-v3", ignoreCase = true) -> "v3"
-                it.contains("deepseek-r1", ignoreCase = true) -> "r1"
-                it.contains("scout", ignoreCase = true) -> "scout"
-                it.contains("maverick", ignoreCase = true) -> "maverick"
-                it.contains("gemini-2.5-pro", ignoreCase = true) -> "g25p"
-                it.contains("quasar-alpha", ignoreCase = true) -> "qa"
-                else -> it
-            }
-        }
-        val newAlert = copy(text = "✦ ($modelStrSimple) $summarizedText")
+        val newAlert = copy(text = summarizedText)
         val routes = summarizeApiResponse.response.affectedArea.affectedRoutes
         val stations = summarizeApiResponse.response.affectedArea.affectedStations
         return if (routes?.isNotEmpty() == true) {
-            AlertData.Grouped(
+            AlertData.GroupedWithLlm(
                 title = AlertData.Grouped.Title.RouteTitle(
                     routes = routes.toImmutableList(),
                     text = "",
                 ),
                 main = newAlert,
+                modelName = summarizeApiResponse.model,
+                original = this,
             )
         } else if (stations?.isNotEmpty() == true) {
-            AlertData.Grouped(
+            AlertData.GroupedWithLlm(
                 title = AlertData.Grouped.Title.StationTitle(
                     stations = stations.toImmutableList(),
                     text = "",
                 ),
                 main = newAlert,
+                modelName = summarizeApiResponse.model,
+                original = this,
             )
         } else {
             newAlert

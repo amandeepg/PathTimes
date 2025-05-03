@@ -53,9 +53,16 @@ data class UiStation(
 )
 
 data class UserState(
-    val shortenNames: Boolean,
-    val showOppositeDirection: Boolean,
-    val showElevatorAlerts: Boolean,
-    val showHelpGuide: Boolean,
-    val isInNJ: Boolean,
-)
+    val shortenNames: Boolean = false,
+    val showOppositeDirection: Boolean = true,
+    val showElevatorAlerts: Boolean = true,
+    val showHelpGuide: Boolean = true,
+    val isInNJ: Boolean = false,
+    val debugOptions: Debug = Debug(),
+) {
+    data class Debug(
+        val showModelName: Boolean = false,
+        val aiSummarizeAlerts: Boolean = false,
+    )
+}
+

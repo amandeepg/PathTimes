@@ -8,7 +8,7 @@ echo " SCRIPT START: Setting up Android build environment..."
 # --- Configuration Variables (You might want to adjust these) ---
 
 # Choose JDK version (11 is widely compatible, 17 is needed for newer AGP)
-JDK_VERSION="17"
+JDK_VERSION="21"
 # Target Android Platform SDK (Check your project's compileSdk)
 ANDROID_PLATFORM="android-35"
 # Target Android Build Tools (Check your project's buildToolsVersion or AGP requirement)

@@ -452,7 +452,7 @@ class SampleTrainPreviewProvider : PreviewParameterProvider<UiUpcomingTrain> {
             arrivalInMinutesFromNow = 1,
             isInOppositeDirection = false,
             alerts = persistentListOf(
-                AlertData.Grouped(
+                AlertData.GroupedRaw(
                     title = AlertData.Grouped.Title.RouteTitle(
                         routes = persistentListOf(Route.NWK_WTC),
                         text = "delayed",

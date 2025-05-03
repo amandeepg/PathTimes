@@ -72,14 +72,35 @@ fun Alert(
 
     val singleAlert = when (alert) {
         is AlertData.Single -> alert
-        is AlertData.Grouped -> alert.main
+        is AlertData.Grouped -> alert.main.let { alertWithLlm ->
+            if (alert is AlertData.GroupedWithLlm) {
+                val modelStrSimple = alert.modelName.let {
+                    when {
+                        it.contains("o3-mini", ignoreCase = true) -> "o3m"
+                        it.contains("us.meta.llama3", ignoreCase = true) -> "l3"
+                        it.contains("gpt-4o", ignoreCase = true) -> "4o"
+                        it.contains("haiku", ignoreCase = true) -> "haiku"
+                        it.contains("gemini-2.0-flash", ignoreCase = true) -> "g2f"
+                        it.contains("chat-v3", ignoreCase = true) -> "v3"
+                        it.contains("deepseek-r1", ignoreCase = true) -> "r1"
+                        it.contains("scout", ignoreCase = true) -> "scout"
+                        it.contains("maverick", ignoreCase = true) -> "maverick"
+                        it.contains("gemini-2.5-pro", ignoreCase = true) -> "g25p"
+                        it.contains("quasar-alpha", ignoreCase = true) -> "qa"
+                        else -> it
+                    }
+                }
+                val modelPrefix = "✦ ($modelStrSimple) "
+
+                alertWithLlm.copy(text = "$modelPrefix${alertWithLlm.text}")
+            } else alertWithLlm
+        }
         else -> throw IllegalArgumentException()
     }
 
     Column(modifier) {
         if (alert is AlertData.Grouped) {
-            val alertTitle = alert.title
-            when (alertTitle) {
+            when (val alertTitle = alert.title) {
                 is AlertData.Grouped.Title.RouteTitle -> {
                     FlowRow(
                         modifier = Modifier.padding(bottom = 3.dp),

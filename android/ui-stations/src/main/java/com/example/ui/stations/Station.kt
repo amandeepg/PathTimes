@@ -237,14 +237,14 @@ private fun EmptyStationPreview() {
             station = UiStation(
                 StationName.HOB,
                 alerts = persistentListOf(
-                    AlertData.Grouped(
+                    AlertData.GroupedRaw(
                         title = AlertData.Grouped.Title.StationTitle(
                             stations = persistentListOf(StationName.HOB),
                             text = "closed",
                         ),
                         main = AlertData.Single(text = "Station flooded.", date = null),
                     ),
-                    AlertData.Grouped(
+                    AlertData.GroupedRaw(
                         title = AlertData.Grouped.Title.StationTitle(
                             stations = persistentListOf(StationName.HOB),
                             text = "closed also",

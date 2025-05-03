@@ -15,34 +15,24 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -67,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ca.amandeep.path.DeveloperStatus
 import ca.amandeep.path.data.model.State
 import ca.amandeep.path.main.core.ArrivalsUiModel
 import ca.amandeep.path.main.core.MainUiModel
@@ -94,6 +85,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import ui.main.OverflowItems
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -125,6 +117,18 @@ fun MainScreen(
             ),
         )
     }
+
+    val showDebugOptions by DeveloperStatus.developerModeFlow.collectAsStateWithLifecycle()
+    val (showModelNamePref, setShowModelNamePref) = rememberBooleanPreference(
+        keyName = "showModelName_debug",
+        initialValue = false,
+        defaultValue = false,
+    )
+    val (aiSummarizeAlertsPref, setAiSummarizeAlertsPref) = rememberBooleanPreference(
+        keyName = "aiSummarizeAlerts_debug",
+        initialValue = false,
+        defaultValue = false,
+    )
 
     val (shortenNamesPref, setShortenNamesPref) = rememberBooleanPreference(
         keyName = "shortenNames",
@@ -196,6 +200,11 @@ fun MainScreen(
     val overflowItems: @Composable RowScope.() -> Unit = {
         OverflowItems(
             forceRefresh = forceRefresh,
+            showDebugOptions = showDebugOptions,
+            showModelNamePref = showModelNamePref,
+            setShowModelNamePref = setShowModelNamePref,
+            aiSummarizeAlertsPref = aiSummarizeAlertsPref,
+            setAiSummarizeAlertsPref = setAiSummarizeAlertsPref,
             shortenNamesPref = shortenNamesPref,
             setShortenNamesPref = setShortenNamesPref,
             showOppositeDirectionPref = showOppositeDirectionPref,
@@ -332,107 +341,6 @@ private fun <T : Any> foldWithLastGoodState(
         lastGoodStateAttribute
     } else {
         currentStateAttribute
-    }
-}
-
-@Suppress("UnusedReceiverParameter", "ktlint:compose:modifier-missing-check")
-@Composable
-@VisibleForTesting
-fun RowScope.OverflowItems(
-    forceRefresh: () -> Unit,
-    shortenNamesPref: Boolean,
-    setShortenNamesPref: (Boolean) -> Unit,
-    showOppositeDirectionPref: Boolean,
-    setShowOppositeDirectionPref: (Boolean) -> Unit,
-    showElevatorAlertsPref: Boolean,
-    showHelpGuidePref: Boolean,
-    setShowElevatorAlertsPref: (Boolean) -> Unit,
-    setShowHelpGuidePref: (Boolean) -> Unit,
-    anyLocationPermissionsGranted: Boolean,
-) {
-    IconButton(onClick = forceRefresh) {
-        Icon(
-            imageVector = Icons.Filled.Refresh,
-            contentDescription = stringResource(R.string.refresh_action),
-        )
-    }
-
-    var expanded by remember { mutableStateOf(false) }
-    IconButton(onClick = { expanded = true }) {
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = stringResource(R.string.more_item_actions),
-        )
-    }
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { setShortenNamesPref(!shortenNamesPref) },
-        ) {
-            Checkbox(
-                checked = shortenNamesPref,
-                onCheckedChange = setShortenNamesPref,
-            )
-            Text(
-                text = stringResource(R.string.shorten_names_action_text),
-                modifier = Modifier.padding(end = 10.dp),
-            )
-        }
-
-        if (anyLocationPermissionsGranted) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { setShowOppositeDirectionPref(!showOppositeDirectionPref) },
-            ) {
-                Checkbox(
-                    checked = showOppositeDirectionPref,
-                    onCheckedChange = setShowOppositeDirectionPref,
-                )
-                Text(
-                    text = stringResource(R.string.show_opposite_direction_action_text),
-                    modifier = Modifier.padding(end = 10.dp),
-                )
-            }
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { setShowElevatorAlertsPref(!showElevatorAlertsPref) },
-        ) {
-            Checkbox(
-                checked = showElevatorAlertsPref,
-                onCheckedChange = setShowElevatorAlertsPref,
-            )
-            Text(
-                text = stringResource(R.string.show_elevator_alerts),
-                modifier = Modifier.padding(end = 10.dp),
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { setShowHelpGuidePref(!showHelpGuidePref) },
-        ) {
-            Checkbox(
-                checked = showHelpGuidePref,
-                onCheckedChange = setShowHelpGuidePref,
-            )
-            Text(
-                text = stringResource(R.string.show_help_guide),
-                modifier = Modifier.padding(end = 10.dp),
-            )
-        }
     }
 }
 

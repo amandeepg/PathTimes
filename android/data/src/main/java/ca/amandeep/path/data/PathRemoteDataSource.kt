@@ -140,7 +140,7 @@ data class AlertDatas(
                             alert.copy(text = alert.text?.capitalize()?.addPeriod())
                         }
                     }
-                    AlertData.Grouped(
+                    AlertData.GroupedRaw(
                         title = title,
                         main = alerts.first(),
                         history = alerts.drop(1).sortedByDescending { it.date }.toImmutableList(),
@@ -152,7 +152,7 @@ data class AlertDatas(
                 val allToBeAbsorbed = containingRoutesAlerts.map { it.first }
                 val allAbsorbing = containingRoutesAlerts.map { it.second }
                 allAlerts.mapNotNull {
-                    if (it !is AlertData.Grouped || it.title !is AlertData.Grouped.Title.RouteTitle) return@mapNotNull it
+                    if (it !is AlertData.GroupedRaw || it.title !is AlertData.Grouped.Title.RouteTitle) return@mapNotNull it
                     when (it) {
                         in allAbsorbing -> {
                             val absorbed = containingRoutesAlerts.find { it2 -> it2.second == it }!!
@@ -186,11 +186,13 @@ data class AlertDatas(
 
             for (alert1 in routeAlerts) {
                 for (alert2 in routeAlerts) {
+                    val alert1Title = alert1.title
+                    val alert2Title = alert2.title
                     if (alert1 != alert2 &&
-                        alert1.title is AlertData.Grouped.Title.RouteTitle &&
-                        alert2.title is AlertData.Grouped.Title.RouteTitle
+                        alert1Title is AlertData.Grouped.Title.RouteTitle &&
+                        alert2Title is AlertData.Grouped.Title.RouteTitle
                     ) {
-                        if (alert2.title.routes.containsAll(alert1.title.routes)) {
+                        if (alert2Title.routes.containsAll(alert1Title.routes)) {
                             containedAlerts.add(Pair(alert1, alert2))
                         }
                     }
@@ -240,14 +242,10 @@ sealed interface AlertData {
     }
 
     @Immutable
-    data class Grouped(
-        val title: Title?,
-        val main: Single,
-        val history: ImmutableList<Single> = persistentListOf(),
-    ) : AlertData {
-        override val isElevator: Boolean = main.isElevator ||
-            (title is Title.FreeformTitle && title.text?.isElevator() == true) ||
-            (history.isNotEmpty() && history.all { it.isElevator })
+    abstract class Grouped : AlertData {
+        abstract val title: Title?
+        abstract val main: Single
+        abstract val history: ImmutableList<Single>
 
         @Immutable
         sealed interface Title {
@@ -305,6 +303,28 @@ sealed interface AlertData {
                 }
             }
         }
+    }
+
+    @Immutable
+    data class GroupedWithLlm(
+       override val title: Title?,
+       override val    main: Single,
+       override val  history: ImmutableList<Single> = persistentListOf(),
+        val modelName: String,
+        val original: AlertData,
+    ) : Grouped() {
+        override val isElevator: Boolean = original.isElevator
+    }
+
+    @Immutable
+    data class GroupedRaw(
+         override val title: Title?,
+         override val main: Single,
+         override val history: ImmutableList<Single> = persistentListOf(),
+    ) : Grouped() {
+        override val isElevator: Boolean = main.isElevator ||
+            (title is Title.FreeformTitle && title.text?.isElevator() == true) ||
+            (history.isNotEmpty() && history.all { it.isElevator })
     }
 }
 
