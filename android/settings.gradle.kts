@@ -9,6 +9,7 @@ include(":ui-alerts")
 include(":ui-core")
 include(":ui-stations")
 include(":util")
+include(":prefs")
 
 pluginManagement {
     repositories {
@@ -38,3 +39,7 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "PATH"
+
+gradle.beforeProject {
+    buildDir = file("${project.rootProject.rootDir}/build/${project.name}")
+}

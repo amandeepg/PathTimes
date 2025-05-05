@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalLayoutApi::class)
 
-package com.example.ui.alerts
+package ca.amandeep.path.ui.alerts
 
 import android.content.res.Configuration
 import android.text.format.DateUtils
@@ -43,6 +43,7 @@ import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.displayName
+import ca.amandeep.path.main.core.UserState
 import ca.amandeep.path.strings.R
 import ca.amandeep.ui.core.HEADING_DARK_TEXT_COLOR
 import ca.amandeep.ui.core.HEADING_LIGHT_TEXT_COLOR
@@ -65,38 +66,11 @@ fun Alert(
     alert: AlertData,
     alertTextStyle: TextStyle,
     timeTextStyle: TextStyle,
-    setShowElevatorAlerts: (Boolean) -> Unit,
+    userState: UserState,
     modifier: Modifier = Modifier,
+    setShowElevatorAlerts: (suspend (Boolean) -> Unit)? = null,
 ) {
     val titleTextStyle = alertTextStyle.copy(fontWeight = FontWeight.Medium)
-
-    val singleAlert = when (alert) {
-        is AlertData.Single -> alert
-        is AlertData.Grouped -> alert.main.let { alertWithLlm ->
-            if (alert is AlertData.GroupedWithLlm) {
-                val modelStrSimple = alert.modelName.let {
-                    when {
-                        it.contains("o3-mini", ignoreCase = true) -> "o3m"
-                        it.contains("us.meta.llama3", ignoreCase = true) -> "l3"
-                        it.contains("gpt-4o", ignoreCase = true) -> "4o"
-                        it.contains("haiku", ignoreCase = true) -> "haiku"
-                        it.contains("gemini-2.0-flash", ignoreCase = true) -> "g2f"
-                        it.contains("chat-v3", ignoreCase = true) -> "v3"
-                        it.contains("deepseek-r1", ignoreCase = true) -> "r1"
-                        it.contains("scout", ignoreCase = true) -> "scout"
-                        it.contains("maverick", ignoreCase = true) -> "maverick"
-                        it.contains("gemini-2.5-pro", ignoreCase = true) -> "g25p"
-                        it.contains("quasar-alpha", ignoreCase = true) -> "qa"
-                        else -> it
-                    }
-                }
-                val modelPrefix = "✦ ($modelStrSimple) "
-
-                alertWithLlm.copy(text = "$modelPrefix${alertWithLlm.text}")
-            } else alertWithLlm
-        }
-        else -> throw IllegalArgumentException()
-    }
 
     Column(modifier) {
         if (alert is AlertData.Grouped) {
@@ -129,6 +103,7 @@ fun Alert(
                         )
                     }
                 }
+
                 is AlertData.Grouped.Title.StationTitle -> {
                     FlowRow(
                         modifier = Modifier.padding(bottom = 3.dp),
@@ -166,6 +141,7 @@ fun Alert(
                 else -> Unit
             }
         }
+        val singleAlert = alert.asSingleAlert(userState)
         val singleAlertText = singleAlert.text
         if (!singleAlertText.isNullOrBlank()) {
             Text(
@@ -211,6 +187,7 @@ fun Alert(
                                     R.string.view_older_route,
                                     alertTitle.routes.joinToString { it.displayName },
                                 )
+
                             else ->
                                 stringResource(R.string.view_older)
                         },
@@ -248,6 +225,7 @@ fun Alert(
                                 },
                                 timeTextStyle = timeTextStyle
                                     .let { it.copy(fontSize = it.fontSize * 0.85f) },
+                                userState = userState,
                                 setShowElevatorAlerts = setShowElevatorAlerts,
                             )
                             if (index != alert.history.size - 1) {
@@ -259,21 +237,65 @@ fun Alert(
             } else if (alert.isElevator) {
                 Row {
                     DateText()
-                    Dot()
-                    Text(
-                        modifier = Modifier
-                            .expandableClickable(onClick = { setShowElevatorAlerts(false) })
-                            .alpha(0.6f),
-                        text = stringResource(R.string.hide_elevator_alerts),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = timeTextStyle,
-                    )
+                    if (setShowElevatorAlerts != null) {
+                        Dot()
+                        Text(
+                            modifier = Modifier
+                                .expandableClickable(onClick = { setShowElevatorAlerts(false) })
+                                .alpha(0.6f),
+                            text = stringResource(R.string.hide_elevator_alerts),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = timeTextStyle,
+                        )
+                    }
                 }
             } else if (!singleAlert.text.isNullOrBlank() || alert is AlertData.Grouped) {
                 DateText()
             }
         }
     }
+}
+
+@Composable
+private fun AlertData.asSingleAlert(
+    userState: UserState,
+): AlertData.Single {
+    val singleAlert = when (this) {
+        is AlertData.Single -> this
+        is AlertData.GroupedRaw -> main
+        is AlertData.GroupedWithLlm -> main.let { alertMain ->
+            if (!userState.debugOptions.aiSummarizeAlerts) {
+                return@let original.asSingleAlert(userState)
+            }
+
+            val modelStrSimple = modelName.lowercase().let {
+                when {
+                    "o3-mini" in it -> "o3m"
+                    "us.meta.llama3" in it -> "l3"
+                    "gpt-4o" in it -> "4o"
+                    "haiku" in it -> "haiku"
+                    "gemini-2.0-flash" in it -> "g2f"
+                    "chat-v3" in it -> "v3"
+                    "deepseek-r1" in it -> "r1"
+                    "scout" in it -> "scout"
+                    "maverick" in it -> "maverick"
+                    "gemini-2.5-pro" in it -> "g25p"
+                    "quasar-alpha" in it -> "qa"
+                    else -> it
+                }
+            }
+            alertMain.copy(
+                text = listOfNotNull(
+                    "✦",
+                    "($modelStrSimple)".takeIf { userState.debugOptions.showModelName },
+                    alertMain.text,
+                ).joinToString(" "),
+            )
+        }
+
+        else -> throw IllegalArgumentException()
+    }
+    return singleAlert
 }
 
 @Composable
@@ -351,8 +373,9 @@ private fun RowScope.SingleStation(
 @Composable
 fun Alerts(
     alerts: ImmutableList<AlertData>,
+    userState: UserState,
     modifier: Modifier = Modifier,
-    setShowElevatorAlerts: (Boolean) -> Unit = {},
+    setShowElevatorAlerts: (suspend (Boolean) -> Unit)? = null,
 ) {
     Column(modifier) {
         alerts
@@ -361,6 +384,7 @@ fun Alerts(
                     alert = alert,
                     alertTextStyle = MaterialTheme.typography.bodyMedium,
                     timeTextStyle = MaterialTheme.typography.labelSmall,
+                    userState = userState,
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
                 if (index != alerts.size - 1) {
@@ -385,6 +409,7 @@ private fun AlertPreview() {
                 .padding(5.dp),
             alertTextStyle = MaterialTheme.typography.bodyMedium,
             timeTextStyle = MaterialTheme.typography.labelSmall,
+            userState = UserState(),
             setShowElevatorAlerts = {},
         )
     }
@@ -408,6 +433,7 @@ private fun AlertsPreview() {
                 SampleAlertsPreviewProvider.ALERT2,
                 SampleAlertsPreviewProvider.GROUPED_ALERT2,
             ),
+            userState = UserState(),
             setShowElevatorAlerts = {},
         )
     }

@@ -63,7 +63,9 @@ import ca.amandeep.path.main.core.ArrivalsUiModel
 import ca.amandeep.path.main.core.MainUiModel
 import ca.amandeep.path.main.core.Result
 import ca.amandeep.path.main.core.UserState
+import ca.amandeep.path.prefs.UserPreferencesRepo
 import ca.amandeep.path.strings.R
+import ca.amandeep.path.ui.alerts.ExpandableAlerts
 import ca.amandeep.path.util.ConnectionState
 import ca.amandeep.path.util.checkPermission
 import ca.amandeep.path.util.observeConnectivity
@@ -74,11 +76,9 @@ import ca.amandeep.ui.core.LastUpdatedInfoRow
 import ca.amandeep.ui.core.LastUpdatedUiModel
 import ca.amandeep.ui.core.rememberLastUpdatedState
 import ca.amandeep.ui.core.requireOptionalLocationItem
-import com.example.ui.alerts.ExpandableAlerts
-import com.example.ui.stations.DirectionWarning
-import com.example.ui.stations.Station
 import com.github.ajalt.timberkt.d
-import dev.burnoo.compose.rememberpreference.rememberBooleanPreference
+import com.path.ui.stations.DirectionWarning
+import com.path.ui.stations.Station
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -119,27 +119,23 @@ fun MainScreen(
     }
 
     val showDebugOptions by DeveloperStatus.developerModeFlow.collectAsStateWithLifecycle()
-    val (showModelNamePref, setShowModelNamePref) = rememberBooleanPreference(
-        keyName = "showModelName_debug",
-        initialValue = false,
-        defaultValue = false,
-    )
-    val (aiSummarizeAlertsPref, setAiSummarizeAlertsPref) = rememberBooleanPreference(
-        keyName = "aiSummarizeAlerts_debug",
-        initialValue = false,
-        defaultValue = false,
-    )
 
-    val (shortenNamesPref, setShortenNamesPref) = rememberBooleanPreference(
-        keyName = "shortenNames",
-        initialValue = false,
-        defaultValue = false,
-    )
-    val (showOppositeDirectionPref, setShowOppositeDirectionPref) = rememberBooleanPreference(
-        keyName = "showOppositeDirection",
-        initialValue = true,
-        defaultValue = true,
-    )
+    val store = UserPreferencesRepo(context)
+
+    val showModelNamePref by store.showModelName.collectAsStateWithLifecycle(initialValue = false)
+    val aiSummarizeAlertsPref by store.aiSummarizeAlerts.collectAsStateWithLifecycle(initialValue = false)
+    val shortenNamesPref by store.shortenNames.collectAsStateWithLifecycle(initialValue = false)
+    val showOppositeDirectionPref by store.showOppositeDirection.collectAsStateWithLifecycle(initialValue = true)
+    val showElevatorAlertsPref by store.showElevatorAlerts.collectAsStateWithLifecycle(initialValue = true)
+    val showHelpGuidePref by store.showHelpGuide.collectAsStateWithLifecycle(initialValue = true)
+
+    val setShowModelNamePref = store::updateShowModelName
+    val setAiSummarizeAlertsPref = store::updateAiSummarizeAlerts
+    val setShortenNamesPref = store::updateShortenNames
+    val setShowOppositeDirectionPref = store::updateShowOppositeDirection
+    val setShowElevatorAlertsPref = store::updateShowElevatorAlerts
+    val setShowHelpGuidePref = store::updateShowHelpGuide
+
     val showOppositeDirection by remember(
         showOppositeDirectionPref,
         anyLocationPermissionsGranted,
@@ -147,18 +143,13 @@ fun MainScreen(
         derivedStateOf { showOppositeDirectionPref || !anyLocationPermissionsGranted }
     }
 
-    val (showElevatorAlertsPref, setShowElevatorAlertsPref) = rememberBooleanPreference(
-        keyName = "showElevatorAlerts",
-        initialValue = true,
-        defaultValue = true,
-    )
-    val setShowElevatorAlertsWithUndo = run {
+    val setShowElevatorAlertsWithUndo: (Boolean) -> Unit = run {
         val snackbarMessage = stringResource(R.string.change_dir_in_options)
         val snackbarActionLabel = stringResource(R.string.undo)
         return@run { newValue: Boolean ->
-            setShowElevatorAlertsPref(newValue)
-            if (!newValue) {
-                coroutineScope.launch {
+            coroutineScope.launch {
+                setShowElevatorAlertsPref(newValue)
+                if (!newValue) {
                     val snackbarResult = snackbarState.showSnackbar(
                         message = snackbarMessage,
                         actionLabel = snackbarActionLabel,
@@ -172,18 +163,13 @@ fun MainScreen(
         }
     }
 
-    val (showHelpGuidePref, setShowHelpGuidePref) = rememberBooleanPreference(
-        keyName = "showHelpGuide",
-        initialValue = true,
-        defaultValue = true,
-    )
-    val setShowHelpGuideWithUndo = run {
+    val setShowHelpGuideWithUndo: (Boolean) -> Unit = run {
         val snackbarMessage = stringResource(R.string.change_dir_in_options)
         val snackbarActionLabel = stringResource(R.string.undo)
         return@run { newValue: Boolean ->
-            setShowHelpGuidePref(newValue)
-            if (!newValue) {
-                coroutineScope.launch {
+            coroutineScope.launch {
+                setShowHelpGuidePref(newValue)
+                if (!newValue) {
                     val snackbarResult = snackbarState.showSnackbar(
                         message = snackbarMessage,
                         actionLabel = snackbarActionLabel,
@@ -258,6 +244,10 @@ fun MainScreen(
                     showElevatorAlerts = showElevatorAlertsPref,
                     showHelpGuide = showHelpGuidePref,
                     isInNJ = isInNJ,
+                    debugOptions = UserState.Debug(
+                        showModelName = showModelNamePref,
+                        aiSummarizeAlerts = aiSummarizeAlertsPref,
+                    ),
                 ),
                 forceUpdate = forceRefresh,
                 locationPermissionsUpdated = {
@@ -354,9 +344,9 @@ private fun MainScreenContent(
     locationPermissionsUpdated: suspend (ImmutableList<String>) -> Unit,
     snackbarState: SnackbarHostState,
     anyLocationPermissionsGranted: Boolean,
-    setShowingOppositeDirection: (Boolean) -> Unit,
-    setShowElevatorAlerts: (Boolean) -> Unit,
-    setShowHelpGuide: (Boolean) -> Unit,
+    setShowingOppositeDirection: suspend (Boolean) -> Unit,
+    setShowElevatorAlerts: suspend (Boolean) -> Unit,
+    setShowHelpGuide: suspend (Boolean) -> Unit,
     windowSizeClass: WindowSizeClass,
 ) {
     val connectivityState by LocalContext.current.observeConnectivity()
@@ -390,11 +380,11 @@ private fun MainScreenContent(
                             )
                         },
                     )
-                    val (showDirectionWarning, setShowDirectionWarning) = rememberBooleanPreference(
-                        keyName = "showDirectionWarning",
-                        initialValue = true,
-                        defaultValue = true,
-                    )
+
+                    val context = LocalContext.current
+                    val store = UserPreferencesRepo(context)
+                    val showDirectionWarning by store.showDirectionWarning.collectAsStateWithLifecycle(initialValue = true)
+                    val setShowDirectionWarningPref = store::updateShowDirectionWarning
 
                     val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
                     LoadedScreen(
@@ -412,7 +402,7 @@ private fun MainScreenContent(
                         alertsExpanded = alertsExpanded,
                         showDirectionWarning = showDirectionWarning,
                         setAlertsExpanded = setAlertsExpanded,
-                        setShowDirectionWarning = setShowDirectionWarning,
+                        setShowDirectionWarning = setShowDirectionWarningPref,
                         windowSizeClass = windowSizeClass,
                     )
                 }
@@ -429,16 +419,16 @@ fun LoadedScreen(
     connectivityState: ConnectionState,
     anyLocationPermissionsGranted: Boolean,
     userState: UserState,
-    setShowingOppositeDirection: (Boolean) -> Unit,
-    setShowElevatorAlerts: (Boolean) -> Unit,
+    setShowingOppositeDirection: suspend (Boolean) -> Unit,
+    setShowElevatorAlerts: suspend (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
     lastUpdatedState: LastUpdatedUiModel,
     now: Long,
-    setShowHelpGuide: (Boolean) -> Unit,
+    setShowHelpGuide: suspend (Boolean) -> Unit,
     alertsExpanded: Boolean,
     showDirectionWarning: Boolean,
     setAlertsExpanded: (Boolean) -> Unit,
-    setShowDirectionWarning: (Boolean) -> Unit,
+    setShowDirectionWarning: suspend (Boolean) -> Unit,
     windowSizeClass: WindowSizeClass,
     modifier: Modifier = Modifier,
 ) {
@@ -497,6 +487,7 @@ fun LoadedScreen(
                     alertsResult = alertsModel,
                     expanded = alertsExpanded,
                     setExpanded = setAlertsExpanded,
+                    userState = userState,
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
                 if (anyLocationPermissionsGranted && showDirectionWarning) {

@@ -1,11 +1,12 @@
 import sys
 import os
 import hashlib
+from typing import List
 
 
 def compute_directory_hash(directory: str):
     sha1 = hashlib.sha1()
-    files = []
+    files: List[str] = []
 
     # Collect all files and convert paths to relative
     for root, _, filenames in os.walk(directory):

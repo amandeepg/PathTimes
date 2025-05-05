@@ -31,7 +31,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     kotlin {
@@ -67,6 +67,17 @@ android {
         unitTests.includeAndroidResources = true
     }
     namespace 'ca.amandeep.path'
+
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            def unitTestTaskName = "test${variant.name.capitalize()}UnitTest"
+            def unitTestTask = tasks.findByName(unitTestTaskName)
+            if (unitTestTask != null) {
+                unitTestTask.enabled = false
+                println "Disabled unit tests for release variant: ${variant.name} ($unitTestTaskName)"
+            }
+        }
+    }
 }
 
 java {
@@ -96,6 +107,7 @@ dependencies {
     implementation(project(":ui-core"))
     implementation(project(":ui-stations"))
     implementation(project(":util"))
+    implementation(project(":prefs"))
 
     implementation AndroidX.activity.compose
     implementation AndroidX.compose.material
@@ -111,7 +123,7 @@ dependencies {
     implementation AndroidX.navigation.compose
     implementation KotlinX.collections.immutable
 
-    implementation "dev.burnoo:compose-remember-preference:_"
+    implementation "androidx.datastore:datastore-preferences:1.1.5"
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber

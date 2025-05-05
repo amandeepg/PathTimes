@@ -24,7 +24,7 @@ class {llm_name}({client_class}):
 
 
 def generate_all_llm_clients(llms: List[str]) -> str:
-    all_llm_clients = []
+    all_llm_clients: List[str] = []
     for llm_name in llms:
         all_llm_clients.append(f"{llm_name}()")
     return (

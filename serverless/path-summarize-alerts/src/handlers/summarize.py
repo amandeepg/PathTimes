@@ -1,7 +1,7 @@
 import asyncio
 import json
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import boto3
 from aws_lambda_powertools import Logger
@@ -30,10 +30,10 @@ class SummarizeEvent(BaseModel):
 class SummarizerLambda:
     def __init__(self):
         self._summarizer = AlertSummarizer()
-        self._lambda_client = boto3.client("lambda")
+        self._lambda_client = boto3.client("lambda") # pyright: ignore[reportUnknownMemberType]
 
     @tracer.start_as_current_span("create_summarize_response")
-    def _create_response(self, input_text: str, skip_cache: bool) -> dict:
+    def _create_response(self, input_text: str, skip_cache: bool) -> Dict[str, Any]:
         result = asyncio.run(
             self._summarize_and_schedule(input_text, skip_cache=skip_cache)
         )
@@ -85,7 +85,7 @@ class SummarizerLambda:
 
         return summarized_alert, False
 
-    def summarize(self, event: dict) -> dict:
+    def summarize(self, event: Dict[str, Any]) -> Dict[str, Any]:
         logger.info("Received new request")
         logger.debug(f"Event: {json.dumps(event)}")
 
@@ -120,5 +120,5 @@ handler = SummarizerLambda()
 
 
 @logger.inject_lambda_context
-def handle(event: dict, context: LambdaContext) -> dict:
+def handle(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     return handler.summarize(event)

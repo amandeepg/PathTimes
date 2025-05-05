@@ -38,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import ui.main.OverflowItems
 import java.util.Date
 import kotlin.time.Duration.Companion.minutes
 
@@ -171,6 +172,11 @@ class MainScreenshotTest(
                                         showHelpGuidePref = false,
                                         setShowElevatorAlertsPref = {},
                                         setShowHelpGuidePref = {},
+                                        showModelNamePref = false,
+                                        setShowModelNamePref = {},
+                                        aiSummarizeAlertsPref = false,
+                                        setAiSummarizeAlertsPref = {},
+                                        showDebugOptions = false,
                                         anyLocationPermissionsGranted = false,
                                     )
                                 }
@@ -230,7 +236,7 @@ class MainScreenshotTest(
 
     private fun alertsData(): AlertsUiModel = AlertDatas(
         persistentListOf(
-            AlertData.Grouped(
+            AlertData.GroupedRaw(
                 title = AlertData.Grouped.Title.RouteTitle(
                     routes = persistentListOf(Route.NWK_WTC),
                     text = "delayed",
@@ -246,7 +252,7 @@ class MainScreenshotTest(
                     ),
                 ),
             ),
-            AlertData.Grouped(
+            AlertData.GroupedRaw(
                 title = AlertData.Grouped.Title.RouteTitle(
                     routes = persistentListOf(Route.HOB_33, Route.JSQ_33),
                     text = "resuming normal service",

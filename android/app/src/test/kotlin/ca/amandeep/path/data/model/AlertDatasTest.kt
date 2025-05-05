@@ -53,7 +53,7 @@ class AlertDatasTest {
             "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC almost done. Trains almost moving. An update will be issued in approx. 11 mins.",
         ).toAlertDatas().getGroupedAlerts()
         assertThat(alertDatas).containsExactly(
-            AlertData.Grouped(
+            AlertData.GroupedRaw(
                 title = AlertData.Grouped.Title.RouteTitle(persistentListOf(Route.NWK_WTC), "almost done"),
                 main = AlertData.Single(
                     "Trains almost moving. Update in 11 mins.",
@@ -86,7 +86,7 @@ class AlertDatasTest {
             "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC almost done. Trains almost moving. An update will be issued in approx. 11 mins.",
         ).toAlertDatas().getGroupedAlerts()
         assertThat(alertDatas).containsExactly(
-            AlertData.Grouped(
+            AlertData.GroupedRaw(
                 title = AlertData.Grouped.Title.RouteTitle(persistentListOf(Route.NWK_WTC), "almost done"),
                 main = AlertData.Single(
                     "Trains almost moving. Update in 11 mins.",
@@ -119,7 +119,7 @@ class AlertDatasTest {
             "6/5/2023 10:08 PM" to "10:08 PM: NWK-WTC, HOB-33 almost done. Trains movingish. An update will be issued in approx. 11 mins.",
         ).toAlertDatas().getGroupedAlerts()
         assertThat(alertDatas).containsExactly(
-            AlertData.Grouped(
+            AlertData.GroupedRaw(
                 title = AlertData.Grouped.Title.RouteTitle(
                     persistentListOf(Route.HOB_33, Route.NWK_WTC),
                     "almost done",
@@ -154,7 +154,7 @@ class AlertDatasTest {
             "6/5/2023 10:08 PM" to "10:08 PM: Bird incident. Trains moving again.",
         ).toAlertDatas().getGroupedAlerts()
         assertThat(alertDatas).containsExactly(
-            AlertData.Grouped(
+            AlertData.GroupedRaw(
                 title = AlertData.Grouped.Title.FreeformTitle("Bird incident"),
                 main = AlertData.Single(
                     "Trains moving again.",

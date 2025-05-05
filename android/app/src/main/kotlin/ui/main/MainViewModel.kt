@@ -19,6 +19,7 @@ import ca.amandeep.path.main.core.asValid
 import ca.amandeep.path.main.core.sortedByDirectionAndTime
 import ca.amandeep.path.main.core.toUiStation
 import ca.amandeep.path.main.core.toUiTrains
+import ca.amandeep.path.prefs.UserPreferencesRepo
 import ca.amandeep.path.util.Coordinates
 import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
@@ -55,7 +56,7 @@ interface MainViewModel {
 }
 
 class MainViewModelImpl(application: Application) : AndroidViewModel(application), MainViewModel {
-    private val locationUseCase = LocationUseCase(application)
+    private val locationUseCase = LocationUseCase(application.applicationContext)
     private val pathRepository = PathRepository(
         pathRemoteDataSource = PathRemoteDataSource(
             pathRestApi = PathOfficialRestApiService.INSTANCE,
@@ -63,6 +64,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             ioDispatcher = Dispatchers.IO,
             alertParser = AlertParser(),
         ),
+        userPreferencesRepo = UserPreferencesRepo(application.applicationContext),
         summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
         arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
         alertsUpdateInterval = MainViewModel.ALERTS_NETWORK_UPDATE_INTERVAL,

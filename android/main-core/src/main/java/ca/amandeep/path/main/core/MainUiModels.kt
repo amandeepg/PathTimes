@@ -65,4 +65,3 @@ data class UserState(
         val aiSummarizeAlerts: Boolean = false,
     )
 }
-

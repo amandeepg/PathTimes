@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExpandableContainerView(
@@ -73,12 +75,14 @@ fun ExpandableView(
 }
 
 fun Modifier.expandableClickable(
-    onClick: () -> Unit,
+    onClick: suspend () -> Unit,
 ) = this.composed {
+    val coroutineScope = rememberCoroutineScope()
+
     clickable(
         indication = null, // Removes the ripple effect on tap
         interactionSource = remember { MutableInteractionSource() }, // Removes the ripple effect on tap
-        onClick = onClick,
+        onClick = { coroutineScope.launch { onClick() } },
     )
 }
 

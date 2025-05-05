@@ -1,6 +1,7 @@
 import os
 from abc import ABC
 from abc import abstractmethod
+from typing import Any, Dict
 
 from baml_py import ClientRegistry
 
@@ -25,7 +26,7 @@ class LlmClient(ABC):
     def cost(self) -> float:
         pass
 
-    def _add_to_registry(self, cr: ClientRegistry, provider: str, options: dict):
+    def _add_to_registry(self, cr: ClientRegistry, provider: str, options: Dict[str, Any]):
         cr.add_llm_client(
             name=self.id(),
             provider=provider,

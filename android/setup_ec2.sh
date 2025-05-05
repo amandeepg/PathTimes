@@ -7,17 +7,13 @@ echo " SCRIPT START: Setting up Android build environment..."
 
 # --- Configuration Variables (You might want to adjust these) ---
 
-# Choose JDK version (11 is widely compatible, 17 is needed for newer AGP)
+# Choose JDK version (11 is widely compatible, 21 is needed for newer AGP)
 JDK_VERSION="21"
-# Target Android Platform SDK (Check your project's compileSdk)
-ANDROID_PLATFORM="android-35"
-# Target Android Build Tools (Check your project's buildToolsVersion or AGP requirement)
-ANDROID_BUILD_TOOLS="36.0.0"
 # Android Command Line Tools download URL
 # **IMPORTANT**: Check for the latest version URL on the Android Studio download page!
 # https://developer.android.com/studio#command-tools
 # This URL might become outdated.
-CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip"
+CMDLINE_TOOLS_URL=$($(dirname "$0")/get_latest_cmd_line.sh)
 # Installation directory for Android SDK
 ANDROID_SDK_ROOT="/opt/android-sdk"
 # User who will run the gradle build (often ec2-user on Amazon Linux, ubuntu on Ubuntu)
@@ -26,8 +22,6 @@ BUILD_USER=$(whoami)
 
 echo " --- Configuration ---"
 echo "JDK Version       : $JDK_VERSION"
-echo "Platform          : $ANDROID_PLATFORM"
-echo "Build Tools       : $ANDROID_BUILD_TOOLS"
 echo "SDK Root          : $ANDROID_SDK_ROOT"
 echo "Build User        : $BUILD_USER"
 echo "Cmdline Tools URL : $CMDLINE_TOOLS_URL"
@@ -64,7 +58,7 @@ echo " STEP 1: System packages updated."
 
 # --- 2. Install Dependencies (JDK, unzip, wget) ---
 echo " STEP 2: Installing dependencies (JDK, unzip, wget)..."
-$INSTALL_CMD wget unzip $JDK_PACKAGE
+$INSTALL_CMD wget unzip dos2unix $JDK_PACKAGE
 echo " STEP 2: Dependencies installed."
 
 # --- Verify Java Installation ---
@@ -166,7 +160,7 @@ echo " STEP 4: Environment variables set."
 
 
 # --- 5. Use SDK Manager to Install Required SDK Packages ---
-echo " STEP 5: Installing SDK platform-tools, platforms, and build-tools..."
+echo " STEP 5: Installing SDK platform-tools..."
 echo "          This may take a while depending on download speed."
 
 # Ensure sdkmanager exists and is executable
@@ -177,12 +171,11 @@ fi
 
 # Accept licenses automatically
 echo "Accepting SDK licenses..."
-yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+(yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses) &> /dev/null
 
-# Install platform-tools, specified platform, and build-tools
-echo "Installing packages: platform-tools, platforms;$ANDROID_PLATFORM, build-tools;$ANDROID_BUILD_TOOLS"
-"$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;$ANDROID_PLATFORM" "build-tools;$ANDROID_BUILD_TOOLS"
-# Consider adding "emulator" and "system-images;${ANDROID_PLATFORM};google_apis;x86_64" if you need to run emulators
+# Install platform-tools
+echo "Installing packages: platform-tools"
+"$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "platform-tools"
 
 echo " STEP 5: Required SDK packages installed."
 
@@ -192,15 +185,9 @@ echo " STEP 6: Ensuring correct ownership for $ANDROID_SDK_ROOT..."
 sudo chown -R $BUILD_USER:$BUILD_USER "$ANDROID_SDK_ROOT"
 echo " STEP 6: Permissions checked."
 
-# --- 7. Gradle installation ---
-curl -s "https://get.sdkman.io" | bash
-source "/home/ec2-user/.sdkman/bin/sdkman-init.sh"
-sdk install gradle 8.13
-
 # --- Done ---
 echo ""
 echo " SCRIPT COMPLETE: Android build environment setup finished!"
 echo " RUN THE FOLLOWING: "
-echo "source \"/home/ec2-user/.sdkman/bin/sdkman-init.sh\""
 echo "source \"/etc/profile.d/android-sdk.sh\""
 echo ""

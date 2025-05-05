@@ -1,4 +1,4 @@
-package com.example.ui.stations
+package com.path.ui.stations
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -38,9 +38,9 @@ import kotlinx.coroutines.launch
 fun DirectionWarning(
     isInNJ: Boolean,
     showOppositeDirection: Boolean,
-    setShowingOppositeDirection: (Boolean) -> Unit,
+    setShowingOppositeDirection: suspend (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
-    setShowDirectionWarning: (Boolean) -> Unit,
+    setShowDirectionWarning: suspend (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -86,7 +86,7 @@ fun DirectionWarning(
             }
             Row {
                 TextButton(
-                    onClick = { setShowingOppositeDirection(!showOppositeDirection) },
+                    onClick = { coroutineScope.launch { setShowingOppositeDirection(!showOppositeDirection) } },
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(
@@ -103,8 +103,8 @@ fun DirectionWarning(
                 val snackbarActionLabel = stringResource(R.string.undo)
                 TextButton(
                     onClick = {
-                        setShowDirectionWarning(false)
                         coroutineScope.launch {
+                            setShowDirectionWarning(false)
                             val snackbarResult = snackbarState.showSnackbar(
                                 message = snackbarMessage,
                                 actionLabel = snackbarActionLabel,

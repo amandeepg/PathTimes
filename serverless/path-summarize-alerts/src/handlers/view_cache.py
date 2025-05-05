@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 import boto3
@@ -8,6 +8,8 @@ import jinja2
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.parser import parse
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from mypy_boto3_s3 import S3Client
+from mypy_boto3_s3.type_defs import ObjectTypeDef
 from opentelemetry import trace
 from pydantic import BaseModel
 
@@ -213,7 +215,7 @@ class CacheViewer:
     def __init__(self):
         self._summarizer = AlertSummarizer()
         self._cache_service = CacheService(BUCKET_NAME)
-        self._s3_client = boto3.client("s3")
+        self._s3_client: S3Client = boto3.client("s3") # pyright: ignore[reportUnknownMemberType]
 
         # Initialize Jinja2 environment
         self._template_env = jinja2.Environment(
@@ -235,7 +237,7 @@ class CacheViewer:
         dt = datetime.fromtimestamp(epoch) if epoch else None
         return dt.strftime("%B %d, %Y %I:%M:%S %p").replace(" 0", " ") if dt else "N/A"
 
-    def handle(self, event: dict) -> dict:
+    def handle(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """Renders HTML with a table showing data from the S3 bucket."""
         logger.info("Received view_cache request")
         logger.debug(f"Event: {json.dumps(event)}")
@@ -260,7 +262,7 @@ class CacheViewer:
     @tracer.start_as_current_span("create_cache_view_response")
     def _create_cache_view_response(
         self, hash_category_key: Optional[str] = None
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Creates HTML response with data from S3 bucket files."""
         prefix = (
             hash_category_key
@@ -274,7 +276,7 @@ class CacheViewer:
             )
 
             if "Contents" not in response:
-                error_html = self._error_template.render(
+                error_html = self._error_template.render( # pyright: ignore[reportUnknownMemberType]
                     title="Not Found", message=f"No files found in {prefix}"
                 )
                 return {
@@ -288,7 +290,7 @@ class CacheViewer:
                     self._fetch_files_async(
                         sorted(
                             response["Contents"],
-                            key=lambda x: x["LastModified"],
+                            key=lambda x: x.get("LastModified") or 0,
                             reverse=True,
                         ),
                     )
@@ -304,7 +306,7 @@ class CacheViewer:
 
         except Exception as e:
             logger.exception(f"Error listing files in bucket: {str(e)}")
-            error_html = self._error_template.render(title="Error", message=str(e))
+            error_html = self._error_template.render(title="Error", message=str(e)) # type: ignore
             return {
                 "statusCode": 500,
                 "body": error_html,
@@ -312,9 +314,11 @@ class CacheViewer:
             }
 
     @tracer.start_as_current_span("fetch_files_async")
-    async def _fetch_files_async(self, contents: List[dict]) -> List[CacheResponse]:
-        async def fetch_and_parse(obj: dict) -> Optional[CacheResponse]:
-            key = obj["Key"]
+    async def _fetch_files_async(self, contents: List[ObjectTypeDef]) -> List[CacheResponse]:
+        async def fetch_and_parse(obj: ObjectTypeDef) -> Optional[CacheResponse]:
+            key = obj.get("Key")
+            if key is None: return None
+            
             try:
                 try:
                     key_part1, key_part2 = key.split("/", 1)
@@ -344,7 +348,7 @@ class CacheViewer:
         """Generates HTML table from list of CacheResponse objects using Jinja2."""
 
         if not files_data:
-            return self._error_template.render(
+            return self._error_template.render( # type: ignore
                 title="No Data", message="No valid files found"
             )
 
@@ -357,7 +361,7 @@ class CacheViewer:
             if "testinput" in data.input:
                 continue
             # Skip data if it's None or the model is not recognized
-            if data is None or data.model not in all_llm_client_ids:
+            if data.model not in all_llm_client_ids:
                 continue
             # Group by input text
             if data.input not in files_by_input:
@@ -370,7 +374,7 @@ class CacheViewer:
                 key=lambda data: self._get_model_cost_float(data.model)
             )
 
-        return self._main_template.render(
+        return self._main_template.render( # type: ignore
             files_by_input=files_by_input,
             hash_category_key=hash_category_key,
             title="LLM Outputs",
@@ -384,7 +388,7 @@ class CacheViewer:
                 try:
                     cost = client.cost()
                     # Ensure cost is a number, default to 0.0 if None or invalid
-                    return float(cost) if cost is not None else 0.0
+                    return float(cost or 0.0)
                 except (ValueError, TypeError):
                     logger.warning(
                         f"Could not convert cost for model {model_id} to float."
@@ -397,15 +401,12 @@ class CacheViewer:
     def _format_affected_area(
         affected_area: AffectedStations | AffectedRoutes | None,
     ) -> str:
-        if not affected_area:
-            return "None"
-
-        if hasattr(affected_area, "affected_routes"):
-            return f"Routes: {', '.join(str(r).replace('PathLine.', '') for r in affected_area.affected_routes)}"
-        elif hasattr(affected_area, "affected_stations"):
+        if isinstance(affected_area, AffectedStations):
             return f"Stations: {', '.join(str(s).replace('PathStation.', '') for s in affected_area.affected_stations)}"
-
-        return "None"
+        elif isinstance(affected_area, AffectedRoutes):
+            return f"Routes: {', '.join(str(r).replace('PathLine.', '') for r in affected_area.affected_routes)}"
+        else:
+            return "None"
 
     @staticmethod
     def _get_model_price(model_id: str) -> str:
@@ -416,7 +417,7 @@ class CacheViewer:
                 try:
                     # format in $x.xx
                     cost = client.cost()
-                    return f"${float(cost):.2f}" if cost is not None else "$0.00"
+                    return f"${float(cost):.2f}"
                 except (ValueError, TypeError):
                     logger.warning(f"Could not format cost for model {model_id}.")
                     return "$?.??"  # Indicate unknown cost
@@ -427,5 +428,5 @@ handler = CacheViewer()
 
 
 @logger.inject_lambda_context
-def handle(event: dict, context: LambdaContext) -> dict:
+def handle(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     return handler.handle(event)

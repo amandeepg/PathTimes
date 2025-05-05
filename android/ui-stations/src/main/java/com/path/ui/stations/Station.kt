@@ -1,4 +1,4 @@
-package com.example.ui.stations
+package com.path.ui.stations
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -35,6 +35,8 @@ import ca.amandeep.path.main.core.UiStation
 import ca.amandeep.path.main.core.UiUpcomingTrain
 import ca.amandeep.path.main.core.UserState
 import ca.amandeep.path.strings.R
+import ca.amandeep.path.ui.alerts.Alerts
+import ca.amandeep.path.ui.alerts.ExpandedAlertArrowContent
 import ca.amandeep.path.util.darken
 import ca.amandeep.path.util.lighten
 import ca.amandeep.ui.core.collapsing.ExpandableView
@@ -42,8 +44,6 @@ import ca.amandeep.ui.core.collapsing.expandableClickable
 import ca.amandeep.ui.core.theme.PATHTheme
 import ca.amandeep.ui.core.theme.PATH_BLUE
 import ca.amandeep.ui.core.theme.PATH_ON_BLUE
-import com.example.ui.alerts.Alerts
-import com.example.ui.alerts.ExpandedAlertArrowContent
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.util.Locale
@@ -55,7 +55,7 @@ fun Station(
     userState: UserState,
     modifier: Modifier = Modifier,
     autoRefreshingNow: Boolean = false,
-    setShowHelpGuide: (Boolean) -> Unit,
+    setShowHelpGuide: suspend (Boolean) -> Unit,
 ) {
     val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
 
@@ -113,7 +113,7 @@ fun Station(
                                 .fillMaxWidth(),
                         ) {
                             Column(modifier = Modifier.padding(8.dp)) {
-                                Alerts(station.first.alerts)
+                                Alerts(station.first.alerts, userState = userState)
                             }
                         }
                     }

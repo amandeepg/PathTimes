@@ -307,9 +307,9 @@ sealed interface AlertData {
 
     @Immutable
     data class GroupedWithLlm(
-       override val title: Title?,
-       override val    main: Single,
-       override val  history: ImmutableList<Single> = persistentListOf(),
+        override val title: Title?,
+        override val main: Single,
+        override val history: ImmutableList<Single> = persistentListOf(),
         val modelName: String,
         val original: AlertData,
     ) : Grouped() {
@@ -318,9 +318,9 @@ sealed interface AlertData {
 
     @Immutable
     data class GroupedRaw(
-         override val title: Title?,
-         override val main: Single,
-         override val history: ImmutableList<Single> = persistentListOf(),
+        override val title: Title?,
+        override val main: Single,
+        override val history: ImmutableList<Single> = persistentListOf(),
     ) : Grouped() {
         override val isElevator: Boolean = main.isElevator ||
             (title is Title.FreeformTitle && title.text?.isElevator() == true) ||

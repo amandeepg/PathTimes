@@ -3,6 +3,7 @@ package ca.amandeep.path.data
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.data.model.SummarizeApiResponse
 import ca.amandeep.path.data.model.UpcomingTrains
+import ca.amandeep.path.prefs.UserPreferencesRepo
 import ca.amandeep.path.util.tickFlow
 import com.github.ajalt.timberkt.d
 import kotlinx.collections.immutable.ImmutableList
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.transform
@@ -33,6 +35,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class PathRepository(
     private val pathRemoteDataSource: PathRemoteDataSource,
     private val summarizerApi: PathAlertsSummarizerApiService,
+    private val userPreferencesRepo: UserPreferencesRepo,
     private val arrivalsUpdateInterval: Duration,
     private val alertsUpdateInterval: Duration,
 ) {
@@ -72,6 +75,10 @@ class PathRepository(
                     },
                 )
                 coroutineScope {
+                    if (!userPreferencesRepo.aiSummarizeAlerts.first()) {
+                        return@coroutineScope
+                    }
+
                     val originalAlerts = alertsResult.alerts.alerts
                     val processedAlerts = originalAlerts.toMutableList()
                     val channel = Channel<Pair<Int, AlertData>>()

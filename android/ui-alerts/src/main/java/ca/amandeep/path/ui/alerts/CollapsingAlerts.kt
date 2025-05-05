@@ -1,4 +1,4 @@
-package com.example.ui.alerts
+package ca.amandeep.path.ui.alerts
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -44,6 +44,7 @@ import ca.amandeep.path.data.model.Route
 import ca.amandeep.path.data.model.StationName
 import ca.amandeep.path.main.core.AlertsUiModel
 import ca.amandeep.path.main.core.Result
+import ca.amandeep.path.main.core.UserState
 import ca.amandeep.path.main.core.asValid
 import ca.amandeep.path.strings.R
 import ca.amandeep.path.util.ConnectionState
@@ -62,9 +63,10 @@ fun ExpandableAlerts(
     connectivityState: ConnectionState,
     alertsResult: Result<AlertsUiModel>,
     setExpanded: (Boolean) -> Unit,
+    userState: UserState,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
-    setShowElevatorAlerts: (Boolean) -> Unit,
+    setShowElevatorAlerts: suspend (Boolean) -> Unit,
 ) {
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
@@ -107,6 +109,7 @@ fun ExpandableAlerts(
                 Alerts(
                     modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 4.dp),
                     alerts = alertsResult.asValid()?.data?.alerts.orEmpty().toImmutableList(),
+                    userState = userState,
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
             },
@@ -257,6 +260,7 @@ private fun CollapsingAlertsPreview(
                 alertsResult = alertsResult,
                 expanded = expanded ?: defaultExpanded,
                 setExpanded = setExpanded,
+                userState = UserState(),
                 setShowElevatorAlerts = {},
             )
         }

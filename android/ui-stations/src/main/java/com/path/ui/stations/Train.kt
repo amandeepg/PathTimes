@@ -1,4 +1,4 @@
-package com.example.ui.stations
+package com.path.ui.stations
 
 import android.content.res.Configuration
 import androidx.compose.animation.Crossfade
@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,6 +55,9 @@ import ca.amandeep.path.data.model.relativeArrivalMins
 import ca.amandeep.path.main.core.UiUpcomingTrain
 import ca.amandeep.path.main.core.UserState
 import ca.amandeep.path.strings.R
+import ca.amandeep.path.ui.alerts.Alerts
+import ca.amandeep.path.ui.alerts.ExpandedAlertArrowContent
+import ca.amandeep.path.ui.alerts.HAS_ALERTS_COLOR
 import ca.amandeep.ui.core.HEADING_DARK_TEXT_COLOR
 import ca.amandeep.ui.core.HEADING_LIGHT_TEXT_COLOR
 import ca.amandeep.ui.core.HOB_33_COLOR
@@ -64,10 +68,8 @@ import ca.amandeep.ui.core.collapsing.ExpandableView
 import ca.amandeep.ui.core.collapsing.expandableClickable
 import ca.amandeep.ui.core.theme.PATHTheme
 import ca.amandeep.ui.core.theme.surfaceColorAtElevation
-import com.example.ui.alerts.Alerts
-import com.example.ui.alerts.ExpandedAlertArrowContent
-import com.example.ui.alerts.HAS_ALERTS_COLOR
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.text.Typography.nbsp
@@ -83,8 +85,9 @@ fun Train(
     modifier: Modifier = Modifier,
     autoRefreshingNow: Boolean = false,
     isLastInStation: Boolean = false,
-    setShowHelpGuide: (Boolean) -> Unit,
+    setShowHelpGuide: suspend (Boolean) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val (alertsExpanded, setAlertsExpanded) = remember { mutableStateOf(false) }
     Column(
         modifier = modifier,
@@ -116,7 +119,7 @@ fun Train(
                         .fillMaxWidth(),
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Alerts(train.alerts)
+                        Alerts(train.alerts, userState = userState)
                     }
                 }
             }
@@ -172,7 +175,7 @@ fun Train(
                             .getStringAnnotations(offset, offset)
                             .firstOrNull()
                             ?.takeIf { it.item == LINK_TAG }
-                            ?.also { setShowHelpGuide(false) }
+                            ?.also { coroutineScope.launch { setShowHelpGuide(false) } }
                     },
                 )
             }

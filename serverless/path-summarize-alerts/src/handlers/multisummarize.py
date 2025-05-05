@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Any, Dict
 
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.parser import parse
@@ -9,6 +10,7 @@ from pydantic import BaseModel
 
 from lib.cache import CacheService
 from lib.constants import BUCKET_NAME
+from lib.llm_client_base import LlmClient
 from lib.llm_clients import ALL_LLM_CLIENTS
 from lib.models import CacheResponse
 from lib.summarizer import AlertSummarizer
@@ -27,7 +29,7 @@ class MultiSummarizer:
         self._cache_service = CacheService(BUCKET_NAME)
 
     @tracer.start_as_current_span("multisumm.create_multisummarize_response")
-    async def _create_multisummarize_response(self, original_text_key: str) -> dict:
+    async def _create_multisummarize_response(self, original_text_key: str) -> Dict[str, Any]:
         cached_response = self._cache_service.get(original_text_key)
         if not cached_response:
             return {
@@ -48,7 +50,7 @@ class MultiSummarizer:
 
     @tracer.start_as_current_span("multisumm.async_multisummarize")
     async def _async_multisummarize(self, input_text: str) -> None:
-        async def summarize_with_exception_handling(client):
+        async def summarize_with_exception_handling(client: LlmClient):
             try:
                 # skip if the model is too expensive and alert is for an elevator
                 if client.cost() >= 1.0 and "elevator" in input_text:
@@ -68,7 +70,7 @@ class MultiSummarizer:
         ]
         await asyncio.gather(*tasks)
 
-    def multisummarize(self, event: dict) -> dict:
+    def multisummarize(self, event: Dict[str, Any]) -> Dict[str, Any]:
         logger.info("Received new request")
         logger.debug("Event: %s", json.dumps(event))
 
@@ -92,5 +94,5 @@ handler = MultiSummarizer()
 
 
 @logger.inject_lambda_context
-def handle(event: dict, context: LambdaContext) -> dict:
+def handle(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     return handler.multisummarize(event)

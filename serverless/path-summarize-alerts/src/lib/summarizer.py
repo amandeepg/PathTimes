@@ -62,7 +62,7 @@ class RateLimitedException(Exception):
 
 class AlertSummarizer:
     def __init__(self):
-        self._s3_client = boto3.client("s3")
+        self._s3_client = boto3.client("s3") # pyright: ignore[reportUnknownMemberType]
         self._cache_service = CacheService(BUCKET_NAME)
         logger.info("Initialized AlertSummarizer")
 

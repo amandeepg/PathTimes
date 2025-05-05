@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import ca.amandeep.path.prefs.UserPreferencesRepo
 import com.github.ajalt.timberkt.Timber.d
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
@@ -40,6 +41,7 @@ class PathDataSyncWorker(
                 summarizerApi = PathAlertsSummarizerApiService.create(context),
                 arrivalsUpdateInterval = 99.days,
                 alertsUpdateInterval = 99.days,
+                userPreferencesRepo = UserPreferencesRepo(context),
             )
 
             withTimeoutOrNull(1.minutes.toJavaDuration()) {

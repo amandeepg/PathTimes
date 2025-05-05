@@ -1,8 +1,8 @@
 package ui.main
 
-
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,15 +21,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ca.amandeep.path.strings.R
 import ca.amandeep.path.ui.main.TopBar
 import ca.amandeep.ui.core.theme.PATHTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Suppress("UnusedReceiverParameter", "ktlint:compose:modifier-missing-check")
 @Composable
@@ -35,19 +41,21 @@ fun RowScope.OverflowItems(
     forceRefresh: () -> Unit,
     showDebugOptions: Boolean,
     showModelNamePref: Boolean,
-    setShowModelNamePref: (Boolean) -> Unit,
+    setShowModelNamePref: suspend suspend (Boolean) -> Unit,
     aiSummarizeAlertsPref: Boolean,
-    setAiSummarizeAlertsPref: (Boolean) -> Unit,
+    setAiSummarizeAlertsPref: suspend (Boolean) -> Unit,
     shortenNamesPref: Boolean,
-    setShortenNamesPref: (Boolean) -> Unit,
+    setShortenNamesPref: suspend (Boolean) -> Unit,
     showOppositeDirectionPref: Boolean,
-    setShowOppositeDirectionPref: (Boolean) -> Unit,
+    setShowOppositeDirectionPref: suspend (Boolean) -> Unit,
     showElevatorAlertsPref: Boolean,
     showHelpGuidePref: Boolean,
-    setShowElevatorAlertsPref: (Boolean) -> Unit,
-    setShowHelpGuidePref: (Boolean) -> Unit,
+    setShowElevatorAlertsPref: suspend (Boolean) -> Unit,
+    setShowHelpGuidePref: suspend (Boolean) -> Unit,
     anyLocationPermissionsGranted: Boolean,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     IconButton(onClick = forceRefresh) {
         Icon(
             imageVector = Icons.Filled.Refresh,
@@ -70,9 +78,10 @@ fun RowScope.OverflowItems(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { setShortenNamesPref(!shortenNamesPref) },
+                .clickable(coroutineScope) { setShortenNamesPref(!shortenNamesPref) },
         ) {
             Checkbox(
+                coroutineScope = coroutineScope,
                 checked = shortenNamesPref,
                 onCheckedChange = setShortenNamesPref,
             )
@@ -87,9 +96,10 @@ fun RowScope.OverflowItems(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { setShowOppositeDirectionPref(!showOppositeDirectionPref) },
+                    .clickable(coroutineScope) { setShowOppositeDirectionPref(!showOppositeDirectionPref) },
             ) {
                 Checkbox(
+                    coroutineScope = coroutineScope,
                     checked = showOppositeDirectionPref,
                     onCheckedChange = setShowOppositeDirectionPref,
                 )
@@ -104,9 +114,10 @@ fun RowScope.OverflowItems(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { setShowElevatorAlertsPref(!showElevatorAlertsPref) },
+                .clickable(coroutineScope) { setShowElevatorAlertsPref(!showElevatorAlertsPref) },
         ) {
             Checkbox(
+                coroutineScope = coroutineScope,
                 checked = showElevatorAlertsPref,
                 onCheckedChange = setShowElevatorAlertsPref,
             )
@@ -120,9 +131,10 @@ fun RowScope.OverflowItems(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { setShowHelpGuidePref(!showHelpGuidePref) },
+                .clickable(coroutineScope) { setShowHelpGuidePref(!showHelpGuidePref) },
         ) {
             Checkbox(
+                coroutineScope = coroutineScope,
                 checked = showHelpGuidePref,
                 onCheckedChange = setShowHelpGuidePref,
             )
@@ -137,9 +149,10 @@ fun RowScope.OverflowItems(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { setAiSummarizeAlertsPref(!aiSummarizeAlertsPref) },
+                    .clickable(coroutineScope) { setAiSummarizeAlertsPref(!aiSummarizeAlertsPref) },
             ) {
                 Checkbox(
+                    coroutineScope = coroutineScope,
                     checked = aiSummarizeAlertsPref,
                     onCheckedChange = setAiSummarizeAlertsPref,
                 )
@@ -153,9 +166,10 @@ fun RowScope.OverflowItems(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { setShowModelNamePref(!showModelNamePref) },
+                    .clickable(coroutineScope) { setShowModelNamePref(!showModelNamePref) },
             ) {
                 Checkbox(
+                    coroutineScope = coroutineScope,
                     checked = showModelNamePref,
                     onCheckedChange = setShowModelNamePref,
                 )
@@ -167,6 +181,41 @@ fun RowScope.OverflowItems(
         }
     }
 }
+
+@Composable
+fun Checkbox(
+    coroutineScope: CoroutineScope,
+    checked: Boolean,
+    onCheckedChange: (suspend (Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    colors: CheckboxColors = CheckboxDefaults.colors(),
+    interactionSource: MutableInteractionSource? = null,
+) = Checkbox(
+    checked = checked,
+    onCheckedChange = { coroutineScope.launch { onCheckedChange?.invoke(it) } },
+    modifier = modifier,
+    enabled = enabled,
+    colors = colors,
+    interactionSource = interactionSource,
+)
+
+fun Modifier.clickable(
+    coroutineScope: CoroutineScope,
+    enabled: Boolean = true,
+    onClickLabel: String? = null,
+    role: Role? = null,
+    onClick: suspend () -> Unit,
+) = clickable(
+    enabled = enabled,
+    onClickLabel = onClickLabel,
+    role = role,
+    onClick = {
+        coroutineScope.launch {
+            onClick()
+        }
+    },
+)
 
 @Composable
 @Preview(name = "Light", showBackground = true)

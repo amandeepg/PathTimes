@@ -4,12 +4,11 @@ plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.jmailen.kotlinter'
 }
 
 android {
-    namespace 'ca.amandeep.path.ui.stations'
+    namespace 'ca.amandeep.path.prefs'
     compileSdk 35
 
     defaultConfig {
@@ -37,17 +36,8 @@ android {
     kotlinOptions {
         jvmTarget = '17'
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-        freeCompilerArgs += "-P"
-        //noinspection GrDeprecatedAPIUsage
-        freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
-        freeCompilerArgs += "-P"
-        //noinspection GrDeprecatedAPIUsage
-        freeCompilerArgs += "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=" + project.buildDir.absolutePath + "/compose_compiler"
-    }
+     }
 
-    buildFeatures {
-        compose true
-    }
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -78,16 +68,6 @@ tasks.withType(KotlinCompile) {
 }
 
 dependencies {
-    implementation(project(":ui-core"))
-    implementation(project(":ui-alerts"))
-    implementation(project(":main-core"))
-    implementation(project(":util"))
-    implementation(project(":data"))
-    implementation(project(":strings"))
-
-    implementation AndroidX.compose.material
-    implementation AndroidX.compose.material.icons.extended
-    implementation AndroidX.compose.material3
     implementation AndroidX.compose.ui
     implementation AndroidX.core.ktx
     implementation KotlinX.collections.immutable
@@ -95,8 +75,7 @@ dependencies {
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber
 
-    implementation AndroidX.compose.ui.tooling
-    debugImplementation AndroidX.compose.ui.toolingPreview
+    implementation "androidx.datastore:datastore-preferences:1.1.4"
 
     testImplementation(Testing.junit4)
     testImplementation "com.google.truth:truth:_"
