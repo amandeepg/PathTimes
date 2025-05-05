@@ -14,7 +14,7 @@ logger = Logger()
 
 class CacheService:
     def __init__(self, bucket_name: str):
-        self._s3_client = boto3.client("s3") # pyright: ignore[reportUnknownMemberType]
+        self._s3_client = boto3.client("s3")  # pyright: ignore[reportUnknownMemberType]
         self._bucket_name = bucket_name
         logger.info(f"Initialized CacheService with bucket: {bucket_name}")
 

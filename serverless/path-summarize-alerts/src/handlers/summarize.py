@@ -30,7 +30,7 @@ class SummarizeEvent(BaseModel):
 class SummarizerLambda:
     def __init__(self):
         self._summarizer = AlertSummarizer()
-        self._lambda_client = boto3.client("lambda") # pyright: ignore[reportUnknownMemberType]
+        self._lambda_client = boto3.client("lambda")  # pyright: ignore[reportUnknownMemberType]
 
     @tracer.start_as_current_span("create_summarize_response")
     def _create_response(self, input_text: str, skip_cache: bool) -> Dict[str, Any]:

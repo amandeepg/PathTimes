@@ -215,7 +215,7 @@ class CacheViewer:
     def __init__(self):
         self._summarizer = AlertSummarizer()
         self._cache_service = CacheService(BUCKET_NAME)
-        self._s3_client: S3Client = boto3.client("s3") # pyright: ignore[reportUnknownMemberType]
+        self._s3_client: S3Client = boto3.client("s3")  # pyright: ignore[reportUnknownMemberType]
 
         # Initialize Jinja2 environment
         self._template_env = jinja2.Environment(
@@ -276,7 +276,7 @@ class CacheViewer:
             )
 
             if "Contents" not in response:
-                error_html = self._error_template.render( # pyright: ignore[reportUnknownMemberType]
+                error_html = self._error_template.render(  # pyright: ignore[reportUnknownMemberType]
                     title="Not Found", message=f"No files found in {prefix}"
                 )
                 return {
@@ -306,7 +306,7 @@ class CacheViewer:
 
         except Exception as e:
             logger.exception(f"Error listing files in bucket: {str(e)}")
-            error_html = self._error_template.render(title="Error", message=str(e)) # type: ignore
+            error_html = self._error_template.render(title="Error", message=str(e))  # type: ignore
             return {
                 "statusCode": 500,
                 "body": error_html,
@@ -314,11 +314,14 @@ class CacheViewer:
             }
 
     @tracer.start_as_current_span("fetch_files_async")
-    async def _fetch_files_async(self, contents: List[ObjectTypeDef]) -> List[CacheResponse]:
+    async def _fetch_files_async(
+        self, contents: List[ObjectTypeDef]
+    ) -> List[CacheResponse]:
         async def fetch_and_parse(obj: ObjectTypeDef) -> Optional[CacheResponse]:
             key = obj.get("Key")
-            if key is None: return None
-            
+            if key is None:
+                return None
+
             try:
                 try:
                     key_part1, key_part2 = key.split("/", 1)
@@ -348,7 +351,7 @@ class CacheViewer:
         """Generates HTML table from list of CacheResponse objects using Jinja2."""
 
         if not files_data:
-            return self._error_template.render( # type: ignore
+            return self._error_template.render(  # type: ignore
                 title="No Data", message="No valid files found"
             )
 
@@ -374,7 +377,7 @@ class CacheViewer:
                 key=lambda data: self._get_model_cost_float(data.model)
             )
 
-        return self._main_template.render( # type: ignore
+        return self._main_template.render(  # type: ignore
             files_by_input=files_by_input,
             hash_category_key=hash_category_key,
             title="LLM Outputs",

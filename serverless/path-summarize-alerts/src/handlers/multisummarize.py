@@ -29,7 +29,9 @@ class MultiSummarizer:
         self._cache_service = CacheService(BUCKET_NAME)
 
     @tracer.start_as_current_span("multisumm.create_multisummarize_response")
-    async def _create_multisummarize_response(self, original_text_key: str) -> Dict[str, Any]:
+    async def _create_multisummarize_response(
+        self, original_text_key: str
+    ) -> Dict[str, Any]:
         cached_response = self._cache_service.get(original_text_key)
         if not cached_response:
             return {
