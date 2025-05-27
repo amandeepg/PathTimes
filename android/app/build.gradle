@@ -10,6 +10,9 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.jmailen.kotlinter'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.firebase.firebase-perf'
 }
 
 android {
@@ -123,10 +126,15 @@ dependencies {
     implementation AndroidX.navigation.compose
     implementation KotlinX.collections.immutable
 
-    implementation "androidx.datastore:datastore-preferences:1.1.5"
+    implementation AndroidX.dataStore.preferences
 
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber
+
+    implementation platform(Firebase.bom)
+    implementation Firebase.crashlytics
+    implementation Firebase.analytics
+    implementation Firebase.performanceMonitoring
 
     implementation AndroidX.compose.ui.tooling
     debugImplementation AndroidX.compose.ui.toolingPreview

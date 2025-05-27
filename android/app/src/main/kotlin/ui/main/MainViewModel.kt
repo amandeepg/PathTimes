@@ -25,6 +25,8 @@ import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
 import com.github.ajalt.timberkt.w
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -87,6 +89,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             }
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
+                Firebase.crashlytics.recordException(cause)
                 emit(Result.Error())
                 delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
@@ -101,6 +104,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             }
             .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
+                Firebase.crashlytics.recordException(cause)
                 emit(Result.Error())
                 delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
@@ -164,6 +168,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                 alerts = alertsUiModel,
             )
         }.retryWhen { cause, attempt ->
+            Firebase.crashlytics.recordException(cause)
             emit(
                 MainUiModel(
                     arrivals = Result.Error(),

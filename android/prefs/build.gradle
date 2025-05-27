@@ -75,7 +75,7 @@ dependencies {
     implementation 'com.github.ajalt:timberkt:_'
     implementation JakeWharton.timber
 
-    implementation "androidx.datastore:datastore-preferences:1.1.4"
+    implementation AndroidX.dataStore.preferences
 
     testImplementation(Testing.junit4)
     testImplementation "com.google.truth:truth:_"

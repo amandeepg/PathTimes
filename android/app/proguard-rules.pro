@@ -26,3 +26,5 @@
 
 -keepattributes Signature
 -keep class kotlin.coroutines.Continuation
+
+-keep public class * extends java.lang.Exception  # Optional: Keep custom exceptions.
