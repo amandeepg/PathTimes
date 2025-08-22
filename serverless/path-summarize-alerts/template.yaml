@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >-
-  Provides APIs for summarizing content and viewing cache, using S3 for storage and Bedrock for AI.
+  Provides APIs for summarizing content and viewing cache, using DynamoDB for storage and Bedrock for AI.
 
 Parameters:
   Stage:
@@ -24,8 +24,8 @@ Parameters:
 Globals:
   Function:
     Runtime: python3.12
-    MemorySize: 256
-    Timeout: 30
+    MemorySize: 512
+    Timeout: 60
     Tracing: Active 
     Layers:
       - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
@@ -33,14 +33,15 @@ Globals:
       Variables:
         POWERTOOLS_SERVICE_NAME: path-summarize-alerts
         POWERTOOLS_METRICS_NAMESPACE: path-summarize-alerts
-        LOG_LEVEL: INFO
+        LOG_LEVEL: DEBUG
         OPENROUTER_API_KEY: !Ref OpenRouterApiKey
         SKIP_CACHE_MAGIC_WORD: !Ref SkipCacheMagicWord
         OPENROUTER_APP_NAME: !Ref OpenRouterAppName
         OPENROUTER_APP_URL: !Ref OpenRouterAppUrl
-        # We'll define MULTISUMMARIZER_LAMBDA_NAME dynamically using !Ref below
         AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
-        BAML_LOG: info
+        BAML_LOG: trace
+        DYNAMODB_TABLE: !Ref AiResponsesTables
+    CodeUri: src/
     Architectures:
       - x86_64 # Ensure this matches the layer architecture
 
@@ -65,13 +66,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub path-summarize-alerts-${Stage}-summarize
-      CodeUri: src/
       Handler: handlers.summarize.handle
-      Timeout: 29
-      # Add the Environment section here
-      Environment:
-        Variables:
-          MULTISUMMARIZER_LAMBDA_NAME: !Ref MultisummarizeFunction # <-- ADD THIS LINE
       Events:
         SummarizeApiEvent:
           Type: Api
@@ -79,22 +74,10 @@ Resources:
             RestApiId: !Ref ApiGateway
             Path: /summarize
             Method: get
+      Environment:
+        Variables:
+          MULTISUMMARIZER_LAMBDA_NAME: !Ref MultisummarizeFunction
       Policies:
-        - Statement:
-            Effect: Allow
-            Action:
-              - s3:ListBucket
-            Resource:
-              - !GetAtt SummarizeDataBucket.Arn
-              - !GetAtt SummarizeDataRateLimitBucket.Arn
-        - Statement:
-            Effect: Allow
-            Action:
-              - s3:GetObject
-              - s3:PutObject
-            Resource:
-              - !Sub ${SummarizeDataBucket.Arn}/*
-              - !Sub ${SummarizeDataRateLimitBucket.Arn}/*
         - Statement:
             Effect: Allow
             Action:
@@ -107,35 +90,28 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:InvokeModelWithResponseStream
             Resource: "arn:aws:bedrock:*:*:*/*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - lambda:InvokeFunction
-            Resource: !GetAtt MultisummarizeFunction.Arn
+    Connectors:
+      DynamoDBConnector:
+        Properties:
+          Destination:
+            Id: AiResponsesTables
+          Permissions:
+            - Read
+            - Write
+      MultiSummarizeConnector:
+        Properties:
+          Destination:
+            Id: MultisummarizeFunction
+          Permissions:
+            - Write
 
   MultisummarizeFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub path-summarize-alerts-${Stage}-multisummarize
-      CodeUri: src/
       Handler: handlers.multisummarize.handle
-      Timeout: 500
+      Timeout: 600
       Policies:
-        - Statement:
-            Effect: Allow
-            Action:
-              - s3:ListBucket
-            Resource:
-              - !GetAtt SummarizeDataBucket.Arn
-              - !GetAtt SummarizeDataRateLimitBucket.Arn
-        - Statement:
-            Effect: Allow
-            Action:
-              - s3:GetObject
-              - s3:PutObject
-            Resource:
-              - !Sub ${SummarizeDataBucket.Arn}/*
-              - !Sub ${SummarizeDataRateLimitBucket.Arn}/*
         - Statement:
             Effect: Allow
             Action:
@@ -148,14 +124,20 @@ Resources:
               - bedrock:InvokeModel
               - bedrock:InvokeModelWithResponseStream
             Resource: "arn:aws:bedrock:*:*:*/*"
+    Connectors:
+      DynamoDBConnector:
+        Properties:
+          Destination:
+            Id: AiResponsesTables
+          Permissions:
+            - Read
+            - Write
 
   ViewCacheFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub path-summarize-alerts-${Stage}-viewcache
-      CodeUri: src/
       Handler: handlers.view_cache.handle
-      Timeout: 29
       Events:
         ViewCacheApiEvent:
           Type: Api
@@ -167,84 +149,48 @@ Resources:
         - Statement:
             Effect: Allow
             Action:
-              - s3:ListBucket
-            Resource:
-              - !GetAtt SummarizeDataBucket.Arn
-              - !GetAtt SummarizeDataRateLimitBucket.Arn
-        - Statement:
-            Effect: Allow
-            Action:
-              - s3:GetObject
-              - s3:PutObject
-            Resource:
-              - !Sub ${SummarizeDataBucket.Arn}/*
-              - !Sub ${SummarizeDataRateLimitBucket.Arn}/*
-        - Statement:
-            Effect: Allow
-            Action:
               - xray:PutTraceSegments
               - xray:PutTelemetryRecords
             Resource: "*"
-        - Statement:
-            Effect: Allow
-            Action:
-              - bedrock:InvokeModel
-              - bedrock:InvokeModelWithResponseStream
-            Resource: "arn:aws:bedrock:*:*:*/*"
+    Connectors:
+      DynamoDBConnector:
+        Properties:
+          Destination:
+            Id: AiResponsesTables
+          Permissions:
+            - Read
+            - Write
 
-  # --- S3 Buckets ---
-  SummarizeDataBucket:
-    Type: AWS::S3::Bucket
-    # Note: Hardcoding bucket names can cause conflicts. Consider removing for auto-naming.
-    # If keeping hardcoded names, ensure they are globally unique and not in use.
+  AiResponsesTables:
+    Type: AWS::DynamoDB::Table
     Properties:
-      BucketName: path-summarize-data
-      LifecycleConfiguration:
-        Rules:
-          - Id: ExpireOldData
-            Status: Enabled
-            ExpirationInDays: 90
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-
-  SummarizeDataRateLimitBucket:
-    Type: AWS::S3::Bucket
-    # Note: Hardcoding bucket names can cause conflicts.
-    Properties:
-      BucketName: path-summarize-data-rate-limit
-      LifecycleConfiguration:
-        Rules:
-          - Id: ExpireOldData
-            Status: Enabled
-            ExpirationInDays: 1
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-
-
+      TableName: AiResponseTable
+      AttributeDefinitions:
+        - AttributeName: input_string_hash
+          AttributeType: S    # S for String
+        - AttributeName: code_version_hash
+          AttributeType: S    # S for String
+      KeySchema:
+        - AttributeName: input_string_hash
+          KeyType: HASH     # Partition Key
+      GlobalSecondaryIndexes:
+        - IndexName: CodeVersionIndex
+          KeySchema:
+            - AttributeName: code_version_hash
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL # This means all attributes from the main table are projected into the index.
+      BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: StageName
+          Value: !Ref Stage
 
 Outputs:
   ApiEndpoint:
     Description: "API Gateway endpoint URL for Dev stage"
-    # Reference the renamed ApiGateway resource
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
-  SummarizeFunctionArn:
-    Description: "Summarize Lambda Function ARN"
-    Value: !GetAtt SummarizeFunction.Arn
-  MultisummarizeFunctionArn:
-    Description: "Multisummarize Lambda Function ARN"
-    Value: !GetAtt MultisummarizeFunction.Arn
-  ViewCacheFunctionArn:
-    Description: "View Cache Lambda Function ARN"
-    Value: !GetAtt ViewCacheFunction.Arn
-  SummarizeDataBucketName:
-    Description: "S3 bucket for summarize data"
-    Value: !Ref SummarizeDataBucket # Output the name, not ARN for simpler use
-  SummarizeDataRateLimitBucketName:
-    Description: "S3 bucket for rate limiting data"
-    Value: !Ref SummarizeDataRateLimitBucket # Output the name, not ARN
+  AiResponsesTablesName:
+    Description: The name of the DynamoDB table for AI responses
+    Value: !Ref AiResponsesTables
+    Export:
+      Name: AiResponsesTablesName

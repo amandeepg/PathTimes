@@ -3,26 +3,27 @@ name = "path-summarize-alerts"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.12.8"
 dependencies = [
-    "aws-lambda-powertools[parser]==3.11.0",
+    "aws-lambda-powertools[parser]>=3.19.0",
     "baml-py==0.86.1",
-    "boto3==1.38.6",
-    "boto3-stubs[essential]==1.38.6",
-    "botocore==1.38.6",
-    "jinja2==3.1.6",
-    "opentelemetry-api==1.32.1",
-    "opentelemetry-sdk==1.32.1",
-    "pydantic==2.11.4",
-    "tomli==2.2.1",
-    "types-jinja2==2.11.9",
+    "boto3>=1.40.11",
+    "boto3-stubs[essential]>=1.40.11",
+    "botocore>=1.40.11",
+    "dyntastic>=0.18.0",
+    "jinja2>=3.1.6",
+    "opentelemetry-api>=1.29.0",
+    "opentelemetry-sdk>=1.29.0",
+    "pydantic>=2.11.7",
+    "tomli>=2.2.1",
+    "types-jinja2>=2.11.9",
 ]
 
 [dependency-groups]
 dev = [
-    "deptry==0.23.0",
+    "deptry>=0.23.1",
     "path-summarize-alerts",
-    "pip==25.1",
+    "pip>=25.2",
 ]
 
 [tool.ruff]

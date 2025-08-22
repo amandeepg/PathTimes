@@ -292,19 +292,19 @@ fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
 
 @JsonClass(generateAdapter = true)
 data class SummarizeApiResponse(
+    @Json(name = "input_string_hash") val inputStringHash: String,
+    @Json(name = "code_version_hash") val codeVersionHash: String,
     val input: String,
-    val response: LlmResponse,
-    val model: String,
-    @Json(name = "cache_version") val cacheVersion: String,
-    val cached: Boolean,
-    @Json(name = "hash_key") val hashKey: String,
+    val response: LlmResponse?,
+    val model: String?,
+    @Json(name = "generated_at") val generatedAt: Long, // Or use Date if you prefer and add a TypeAdapter for Long to Date
 )
 
 @JsonClass(generateAdapter = true)
 data class LlmResponse(
     val text: String,
-    @Json(name = "is_delay") val isDelay: Boolean,
-    @Json(name = "affected_area") val affectedArea: AffectedArea,
+    @Json(name = "is_delay") val isDelay: Boolean?,
+    @Json(name = "affected_area") val affectedArea: AffectedArea?,
 )
 
 @JsonClass(generateAdapter = true)

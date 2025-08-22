@@ -1,12 +1,9 @@
 import asyncio
-import json
 import os
 import time
 
 from aws_lambda_powertools import Logger
-from baml_py import ClientRegistry
-import boto3
-from botocore.exceptions import ClientError
+from baml_py import ClientRegistry, Collector
 from opentelemetry import trace
 
 from baml_client import b
@@ -21,10 +18,9 @@ from baml_client.types import (
 )
 
 from .cache import CacheService
-from .constants import BUCKET_NAME, BUCKET_NAME_RATE_LIMIT
 from .llm_client_base import LlmClient
 from .llm_clients import FAST_LLM, PREFERRED_LLM
-from .models import AlertSummaryContainer, CacheResponse
+from .models import AlertSummaryContainer, AlertSummaryAiResponse
 
 logger = Logger()
 tracer = trace.get_tracer(__name__)
@@ -62,13 +58,12 @@ class RateLimitedException(Exception):
 
 class AlertSummarizer:
     def __init__(self):
-        self._s3_client = boto3.client("s3")  # pyright: ignore[reportUnknownMemberType]
-        self._cache_service = CacheService(BUCKET_NAME)
+        self._cache_service = CacheService()
         logger.info("Initialized AlertSummarizer")
 
     class __Token:
         def __init__(
-            self, data: CacheResponse | None, input_text: str, model: LlmClient
+            self, data: AlertSummaryAiResponse | None, input_text: str, model: LlmClient
         ):
             self.data = data
             self.input_text = input_text
@@ -76,7 +71,10 @@ class AlertSummarizer:
 
     @tracer.start_as_current_span("summ.check_for_cached")
     async def check_for_cached(
-        self, input_text: str, model: LlmClient, skip_cache: bool = False
+        self,
+        input_text: str,
+        model: LlmClient,
+        skip_cache: bool = False,
     ) -> tuple[bool, str, __Token]:
         hash_key = self._cache_service.hash_llm_key(input_text, model)
         if not skip_cache and (
@@ -84,34 +82,29 @@ class AlertSummarizer:
         ):
             return True, hash_key, self.__Token(response_data, input_text, model)
 
-        if self._should_be_rate_limited(hash_key):
-            logger.info("Rate limited")
-            raise RateLimitedException("Rate limited")
-
         return False, hash_key, self.__Token(None, input_text, model)
 
     @tracer.start_as_current_span("summ.summarize")
     async def summarize(
         self,
         token: __Token,
-    ) -> CacheResponse:
+    ) -> AlertSummaryAiResponse:
         if token.data:
             return token.data
 
         try:
             hash_key = self._cache_service.hash_llm_key(token.input_text, token.model)
 
-            response_data = CacheResponse(
+            response_data = AlertSummaryAiResponse(
+                input_string_hash=hash_key,
+                code_version_hash=CacheService.hash_category_key(),
                 input=token.input_text,
                 model=token.model.id(),
-                cache_version=CacheService.hash_category_key(),
                 response=await self._get_ai_response(token.input_text, token.model),
                 generated_at=int(time.time()),
-                cached=False,
-                hash_key=hash_key,
             )
 
-            self._cache_service.save(hash_key, response_data.model_dump_json())
+            self._cache_service.save(response_data)
 
             return response_data
 
@@ -122,42 +115,15 @@ class AlertSummarizer:
     @tracer.start_as_current_span("summ.summarize_from_cache")
     async def summarize_from_cache(
         self, input_text: str, model: LlmClient
-    ) -> CacheResponse | None:
+    ) -> AlertSummaryAiResponse | None:
         hash_key = self._cache_service.hash_llm_key(input_text, model)
         cache_content = self._cache_service.get(hash_key)
         if cache_content:
             logger.info(f"Cache hit for hash: {hash_key}")
-            response_data = CacheResponse.model_validate_json(cache_content)
-            response_data.cached = True
-            return response_data
+            return cache_content
         else:
             logger.info(f"Cache miss for hash: {hash_key}")
             return None
-
-    @tracer.start_as_current_span("summ.should_be_rate_limited")
-    def _should_be_rate_limited(self, hash_key: str):
-        try:
-            # Get the object from S3
-            response = self._s3_client.get_object(
-                Bucket=BUCKET_NAME_RATE_LIMIT, Key=hash_key
-            )
-            # read json from the s3 response body
-            data = json.loads(response["Body"].read().decode("utf-8"))
-            # Check if file is older than 30 seconds
-            should_be_rate_limited = time.time() - float(data["LastModified"]) <= 30.0
-        except ClientError:
-            should_be_rate_limited = False
-        except Exception as e:
-            logger.exception(f"Error checking if rate limited {e}")
-            should_be_rate_limited = False
-        if not should_be_rate_limited:
-            self._s3_client.put_object(
-                Bucket=BUCKET_NAME_RATE_LIMIT,
-                Key=hash_key,
-                Body=json.dumps({"LastModified": str(time.time())}),
-                ContentType="application/json",
-            )
-        return should_be_rate_limited
 
     @tracer.start_as_current_span("summ.get_ai_response")
     async def _get_ai_response(
@@ -250,7 +216,28 @@ class AlertSummarizer:
     async def _get_alert_summary(
         self, cr: ClientRegistry, input_text: str
     ) -> AlertSummary:
-        return await b.GetAlertSummary(input_text, baml_options={"client_registry": cr})
+        collector = Collector()
+        summary = await b.GetAlertSummary(
+            input_text, baml_options={"client_registry": cr, "collector": collector}
+        )
+
+        total_cost = 0
+        for call in collector.last.calls:  # pyright: ignore[reportOptionalMemberAccess]
+            try:
+                resp = call.http_response
+                if not resp:
+                    continue
+                cost_str = resp.body.json()["usage"]["cost"]
+                if not cost_str:
+                    continue
+                total_cost += float(cost_str)
+            except (AttributeError, KeyError, TypeError):
+                # Handle missing attributes, keys, or type errors gracefully
+                continue
+
+        logger.info(f"LLM call cost for GetAlertSummary: {total_cost}")
+
+        return summary
 
     @tracer.start_as_current_span("summ.get_red_bull_arena_date_time")
     async def _get_red_bull_arena_date_time(

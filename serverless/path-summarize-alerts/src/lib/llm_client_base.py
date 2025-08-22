@@ -57,6 +57,7 @@ class OpenRouterClient(LlmClient, ABC):
                     "HTTP-Referer": os.environ.get("OPENROUTER_APP_URL"),
                     "X-Title": os.environ.get("OPENROUTER_APP_NAME"),
                 },
+                "usage": {"include": True},
             },
         )
 

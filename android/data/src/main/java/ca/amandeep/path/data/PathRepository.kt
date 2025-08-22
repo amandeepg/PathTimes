@@ -114,9 +114,9 @@ class PathRepository(
         if (this is AlertData.Single && !text.isNullOrBlank()) {
             d { "starting summary... of $text" }
             val summarizeApiResponse = summarizerApi.summarize(text)
-            val summarizedText = summarizeApiResponse.response.text
+            val summarizedText = summarizeApiResponse.response?.text
             d { "summarized alert: $summarizedText" }
-            if (summarizedText.isNotBlank()) {
+            if (summarizedText != null && summarizedText.isNotBlank()) {
                 createSummarizedAlertData(summarizedText, summarizeApiResponse)
             } else {
                 this
@@ -130,8 +130,8 @@ class PathRepository(
         summarizeApiResponse: SummarizeApiResponse,
     ): AlertData {
         val newAlert = copy(text = summarizedText)
-        val routes = summarizeApiResponse.response.affectedArea.affectedRoutes
-        val stations = summarizeApiResponse.response.affectedArea.affectedStations
+        val routes = summarizeApiResponse.response?.affectedArea?.affectedRoutes
+        val stations = summarizeApiResponse.response?.affectedArea?.affectedStations
         return if (routes?.isNotEmpty() == true) {
             AlertData.GroupedWithLlm(
                 title = AlertData.Grouped.Title.RouteTitle(
@@ -139,7 +139,7 @@ class PathRepository(
                     text = "",
                 ),
                 main = newAlert,
-                modelName = summarizeApiResponse.model,
+                modelName = summarizeApiResponse.model.orEmpty(),
                 original = this,
             )
         } else if (stations?.isNotEmpty() == true) {
@@ -149,7 +149,7 @@ class PathRepository(
                     text = "",
                 ),
                 main = newAlert,
-                modelName = summarizeApiResponse.model,
+                modelName = summarizeApiResponse.model.orEmpty(),
                 original = this,
             )
         } else {

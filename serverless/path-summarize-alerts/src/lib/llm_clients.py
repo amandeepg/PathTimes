@@ -3,29 +3,29 @@ from .llm_client_base import OpenRouterClient, BedrockClient, LlmClient
 
 class R1(OpenRouterClient):
     def model(self) -> str:
-        return "deepseek/deepseek-r1:price"
+        return "deepseek/deepseek-r1-0528:floor"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 1.4
+        return 0.45
 
 
 class V3(OpenRouterClient):
     def model(self) -> str:
-        return "deepseek/deepseek-chat-v3-0324:price"
+        return "deepseek/deepseek-chat-v3.1:floor"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 0.7
+        return 0.4
 
 
 class GeminiTwoDotFivePro(OpenRouterClient):
     def model(self) -> str:
-        return "google/gemini-2.5-pro-preview-03-25"
+        return "google/gemini-2.5-pro"
 
     def _version(self) -> int:
         return 1
@@ -36,40 +36,18 @@ class GeminiTwoDotFivePro(OpenRouterClient):
 
 class GeminiTwoDotFiveFlash(OpenRouterClient):
     def model(self) -> str:
-        return "google/gemini-2.5-flash-preview"
+        return "google/gemini-2.5-flash"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 0.37
+        return 1.45
 
 
-class GPT4Dot1(OpenRouterClient):
+class GeminiTwoDotFiveFlashLite(OpenRouterClient):
     def model(self) -> str:
-        return "openai/gpt-4.1"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 5.0
-
-
-class GPT4Dot1Mini(OpenRouterClient):
-    def model(self) -> str:
-        return "openai/gpt-4.1-mini"
-
-    def _version(self) -> int:
-        return 1
-
-    def cost(self) -> float:
-        return 1.0
-
-
-class GPT4Dot1Nano(OpenRouterClient):
-    def model(self) -> str:
-        return "openai/gpt-4.1-nano"
+        return "google/gemini-2.5-flash-lite"
 
     def _version(self) -> int:
         return 1
@@ -78,15 +56,48 @@ class GPT4Dot1Nano(OpenRouterClient):
         return 0.25
 
 
-class O4mini(OpenRouterClient):
+class QwenThreeThinking(OpenRouterClient):
     def model(self) -> str:
-        return "openai/o4-mini"
+        return "qwen/qwen3-235b-a22b-thinking-2507:floor"
 
     def _version(self) -> int:
         return 1
 
     def cost(self) -> float:
-        return 2.5
+        return 0.2
+
+
+class GptOss20(OpenRouterClient):
+    def model(self) -> str:
+        return "openai/gpt-oss-20b:floor"
+
+    def _version(self) -> int:
+        return 1
+
+    def cost(self) -> float:
+        return 0.1
+
+
+class GptOss120(OpenRouterClient):
+    def model(self) -> str:
+        return "openai/gpt-oss-120b:floor"
+
+    def _version(self) -> int:
+        return 1
+
+    def cost(self) -> float:
+        return 0.18
+
+
+class KimiK2(OpenRouterClient):
+    def model(self) -> str:
+        return "moonshotai/kimi-k2:floor"
+
+    def _version(self) -> int:
+        return 1
+
+    def cost(self) -> float:
+        return 0.37
 
 
 class Llama3dot370b(BedrockClient):
@@ -105,10 +116,11 @@ ALL_LLM_CLIENTS: list[LlmClient] = [
     V3(),
     GeminiTwoDotFivePro(),
     GeminiTwoDotFiveFlash(),
-    GPT4Dot1(),
-    GPT4Dot1Mini(),
-    GPT4Dot1Nano(),
-    O4mini(),
+    GeminiTwoDotFiveFlashLite(),
+    QwenThreeThinking(),
+    GptOss20(),
+    GptOss120(),
+    KimiK2(),
     Llama3dot370b(),
 ]
 

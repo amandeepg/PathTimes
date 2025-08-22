@@ -1,12 +1,13 @@
 [openrouter]
-R1 = { model = "deepseek/deepseek-r1:price", cost = 1.4 }
-V3 = { model = "deepseek/deepseek-chat-v3-0324:price", cost = 0.7 }
-GeminiTwoDotFivePro = { model = "google/gemini-2.5-pro-preview-03-25", cost = 6.0 }
-GeminiTwoDotFiveFlash = { model = "google/gemini-2.5-flash-preview", cost = 0.37 }
-GPT4Dot1 = { model = "openai/gpt-4.1", cost = 5.0 }
-GPT4Dot1Mini = { model = "openai/gpt-4.1-mini", cost = 1.0 }
-GPT4Dot1Nano = { model = "openai/gpt-4.1-nano", cost = 0.25 }
-O4mini = { model = "openai/o4-mini", cost = 2.5 }
+R1 = { model = "deepseek/deepseek-r1-0528:floor", cost = 0.45 }
+V3 = { model = "deepseek/deepseek-chat-v3.1:floor", cost = 0.40 }
+GeminiTwoDotFivePro = { model = "google/gemini-2.5-pro", cost = 6.0 }
+GeminiTwoDotFiveFlash = { model = "google/gemini-2.5-flash", cost = 1.45 }
+GeminiTwoDotFiveFlashLite = { model = "google/gemini-2.5-flash-lite", cost = 0.25 }
+QwenThreeThinking = { model = "qwen/qwen3-235b-a22b-thinking-2507:floor", cost = 0.2 } 
+GptOss20 = { model = "openai/gpt-oss-20b:floor", cost = 0.1 }
+GptOss120 = { model = "openai/gpt-oss-120b:floor", cost = 0.18 }
+KimiK2 = { model = "moonshotai/kimi-k2:floor", cost = 0.37 }
 
 [bedrock]
 Llama3dot370b = { model = "us.meta.llama3-3-70b-instruct-v1:0", cost = 0.72 }

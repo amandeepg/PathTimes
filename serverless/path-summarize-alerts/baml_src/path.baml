@@ -10,13 +10,7 @@ template_string ChainOfThought() #"
 "#
 
 template_string ChainOfThoughtIf() #"
-    {%if ctx.client.name == "deepseek/deepseek-r1:price" %}
-    {%elif ctx.client.name == "deepseek/deepseek-r1" %}
-    {%elif ctx.client.name == "anthropic/claude-3.7-sonnet:thinking" %}
-    {%elif ctx.client.name == "anthropic/claude-3.7-sonnet" %}
-    {%elif ctx.client.name == "openai/o3-mini-high" %}
-    {%elif ctx.client.name == "google/gemini-2.5-flash-preview:thinking" %}
-    {% else %}
+    {%if ctx.client.name == "us.meta.llama3-3-70b-instruct-v1:0" %}
       {{ ChainOfThought() }}
     {% endif %}
 "#

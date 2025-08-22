@@ -1,23 +1,18 @@
-import asyncio
 import json
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
-import boto3
 import jinja2
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.parser import parse
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from mypy_boto3_s3 import S3Client
-from mypy_boto3_s3.type_defs import ObjectTypeDef
 from opentelemetry import trace
 from pydantic import BaseModel
 
 from baml_client.types import AffectedStations, AffectedRoutes
 from lib.cache import CacheService
-from lib.constants import BUCKET_NAME
 from lib.llm_clients import ALL_LLM_CLIENTS
-from lib.models import CacheResponse
+from lib.models import AlertSummaryAiResponse
 from lib.summarizer import AlertSummarizer
 
 logger = Logger()
@@ -76,9 +71,6 @@ class CacheViewer:
 <div class="error-container">
     <h4>{{ title }}</h4>
     <p class="flow-text">{{ message }}</p>
-    <a href="javascript:history.back()" class="waves-effect waves-light btn">
-        <i class="material-icons left">arrow_back</i>Back
-    </a>
 </div>
 {% endblock %}
 """
@@ -185,7 +177,7 @@ class CacheViewer:
                     {% endif %}
                     <tr class="group-header">
                         <td colspan="6">
-                            {{ data_group[0].hash_key.split('/', 1)[0] }} 
+                            {{ data_group[0].input_string_hash.split('/', 1)[0] }} 
                             <span style="color: #757575; font-size: 0.8em; margin-left: 8px;">
                                 ({{ data_group[0].generated_at|format_date }})
                             </span>
@@ -195,8 +187,12 @@ class CacheViewer:
                         <tr>
                             <td class="model-name">{{ data.model }} ({{ data.model|get_model_price }})</td>
                             <td class="input-text">{% if loop.first %}{{ input_text }}{% endif %}</td>
+                            {% if data.response %}
                             <td class="summary-text">{{ data.response.text }}</td>
                             <td class="affected-area">{{ format_affected_area(data.response.affected_area) }}</td>
+                            {% else %}
+                            <td class="summary-text" colspan="2" style="color: red;">Errored</td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 {% endfor %}
@@ -214,8 +210,8 @@ class CacheViewer:
 
     def __init__(self):
         self._summarizer = AlertSummarizer()
-        self._cache_service = CacheService(BUCKET_NAME)
-        self._s3_client: S3Client = boto3.client("s3")  # pyright: ignore[reportUnknownMemberType]
+        self._cache_service = CacheService()
+        # S3 client removed; using DynamoDB via CacheService
 
         # Initialize Jinja2 environment
         self._template_env = jinja2.Environment(
@@ -238,7 +234,7 @@ class CacheViewer:
         return dt.strftime("%B %d, %Y %I:%M:%S %p").replace(" 0", " ") if dt else "N/A"
 
     def handle(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Renders HTML with a table showing data from the S3 bucket."""
+        """Renders HTML with a table showing data from the DynamoDB cache."""
         logger.info("Received view_cache request")
         logger.debug(f"Event: {json.dumps(event)}")
 
@@ -263,7 +259,7 @@ class CacheViewer:
     def _create_cache_view_response(
         self, hash_category_key: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Creates HTML response with data from S3 bucket files."""
+        """Creates HTML response with data from DynamoDB."""
         prefix = (
             hash_category_key
             if hash_category_key
@@ -271,13 +267,11 @@ class CacheViewer:
         )
 
         try:
-            response = self._s3_client.list_objects_v2(
-                Bucket=BUCKET_NAME, Prefix=prefix
-            )
-
-            if "Contents" not in response:
-                error_html = self._error_template.render(  # pyright: ignore[reportUnknownMemberType]
-                    title="Not Found", message=f"No files found in {prefix}"
+            # Query DynamoDB for items where hash_key begins with the prefix (hash_category_key)
+            items = self._cache_service.query_all(prefix)
+            if not items:
+                error_html = self._error_template.render(
+                    title="Not Found", message=f"No items found for {prefix}"
                 )
                 return {
                     "statusCode": 404,
@@ -285,19 +279,16 @@ class CacheViewer:
                     "headers": {"Content-Type": "text/html"},
                 }
 
+            # Sort items by generated_at descending
+            sorted_items = sorted(
+                items,
+                key=lambda x: x.generated_at,
+                reverse=True,
+            )
             html_content = self._generate_html_table(
-                asyncio.run(
-                    self._fetch_files_async(
-                        sorted(
-                            response["Contents"],
-                            key=lambda x: x.get("LastModified") or 0,
-                            reverse=True,
-                        ),
-                    )
-                ),
+                sorted_items,
                 prefix,
             )
-
             return {
                 "statusCode": 200,
                 "body": html_content,
@@ -305,7 +296,7 @@ class CacheViewer:
             }
 
         except Exception as e:
-            logger.exception(f"Error listing files in bucket: {str(e)}")
+            logger.exception(f"Error querying DynamoDB: {str(e)}")
             error_html = self._error_template.render(title="Error", message=str(e))  # type: ignore
             return {
                 "statusCode": 500,
@@ -313,40 +304,10 @@ class CacheViewer:
                 "headers": {"Content-Type": "text/html"},
             }
 
-    @tracer.start_as_current_span("fetch_files_async")
-    async def _fetch_files_async(
-        self, contents: List[ObjectTypeDef]
-    ) -> List[CacheResponse]:
-        async def fetch_and_parse(obj: ObjectTypeDef) -> Optional[CacheResponse]:
-            key = obj.get("Key")
-            if key is None:
-                return None
-
-            try:
-                try:
-                    key_part1, key_part2 = key.split("/", 1)
-                except ValueError:
-                    logger.warning(f"Invalid key format: {key}. Skipping.")
-                    return None
-
-                file_content = await asyncio.to_thread(
-                    self._cache_service.get,
-                    key_part2,
-                    key_part1,
-                )
-                if file_content:
-                    return CacheResponse.model_validate_json(file_content)
-                return None
-            except Exception as e:
-                logger.warning(f"Error processing file {key}: {str(e)}")
-                return None
-
-        tasks = [fetch_and_parse(obj) for obj in contents]
-        results = await asyncio.gather(*tasks)
-        return [result for result in results if result is not None]
+    # Async fetch method removed; DynamoDB items are processed directly in _create_cache_view_response
 
     def _generate_html_table(
-        self, files_data: List[CacheResponse], hash_category_key: str
+        self, files_data: List[AlertSummaryAiResponse], hash_category_key: str
     ) -> str:
         """Generates HTML table from list of CacheResponse objects using Jinja2."""
 
@@ -358,7 +319,7 @@ class CacheViewer:
         # Extract the model IDs into a set for efficient lookup
         all_llm_client_ids = {client.id() for client in ALL_LLM_CLIENTS}
 
-        files_by_input: Dict[str, List[CacheResponse]] = {}
+        files_by_input: Dict[str, List[AlertSummaryAiResponse]] = {}
         for data in files_data:
             # Skip test inputs
             if "testinput" in data.input:

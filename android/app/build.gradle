@@ -16,12 +16,12 @@ plugins {
 }
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "ca.amandeep.path"
         minSdk 29
-        targetSdk 35
+        targetSdk 36
         versionCode 4
         versionName "1.3"
 

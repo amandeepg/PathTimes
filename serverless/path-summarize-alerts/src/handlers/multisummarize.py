@@ -9,10 +9,8 @@ from opentelemetry import trace
 from pydantic import BaseModel
 
 from lib.cache import CacheService
-from lib.constants import BUCKET_NAME
 from lib.llm_client_base import LlmClient
 from lib.llm_clients import ALL_LLM_CLIENTS
-from lib.models import CacheResponse
 from lib.summarizer import AlertSummarizer
 
 logger = Logger()
@@ -26,7 +24,7 @@ class MultiSummarizeEvent(BaseModel):
 class MultiSummarizer:
     def __init__(self) -> None:
         self._summarizer = AlertSummarizer()
-        self._cache_service = CacheService(BUCKET_NAME)
+        self._cache_service = CacheService()
 
     @tracer.start_as_current_span("multisumm.create_multisummarize_response")
     async def _create_multisummarize_response(
@@ -40,7 +38,7 @@ class MultiSummarizer:
                 "headers": {"Content-Type": "application/json"},
             }
 
-        original_input_text = CacheResponse.model_validate_json(cached_response).input
+        original_input_text = cached_response.input
 
         await self._async_multisummarize(original_input_text)
         logger.info("Successfully processed request")
