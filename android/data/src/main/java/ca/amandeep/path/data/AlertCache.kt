@@ -6,7 +6,6 @@ import com.github.ajalt.timberkt.d
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import com.squareup.moshi.adapter
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
 import okio.buffer
@@ -33,6 +32,7 @@ class AlertCache(
             .add(Date::class.java, Rfc3339DateJsonAdapter())
             .build()
     }
+
     @OptIn(ExperimentalStdlibApi::class)
     private val cacheAdapter: JsonAdapter<CachedAlertSummary> by lazy {
         moshi.adapter()
