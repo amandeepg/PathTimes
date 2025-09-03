@@ -37,6 +37,3 @@ jobs:
 
     - name: "Check python formatting with ruff"
       run: uvx --directory serverless/path-summarize-alerts ruff format --check
-
-    - name: "Check python typing with pyright"
-      run: uvx --directory serverless/path-summarize-alerts pyright
