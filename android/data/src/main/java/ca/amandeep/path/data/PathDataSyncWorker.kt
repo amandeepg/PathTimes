@@ -31,6 +31,10 @@ class PathDataSyncWorker(
             d { "Starting background data sync" }
 
             // TODO consolidate this with MainViewModel
+            val alertsSummarizer = AlertsSummarizer(
+                summarizerApi = PathAlertsSummarizerApiService.create(context),
+                context = context,
+            )
             val pathRepository = PathRepository(
                 pathRemoteDataSource = PathRemoteDataSource(
                     pathRestApi = PathOfficialRestApiService.INSTANCE,
@@ -38,11 +42,14 @@ class PathDataSyncWorker(
                     ioDispatcher = Dispatchers.IO,
                     alertParser = AlertParser(),
                 ),
-                summarizerApi = PathAlertsSummarizerApiService.create(context),
+                alertsSummarizer = alertsSummarizer,
                 arrivalsUpdateInterval = 99.days,
                 alertsUpdateInterval = 99.days,
                 userPreferencesRepo = UserPreferencesRepo(context),
             )
+
+            // Clean up expired cache entries
+            AlertCache(context).deleteExpired()
 
             withTimeoutOrNull(1.minutes.toJavaDuration()) {
                 pathRepository.alerts.combine(pathRepository.arrivals) { alerts, arrivals ->

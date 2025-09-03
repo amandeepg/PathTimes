@@ -57,3 +57,5 @@ baml_client
 .pdm-python
 .aws-sam/
 samconfig.toml
+.gemini
+.zed

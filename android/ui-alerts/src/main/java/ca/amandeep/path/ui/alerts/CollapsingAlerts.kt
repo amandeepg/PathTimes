@@ -75,7 +75,7 @@ fun ExpandableAlerts(
             modifier = Modifier
                 .background(alertsResult.backgroundColor())
                 .padding(4.dp),
-            expanded = expanded,
+            expanded = expanded && alertsResult is Result.Valid && !alertsResult.data.isEmpty(),
             onClickHeader = { setExpanded(!expanded) },
             headerContent = {
                 Box(modifier = Modifier.fillMaxWidth()) {

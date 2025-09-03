@@ -1,6 +1,6 @@
 import json
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import jinja2
 from aws_lambda_powertools import Logger
@@ -9,7 +9,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 from pydantic import BaseModel
 
-from baml_client.types import AffectedStations, AffectedRoutes
+from baml_client.types import AffectedRoutes, AffectedStations
 from lib.cache import CacheService
 from lib.llm_clients import ALL_LLM_CLIENTS
 from lib.models import AlertSummaryAiResponse
@@ -136,6 +136,11 @@ class CacheViewer:
         max-width: 300px;
         white-space: pre-wrap;
     }
+    .cost-info {
+        font-size: 0.75rem;
+        color: #757575;
+        margin-top: 4px;
+    }
     .input-text {
         max-width: 200px;
         white-space: pre-wrap;
@@ -177,7 +182,7 @@ class CacheViewer:
                     {% endif %}
                     <tr class="group-header">
                         <td colspan="6">
-                            {{ data_group[0].input_string_hash.split('/', 1)[0] }} 
+                            {{ data_group[0].input_string_hash.split('/', 1)[0] }}
                             <span style="color: #757575; font-size: 0.8em; margin-left: 8px;">
                                 ({{ data_group[0].generated_at|format_date }})
                             </span>
@@ -188,8 +193,8 @@ class CacheViewer:
                             <td class="model-name">{{ data.model }} ({{ data.model|get_model_price }})</td>
                             <td class="input-text">{% if loop.first %}{{ input_text }}{% endif %}</td>
                             {% if data.response %}
-                            <td class="summary-text">{{ data.response.text }}</td>
-                            <td class="affected-area">{{ format_affected_area(data.response.affected_area) }}</td>
+                            <td class="summary-text">{{ data.response.text }}{% if data.response.summary_cost is not none %}<div class="cost-info"> {{ "%.4f"|format(data.response.summary_cost * 100 * 10) }} ⅒¢</div>{% endif %}</td>
+                            <td class="affected-area">{{ format_affected_area(data.response.affected_area) }}{% if data.response.affected_area_cost is not none %}<div class="cost-info"> {{ "%.4f"|format(data.response.affected_area_cost * 100 * 10) }} ⅒¢</div>{% endif %}</td>
                             {% else %}
                             <td class="summary-text" colspan="2" style="color: red;">Errored</td>
                             {% endif %}
@@ -270,7 +275,7 @@ class CacheViewer:
             # Query DynamoDB for items where hash_key begins with the prefix (hash_category_key)
             items = self._cache_service.query_all(prefix)
             if not items:
-                error_html = self._error_template.render(
+                error_html = self._error_template.render(  # pyright: ignore[reportUnknownMemberType]
                     title="Not Found", message=f"No items found for {prefix}"
                 )
                 return {

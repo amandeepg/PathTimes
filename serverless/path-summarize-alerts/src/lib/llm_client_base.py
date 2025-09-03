@@ -1,6 +1,5 @@
 import os
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 from baml_py import ClientRegistry
@@ -57,7 +56,13 @@ class OpenRouterClient(LlmClient, ABC):
                     "HTTP-Referer": os.environ.get("OPENROUTER_APP_URL"),
                     "X-Title": os.environ.get("OPENROUTER_APP_NAME"),
                 },
-                "usage": {"include": True},
+                "usage": {
+                    "include": True,
+                },
+                "reasoning": {
+                    "effort": "high",
+                    "exclude": True,
+                },
             },
         )
 

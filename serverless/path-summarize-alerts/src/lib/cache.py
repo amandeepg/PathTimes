@@ -1,9 +1,10 @@
 import hashlib
-from typing import Optional, List
-from dyntastic import A
+from typing import List, Optional
 
 from aws_lambda_powertools import Logger
 from botocore.exceptions import ClientError
+from dyntastic import A
+
 from lib.models import AlertSummaryAiResponse
 
 from .constants import CACHE_INT

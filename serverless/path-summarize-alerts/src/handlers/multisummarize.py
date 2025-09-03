@@ -52,15 +52,14 @@ class MultiSummarizer:
     async def _async_multisummarize(self, input_text: str) -> None:
         async def summarize_with_exception_handling(client: LlmClient):
             try:
-                # skip if the model is too expensive and alert is for an elevator
-                if client.cost() >= 1.0 and "elevator" in input_text:
+                # skip elevator alerts if the model is too expensive
+                if client.cost() >= 0.3 and "elevator" in input_text:
                     return None
 
-                _, _, token = await self._summarizer.check_for_cached(
-                    input_text=input_text, model=client
+                return await self._summarizer.summarize(
+                    input_text=input_text,
+                    model=client,
                 )
-                summary = await self._summarizer.summarize(token)
-                return summary
             except Exception as e:
                 logger.error(f"Exception occurred while summarizing with {client}: {e}")
                 return None

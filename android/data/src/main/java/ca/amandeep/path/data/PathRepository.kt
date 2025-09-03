@@ -1,7 +1,6 @@
 package ca.amandeep.path.data
 
 import ca.amandeep.path.data.model.StationName
-import ca.amandeep.path.data.model.SummarizeApiResponse
 import ca.amandeep.path.data.model.UpcomingTrains
 import ca.amandeep.path.prefs.UserPreferencesRepo
 import ca.amandeep.path.util.tickFlow
@@ -13,18 +12,14 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -34,7 +29,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 class PathRepository(
     private val pathRemoteDataSource: PathRemoteDataSource,
-    private val summarizerApi: PathAlertsSummarizerApiService,
+    private val alertsSummarizer: AlertsSummarizer,
     private val userPreferencesRepo: UserPreferencesRepo,
     private val arrivalsUpdateInterval: Duration,
     private val alertsUpdateInterval: Duration,
@@ -60,102 +55,38 @@ class PathRepository(
                     }
             }
 
-    @OptIn(FlowPreview::class)
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val alerts: Flow<AlertsResult>
         get() =
             // Merge tick flow to periodically poll the API, and the refresh flow to force a refresh
-            merge(tickFlow(alertsUpdateInterval), refreshFlow).transform {
+            merge(tickFlow(alertsUpdateInterval), refreshFlow).flatMapLatest {
                 val alertsResult = AlertsResult(
                     Metadata(System.currentTimeMillis()),
                     pathRemoteDataSource.getAlerts(),
                 )
-                emit(
-                    alertsResult.also {
-                        d { "new alerts wallTime: ${it.metadata.lastUpdated}" }
-                    },
-                )
-                coroutineScope {
-                    if (!userPreferencesRepo.aiSummarizeAlerts.first()) {
-                        return@coroutineScope
-                    }
 
-                    val originalAlerts = alertsResult.alerts.alerts
-                    val processedAlerts = originalAlerts.toMutableList()
-                    val channel = Channel<Pair<Int, AlertData>>()
-
-                    // Launch async processing for each alert
-                    val jobs = originalAlerts.mapIndexed { index, alert ->
-                        launch {
-                            channel.send(index to alert.maybeSummarizeAlertData())
-                        }
-                    }
-
-                    // Close the channel once all processing is done
-                    launch {
-                        jobs.joinAll()
-                        channel.close()
-                    }
-
-                    // Emit updates as each alert is processed
-                    channel.consumeAsFlow().collect { (index, processedAlert) ->
-                        processedAlerts[index] = processedAlert
-                        emit(
+                if (!userPreferencesRepo.aiSummarizeAlerts.first()) {
+                    flow { emit(alertsResult.alerts.alerts) }
+                        .map {
                             alertsResult.copy(
                                 alerts = alertsResult.alerts.copy(
-                                    alerts = processedAlerts.toImmutableList(),
+                                    alerts = it.toImmutableList(),
                                 ),
-                            ),
-                        )
+                            )
+                        }
+                } else {
+                    with(alertsSummarizer) {
+                        val originalAlerts = alertsResult.alerts.alerts
+                        originalAlerts.maybeSummarizeAlertDatas().map {
+                            alertsResult.copy(
+                                alerts = alertsResult.alerts.copy(
+                                    alerts = it.toImmutableList(),
+                                ),
+                            )
+                        }
                     }
                 }
             }.debounce(100.milliseconds)
-
-    private suspend fun AlertData.maybeSummarizeAlertData(): AlertData =
-        if (this is AlertData.Single && !text.isNullOrBlank()) {
-            d { "starting summary... of $text" }
-            val summarizeApiResponse = summarizerApi.summarize(text)
-            val summarizedText = summarizeApiResponse.response?.text
-            d { "summarized alert: $summarizedText" }
-            if (summarizedText != null && summarizedText.isNotBlank()) {
-                createSummarizedAlertData(summarizedText, summarizeApiResponse)
-            } else {
-                this
-            }
-        } else {
-            this
-        }
-
-    private fun AlertData.Single.createSummarizedAlertData(
-        summarizedText: String,
-        summarizeApiResponse: SummarizeApiResponse,
-    ): AlertData {
-        val newAlert = copy(text = summarizedText)
-        val routes = summarizeApiResponse.response?.affectedArea?.affectedRoutes
-        val stations = summarizeApiResponse.response?.affectedArea?.affectedStations
-        return if (routes?.isNotEmpty() == true) {
-            AlertData.GroupedWithLlm(
-                title = AlertData.Grouped.Title.RouteTitle(
-                    routes = routes.toImmutableList(),
-                    text = "",
-                ),
-                main = newAlert,
-                modelName = summarizeApiResponse.model.orEmpty(),
-                original = this,
-            )
-        } else if (stations?.isNotEmpty() == true) {
-            AlertData.GroupedWithLlm(
-                title = AlertData.Grouped.Title.StationTitle(
-                    stations = stations.toImmutableList(),
-                    text = "",
-                ),
-                main = newAlert,
-                modelName = summarizeApiResponse.model.orEmpty(),
-                original = this,
-            )
-        } else {
-            newAlert
-        }
-    }
 
     /**
      * Refreshes the data from the remote data source.

@@ -150,6 +150,7 @@ licensee {
     allowUrl('https://developer.android.com/studio/terms.html') {
         because 'Android Software Development Kit License Agreement'
     }
+    allow 'MIT'
     allowUrl('https://jsoup.org/license') {
         because 'MIT, but self-hosted copy of the license'
     }

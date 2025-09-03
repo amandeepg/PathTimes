@@ -3,6 +3,7 @@ package ca.amandeep.path.ui.main
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.data.AlertParser
+import ca.amandeep.path.data.AlertsSummarizer
 import ca.amandeep.path.data.LocationUseCase
 import ca.amandeep.path.data.PathAlertsApiService
 import ca.amandeep.path.data.PathAlertsSummarizerApiService
@@ -59,18 +60,26 @@ interface MainViewModel {
 
 class MainViewModelImpl(application: Application) : AndroidViewModel(application), MainViewModel {
     private val locationUseCase = LocationUseCase(application.applicationContext)
-    private val pathRepository = PathRepository(
-        pathRemoteDataSource = PathRemoteDataSource(
-            pathRestApi = PathOfficialRestApiService.INSTANCE,
-            alertsApi = PathAlertsApiService.INSTANCE,
-            ioDispatcher = Dispatchers.IO,
-            alertParser = AlertParser(),
-        ),
-        userPreferencesRepo = UserPreferencesRepo(application.applicationContext),
-        summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
-        arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
-        alertsUpdateInterval = MainViewModel.ALERTS_NETWORK_UPDATE_INTERVAL,
-    )
+    private val pathRepository: PathRepository
+
+    init {
+        val alertsSummarizer = AlertsSummarizer(
+            summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
+            context = application.applicationContext,
+        )
+        pathRepository = PathRepository(
+            pathRemoteDataSource = PathRemoteDataSource(
+                pathRestApi = PathOfficialRestApiService.INSTANCE,
+                alertsApi = PathAlertsApiService.INSTANCE,
+                ioDispatcher = Dispatchers.IO,
+                alertParser = AlertParser(),
+            ),
+            userPreferencesRepo = UserPreferencesRepo(application.applicationContext),
+            alertsSummarizer = alertsSummarizer,
+            arrivalsUpdateInterval = MainViewModel.ARRIVALS_NETWORK_UPDATE_INTERVAL,
+            alertsUpdateInterval = MainViewModel.ALERTS_NETWORK_UPDATE_INTERVAL,
+        )
+    }
 
     override val uiState: Flow<MainUiModel> by lazy {
         val currentLocationFlow = locationUseCase.coordinates.onStart {

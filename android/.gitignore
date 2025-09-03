@@ -321,3 +321,4 @@ gradlew.bat
 
 .kotlin/sessions
 .aider*
+.zed

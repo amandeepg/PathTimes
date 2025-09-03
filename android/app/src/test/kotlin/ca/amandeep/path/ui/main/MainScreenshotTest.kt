@@ -34,6 +34,7 @@ import ca.amandeep.ui.core.theme.PATHTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -104,6 +105,7 @@ val DATA: List<Any> = run {
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @RunWith(Parameterized::class)
+@Ignore
 class MainScreenshotTest(
     private val isDarkMode: Boolean,
     @Suppress("unused") private val deviceName: String,

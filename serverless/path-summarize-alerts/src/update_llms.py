@@ -1,5 +1,6 @@
+from typing import Any, Dict, List
+
 import tomli
-from typing import Dict, Any, List
 
 
 def generate_llm_class(

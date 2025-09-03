@@ -15,6 +15,7 @@ dependencies = [
     "opentelemetry-api>=1.29.0",
     "opentelemetry-sdk>=1.29.0",
     "pydantic>=2.11.7",
+    "pyyaml>=6.0.2",
     "tomli>=2.2.1",
     "types-jinja2>=2.11.9",
 ]
@@ -24,6 +25,8 @@ dev = [
     "deptry>=0.23.1",
     "path-summarize-alerts",
     "pip>=25.2",
+    "pyright>=1.1.404",
+    "dspy>=3.0.2",
 ]
 
 [tool.ruff]

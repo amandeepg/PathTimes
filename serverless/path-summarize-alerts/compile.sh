@@ -12,6 +12,7 @@ uv run src/update_llms.py
 
 uvx ruff format
 uvx ruff check --fix
+uvx pyright
 
 rm requirements.txt
 uv pip freeze > requirements.txt
