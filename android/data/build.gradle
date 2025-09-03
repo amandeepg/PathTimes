@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'com.android.library'
     id 'kotlin-parcelize'
+    id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.android'
     id 'org.jmailen.kotlinter'
 }
@@ -84,6 +85,7 @@ dependencies {
     implementation Square.retrofit2.converter.moshi
     implementation Square.retrofit2.converter.scalars
     implementation Square.retrofit2
+    ksp Square.moshi.kotlinCodegen
 
     implementation "org.jsoup:jsoup:_"
 

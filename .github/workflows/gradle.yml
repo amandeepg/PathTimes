@@ -24,6 +24,11 @@ jobs:
         java-version-file: ./android/.java-version
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
+    - name: Create google-services.json
+      env:
+        DATA: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      run: echo $DATA > /home/runner/work/PathTimes/PathTimes/android/app/google-services.json
     - name: Build
       run: ./gradlew build --scan --no-daemon
       working-directory: ./android
+
