@@ -7,15 +7,15 @@ from opentelemetry import trace
 
 from baml_client import b
 from baml_client.types import (
-    AffectedRoutes,
-    AffectedStations,
     AlertSummary,
     DateAndTime,
     RedBullArenaInfo,
 )
 
 from .llm_client_base import LlmClient
-from .models import LlmCostInfo, LlmResponseWithCost
+from .models import AffectedLines, AffectedStations, LlmCostInfo, LlmResponseWithCost
+from .dspy.affected_area import AffectedAreaDeterminer
+from .dspy.elevator_affected_area import ElevatorAffectedStationsDeterminer
 
 logger = Logger()
 tracer = trace.get_tracer(__name__)
@@ -26,21 +26,32 @@ class LlmService:
 
     def __init__(self):
         logger.info("Initialized LlmService")
+        self.affected_area_determiner = AffectedAreaDeterminer()
+        self.elevator_affected_area_determiner = ElevatorAffectedStationsDeterminer()
 
     @tracer.start_as_current_span("llm.get_affected_area")
     async def get_affected_area(
-        self, cr: ClientRegistry, input_text: str
-    ) -> LlmResponseWithCost[AffectedStations | AffectedRoutes | None]:
-        collector = Collector()
-        response = await b.GetAffectedArea(
-            input_text, baml_options={"client_registry": cr, "collector": collector}
-        )
+        self, input_text: str
+    ) -> LlmResponseWithCost[tuple[AffectedStations | None, AffectedLines | None]]:
+        if "elevator" in input_text or "Elevator" in input_text:
+            affected_lines = None
+            affected_stations = (
+                self.elevator_affected_area_determiner.determine_affected_stations(
+                    input_text
+                )
+            )
+        else:
+            affected_lines, affected_stations = (
+                self.affected_area_determiner.determine_affected_area(input_text)
+            )
 
-        total_cost = self._calculate_cost(collector)
+        # TODO: DSPy doesn't have cost tracking, so we return zero cost
+        total_cost = Decimal(0.0)
         logger.info(f"LLM call cost for GetAffectedArea: {total_cost}")
 
         return LlmResponseWithCost(
-            response=response, cost_info=LlmCostInfo(total_cost=total_cost)
+            response=(affected_stations, affected_lines),
+            cost_info=LlmCostInfo(total_cost=total_cost),
         )
 
     @tracer.start_as_current_span("llm.remove_single_line_or_route_from_summary")

@@ -10,6 +10,10 @@ def compute_directory_hash(directory: str):
 
     # Collect all files and convert paths to relative
     for root, _, filenames in os.walk(directory):
+        # Skip __pycache__ directories
+        if "__pycache__" in root.split(os.path.sep):
+            continue
+
         for filename in filenames:
             file_path = os.path.join(root, filename)
             rel_path = os.path.relpath(file_path, directory)
@@ -41,14 +45,33 @@ def compute_directory_hash(directory: str):
     return sha1.hexdigest()
 
 
+def compute_combined_hash(directories: List[str]):
+    sha1 = hashlib.sha1()
+
+    for directory in directories:
+        if not os.path.isdir(directory):
+            print(f"Warning: {directory} is not a valid directory, skipping...")
+            continue
+
+        print(f"\nProcessing directory: {directory}")
+        dir_hash = compute_directory_hash(directory)
+        print(f"Hash for {directory}: {dir_hash}")
+        sha1.update(dir_hash.encode("utf-8"))
+
+    return sha1.hexdigest()
+
+
 def main():
-    directory = "baml_src"
-    if not os.path.isdir(directory):
-        print(f"Error: {directory} is not a valid directory")
+    directories = ["baml_src", "src/lib/dspy"]
+
+    # Verify that at least one directory exists
+    valid_directories = [d for d in directories if os.path.isdir(d)]
+    if not valid_directories:
+        print(f"Error: None of the directories {directories} exist")
         sys.exit(1)
 
     try:
-        directory_hash = compute_directory_hash(directory)
+        combined_hash = compute_combined_hash(directories)
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -56,10 +79,13 @@ def main():
     # Write hash to a Python file
     output_file = "src/lib/hash_constants.py"
     with open(output_file, "w") as f:
-        f.write(f"# Auto-generated hash from directory: {directory}\n")
-        f.write(f"LLM_HASH = '{directory_hash}'\n")
+        f.write(
+            "# Auto-generated hash from directories: " + ", ".join(directories) + "\n"
+        )
+        f.write(f"LLM_HASH = '{combined_hash}'\n")
 
-    print(f"Successfully created hash file: {output_file}")
+    print(f"\nSuccessfully created hash file: {output_file}")
+    print(f"Combined hash: {combined_hash}")
 
 
 if __name__ == "__main__":

@@ -8,11 +8,7 @@ from baml_py import ClientRegistry
 from opentelemetry import trace
 
 from baml_client.types import (
-    AffectedRoutes,
-    AffectedStations,
     AlertSummary,
-    PathLine,
-    PathStation,
 )
 
 from .cache import CacheService
@@ -20,9 +16,12 @@ from .llm_client_base import LlmClient
 from .llm_clients import FAST_LLM, PREFERRED_LLM
 from .llm_service import LlmService
 from .models import (
+    AffectedStations,
     AlertSummaryAiResponse,
     AlertSummaryContainer,
     LlmResponseWithCost,
+    PathLine,
+    PathStation,
     aggregate_llm_costs,
 )
 
@@ -163,12 +162,13 @@ class AlertSummarizer:
             event_time = redbull_arena_info.event_time.replace(" ", "").lower()
             summary_text = f"At Sports Illustrated Stadium (formerly Red Bull Arena), there is a {redbull_arena_info.event_name} {redbull_arena_info.event_type} on {event_date} at {event_time}. Allow extra travel time to get to the stadium."
             logger.info(f"Red Bull Arena info: {redbull_arena_info}")
-            affected_area = AffectedStations(affected_stations=[PathStation.HAR])
+            affected_stations = AffectedStations(affected_stations=[PathStation.HAR])
 
             return AlertSummaryContainer(
                 text=summary_text,
                 is_delay=True,
-                affected_area=affected_area,
+                affected_stations=affected_stations,
+                affected_lines=None,
                 affected_area_cost=Decimal(0.0),
                 summary_cost=aggregate_llm_costs(
                     [
@@ -180,29 +180,32 @@ class AlertSummarizer:
 
         summary_response, affected_area_response = await asyncio.gather(
             self._llm_service.get_alert_summary(cr, input_text),
-            self._llm_service.get_affected_area(cr, input_text),
+            self._llm_service.get_affected_area(input_text),
         )
 
         summary = summary_response.response
-        affected_area = affected_area_response.response
+        (affected_stations, affected_lines) = affected_area_response.response
         summary_text_obj_response: LlmResponseWithCost[AlertSummary] | None = None
 
         if model.id() != FAST_LLM.id():
             single_area_text = None
-            if isinstance(affected_area, AffectedStations):
-                if len(affected_area.affected_stations) == 1:
-                    station_enum = affected_area.affected_stations[0]
-                    station_description = PATH_STATION_DESCRIPTIONS.get(
-                        station_enum, str(station_enum)
-                    )
-                    single_area_text = f"{station_description} station"
-            elif isinstance(affected_area, AffectedRoutes):
-                if len(affected_area.affected_routes) == 1:
-                    route_enum = affected_area.affected_routes[0]
-                    route_description = PATH_LINE_DESCRIPTIONS.get(
-                        route_enum, str(route_enum)
-                    )
-                    single_area_text = f"{route_description} route"
+            affected_lines_list = (
+                affected_lines.affected_lines if affected_lines else []
+            )
+            affected_stations_list = (
+                affected_stations.affected_stations if affected_stations else []
+            )
+
+            if len(affected_stations_list) == 1 and len(affected_lines_list) == 0:
+                station_enum = affected_stations_list[0]
+                station_description = PATH_STATION_DESCRIPTIONS.get(
+                    station_enum, str(station_enum)
+                )
+                single_area_text = f"{station_description} station"
+            elif len(affected_lines_list) == 1 and len(affected_stations_list) == 0:
+                line_enum = affected_lines_list[0]
+                line_description = PATH_LINE_DESCRIPTIONS.get(line_enum, str(line_enum))
+                single_area_text = f"{line_description} line"
 
             if single_area_text:
                 logger.info(
@@ -221,18 +224,11 @@ class AlertSummarizer:
         else:
             summary_text = summary.alert_summary
 
-        # Type check for affected_area to ensure it's the right type
-        valid_affected_area = None
-        if (
-            isinstance(affected_area, (AffectedStations, AffectedRoutes))
-            or affected_area is None
-        ):
-            valid_affected_area = affected_area
-
         return AlertSummaryContainer(
             text=summary_text,
             is_delay=True,
-            affected_area=valid_affected_area,
+            affected_lines=affected_lines,
+            affected_stations=affected_stations,
             affected_area_cost=aggregate_llm_costs(
                 [
                     affected_area_response,

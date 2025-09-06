@@ -9,10 +9,9 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from opentelemetry import trace
 from pydantic import BaseModel
 
-from baml_client.types import AffectedRoutes, AffectedStations
 from lib.cache import CacheService
 from lib.llm_clients import ALL_LLM_CLIENTS
-from lib.models import AlertSummaryAiResponse
+from lib.models import AffectedLines, AffectedStations, AlertSummaryAiResponse
 from lib.summarizer import AlertSummarizer
 
 logger = Logger()
@@ -194,7 +193,7 @@ class CacheViewer:
                             <td class="input-text">{% if loop.first %}{{ input_text }}{% endif %}</td>
                             {% if data.response %}
                             <td class="summary-text">{{ data.response.text }}{% if data.response.summary_cost is not none %}<div class="cost-info"> {{ "%.4f"|format(data.response.summary_cost * 100 * 10) }} ⅒¢</div>{% endif %}</td>
-                            <td class="affected-area">{{ format_affected_area(data.response.affected_area) }}{% if data.response.affected_area_cost is not none %}<div class="cost-info"> {{ "%.4f"|format(data.response.affected_area_cost * 100 * 10) }} ⅒¢</div>{% endif %}</td>
+                            <td class="affected-area">{{ format_affected_area(data.response.affected_stations, data.response.affected_lines) }}{% if data.response.affected_area_cost is not none %}<div class="cost-info"> {{ "%.4f"|format(data.response.affected_area_cost * 100 * 10) }} ⅒¢</div>{% endif %}</td>
                             {% else %}
                             <td class="summary-text" colspan="2" style="color: red;">Errored</td>
                             {% endif %}
@@ -368,12 +367,22 @@ class CacheViewer:
 
     @staticmethod
     def _format_affected_area(
-        affected_area: AffectedStations | AffectedRoutes | None,
+        affected_stations: AffectedStations | None, affected_lines: AffectedLines | None
     ) -> str:
-        if isinstance(affected_area, AffectedStations):
-            return f"Stations: {', '.join(str(s).replace('PathStation.', '') for s in affected_area.affected_stations)}"
-        elif isinstance(affected_area, AffectedRoutes):
-            return f"Routes: {', '.join(str(r).replace('PathLine.', '') for r in affected_area.affected_routes)}"
+        parts: List[str] = []
+        if affected_stations is not None:
+            stations_str = ", ".join(
+                str(s).replace("PathStation.", "") for s in affected_stations
+            )
+            parts.append(f"Stations: {stations_str}")
+        if affected_lines is not None:
+            lines_str = ", ".join(
+                str(r).replace("PathLine.", "") for r in affected_lines
+            )
+            parts.append(f"Lines: {lines_str}")
+
+        if parts:
+            return "<br>".join(parts)
         else:
             return "None"
 

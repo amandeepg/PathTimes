@@ -7,26 +7,26 @@ requires-python = "==3.12.8"
 dependencies = [
     "aws-lambda-powertools[parser]>=3.19.0",
     "baml-py==0.86.1",
-    "boto3>=1.40.11",
-    "boto3-stubs[essential]>=1.40.11",
-    "botocore>=1.40.11",
     "dyntastic>=0.18.0",
     "jinja2>=3.1.6",
     "opentelemetry-api>=1.29.0",
     "opentelemetry-sdk>=1.29.0",
     "pydantic>=2.11.7",
-    "pyyaml>=6.0.2",
-    "tomli>=2.2.1",
-    "types-jinja2>=2.11.9",
+    "dspy>=3.0.3",
 ]
 
 [dependency-groups]
 dev = [
+    "boto3>=1.40.11",
+    "botocore>=1.40.11",
     "deptry>=0.23.1",
-    "path-summarize-alerts",
     "pip>=25.2",
     "pyright>=1.1.404",
-    "dspy>=3.0.2",
+    "tqdm>=4.67.1",
+    "wandb>=0.21.3",
+    "boto3-stubs[essential]>=1.40.11",
+    "tomli>=2.2.1",
+    "types-jinja2>=2.11.9",
 ]
 
 [tool.ruff]
@@ -39,3 +39,6 @@ strict = ["src/lib", "src/handlers", "src/*.py"]
 ignore = ["src/baml_client"]
 venv = ".venv"
 venvPath = "."
+
+[tool.uv.sources]
+dspy = { git = "https://github.com/stanfordnlp/dspy.git" }

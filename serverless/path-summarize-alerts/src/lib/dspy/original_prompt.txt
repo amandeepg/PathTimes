@@ -1,0 +1,38 @@
+class AffectedAreaSignature(dspy.Signature):
+    """
+    Analyze which stations or lines are affected by this PATH alert.
+    The disruption can be temporary or permanent, both matter.
+    Alerts can affects stations or lines, or both.
+    If an alert is telling us that another alert was resolved, the affected stations and lines are the same as those that were affected by the resolved alert.
+    An alert affects a station only if riders ENTERING that station are going to notice the impact of the alert, for example the following affect riders entering a stations:
+        * track changes because the person needs to know to go to the different platform.
+        * station closures or trains skipping that station because the person needs to know to go to the different station.
+        * elevator issues because the person needs to know that they have to use the stairs.
+    An alert affects a line if riders of that line are going to notice the impact of the alert while riding the line, example include:
+        * If an alert is SLOWNESS or SKIPPING or CLOSURE at a station, then the alert affects all the lines that pass through that station, as riders on that line will notice it as the train goes through that station.
+    ------
+    If an alert is telling us that a station is closed, and there are shuttle busses or shuttle trains from another station, the alert does not affect the station that is not closed, as riders entering that station do not need to concern themselves about the shuttle bus.
+    ------
+    If there are issues on a line, then of course that line is affected, and no stations are affected.
+    If there are issues at a station, then it is more complicated, and we want to figure out if the alert affects passengers that are entering that station, as
+    Rules for determining affected stations:
+        The primary rule is that if passengers at this station care about this alert, but passengers at OTHER stations do not, then it affects this station.
+        DO NOT simply say the station is affected ONLY because the train lines are affected that go through the station.
+        If an alert affects passengers ENTERING a station, but NOT the actual train line, then the alert affects the station itself, examples are:
+            * track or platform changes because the person needs to know to go to the different platform.
+            * station closures or trains skipping that station because the person needs to know to go to the different station.
+            * elevator issues because the person needs to know that they have to use the stairs.
+    ------
+    If an alert is affecting all lines, during the daytime on weekdays, then the alert effects NWK_WTC, HOB_WTC, JSQ_33, HOB_33, as those are the daytime lines.
+    If an alert is affecting all lines, during the nighttime or overnight on weekdays, then the alert effects NWK_WTC, JSQ_33_HOB, as those are the nighttime lines.
+    If an alert is affecting all lines, during the weekend (day or night), then the alert effects NWK_WTC, JSQ_33_HOB, as those are the weekend lines.
+    ------
+    Use the following standardized PATH line identifiers and their associated stops for accurate mapping:
+    - NWK_WTC: 'Newark - World Trade Center' stops at Newark, Harrison, Journal Square, Grove Street, Exchange Place, World Trade Center
+    - JSQ_WTC: 'Journal Square - World Trade Center' stops at Journal Square, Grove Street, Exchange Place, World Trade Center
+    - HOB_WTC: 'Hoboken - World Trade Center' stops at Hoboken, Newport, Exchange Place, World Trade Center
+    - JSQ_33: 'Journal Square - 33rd Street' stops at Journal Square, Grove Street, Christopher Street, 9th Street, 14th Street, 23rd Street, 33rd Street
+    - HOB_33: 'Hoboken - 33rd Street' stops at Hoboken, Christopher Street, 9th Street, 14th Street, 23rd Street, 33rd Street
+    - JSQ_33_HOB: 'Journal Square - 33rd Street (via Hoboken)' stops at Journal Square, Grove Street, Newport, Hoboken, Christopher Street, 9th Street, 14th Street, 23rd Street, 33rd Street
+    Note that 'Journal Square - 33rd Street (via Hoboken)' only runs on weekends and overnight.
+    """

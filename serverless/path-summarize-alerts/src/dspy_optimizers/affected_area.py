@@ -1,156 +1,25 @@
-from enum import Enum
 from typing import Any, List, Set
-import dspy  # pyright: ignore[reportMissingTypeStubs]
+import dspy
 import os
 import html
 import hashlib
 import glob
 from datetime import datetime
 
-from dspy.teleprompt.gepa.gepa_utils import DSPyTrace  # pyright: ignore[reportMissingTypeStubs]
-from pydantic import BaseModel
+from dspy.teleprompt.gepa.gepa_utils import DSPyTrace
 
+from lib.models import AffectedLines, AffectedStations, PathLine, PathStation
+from lib.dspy.affected_area import AffectedAreaPredictor
+from lib.dspy.llms import LLM
 
-class PathLine(str, Enum):
-    """
-    Enum representing PATH lines.
-    """
+program = AffectedAreaPredictor()
+unoptimized_program = program
 
-    NWK_WTC = "NWK_WTC"
-    JSQ_WTC = "JSQ_WTC"
-    HOB_WTC = "HOB_WTC"
-    JSQ_33 = "JSQ_33"
-    HOB_33 = "HOB_33"
-    JSQ_33_HOB = "JSQ_33_HOB"
+STUDENT_LLM = LLM.QWEN3_32B.lm
+TEACHER_LLM = LLM.GEMINI_FLASH.lm
+TRAINING_N = 40
 
-
-class PathStation(str, Enum):
-    """Enum representing PATH stations."""
-
-    NWK = "Newark Penn Station"
-    HAR = "Harrison"
-    JSQ = "Journal Square"
-    GRV = "Grove Street"
-    EXP = "Exchange Place"
-    WTC = "World Trade Center"
-    HOB = "Hoboken"
-    NEW = "Newport"
-    CHR = "Christopher Street"
-    S09 = "9th Street"
-    S14 = "14th Street"
-    S23 = "23rd Street"
-    S33 = "33rd Street"
-
-
-class AffectedLines(BaseModel):
-    affected_lines: List[PathLine]
-
-
-class AffectedStations(BaseModel):
-    affected_stations: List[PathStation]
-
-
-# 1. Set up OpenAI Model
-def create_dspy_lm(
-    model: str, temperature: float = 1.0, use_reasoning: bool = True
-) -> dspy.LM:
-    """Helper function to create dspy.LM instances with common parameters."""
-    params: dict[str, Any] = {
-        "model": model,
-        "api_base": "https://openrouter.ai/api/v1",
-        "api_key": openrouter_key,
-        "temperature": temperature,
-    }
-
-    if use_reasoning:
-        params["reasoning"] = {"max_tokens": 20000}
-        params["max_tokens"] = 20000
-
-    return dspy.LM(**params)
-
-
-openrouter_key = os.environ.get("OPENROUTER_API_KEY")
-if not os.environ.get("OPENROUTER_API_KEY"):
-    raise ValueError("OPENROUTER_API_KEY environment variable not set.")
-
-gpt_oss_20b = create_dspy_lm("openrouter/openai/gpt-oss-20b:price", use_reasoning=False)
-gpt_oss_120b = create_dspy_lm(
-    "openrouter/openai/gpt-oss-120b:price", use_reasoning=False
-)
-gemini_flash = create_dspy_lm("openrouter/google/gemini-2.5-flash")
-gemini_flash_no_reasoning = create_dspy_lm(
-    "openrouter/google/gemini-2.5-flash", use_reasoning=False
-)
-gemini_flash_lite = create_dspy_lm(
-    "openrouter/google/gemini-2.5-flash-lite", use_reasoning=False
-)
-gemini_pro = create_dspy_lm("openrouter/google/gemini-2.5-pro")
-gpt5 = create_dspy_lm("openrouter/openai/gpt-5", temperature=1.0)
-gpt5_nano = create_dspy_lm("openrouter/openai/gpt-5-nano", temperature=1.0)
-
-
-STUDENT_LLM = gemini_flash_lite
-TEACHER_LLM = gemini_pro
-TRAINING_N = 15
-
-
-dspy.settings.configure(lm=STUDENT_LLM)  # pyright: ignore[reportUnknownMemberType]
-
-
-# 2. Define the DSPy Signature
-class AffectedAreaSignature(dspy.Signature):
-    """
-    Analyze which stations or lines are affected by this PATH alert.
-    The disruption can be temporary or permanent, both matter.
-    Alerts can affects stations or lines, or both.
-    If an alert is telling us that another alert was resolved, the affected stations and lines are the same as those that were affected by the resolved alert.
-    An alert affects a station only if riders ENTERING that station are going to notice the impact of the alert, for example the following affect riders entering a stations:
-        * track changes because the person needs to know to go to the different platform.
-        * station closures or trains skipping that station because the person needs to know to go to the different station.
-        * elevator issues because the person needs to know that they have to use the stairs.
-    An alert affects a line if riders of that line are going to notice the impact of the alert while riding the line, example include:
-        * If an alert is SLOWNESS or SKIPPING or CLOSURE at a station, then the alert affects all the lines that pass through that station, as riders on that line will notice it as the train goes through that station.
-    ------
-    If an alert is telling us that a station is closed, and there are shuttle busses or shuttle trains from another station, the alert does not affect the station that is not closed, as riders entering that station do not need to concern themselves about the shuttle bus.
-    ------
-    If there are issues on a line, then of course that line is affected, and no stations are affected.
-    If there are issues at a station, then it is more complicated, and we want to figure out if the alert affects passengers that are entering that station, as
-    Rules for determining affected stations:
-        The primary rule is that if passengers at this station care about this alert, but passengers at OTHER stations do not, then it affects this station.
-        DO NOT simply say the station is affected ONLY because the train lines are affected that go through the station.
-        If an alert affects passengers ENTERING a station, but NOT the actual train line, then the alert affects the station itself, examples are:
-            * track or platform changes because the person needs to know to go to the different platform.
-            * station closures or trains skipping that station because the person needs to know to go to the different station.
-            * elevator issues because the person needs to know that they have to use the stairs.
-    ------
-    If an alert is affecting all lines, during the daytime on weekdays, then the alert effects NWK_WTC, HOB_WTC, JSQ_33, HOB_33, as those are the daytime lines.
-    If an alert is affecting all lines, during the nighttime or overnight on weekdays, then the alert effects NWK_WTC, JSQ_33_HOB, as those are the nighttime lines.
-    If an alert is affecting all lines, during the weekend (day or night), then the alert effects NWK_WTC, JSQ_33_HOB, as those are the weekend lines.
-    ------
-    Use the following standardized PATH line identifiers and their associated stops for accurate mapping:
-    - NWK_WTC: 'Newark - World Trade Center' stops at Newark, Harrison, Journal Square, Grove Street, Exchange Place, World Trade Center
-    - JSQ_WTC: 'Journal Square - World Trade Center' stops at Journal Square, Grove Street, Exchange Place, World Trade Center
-    - HOB_WTC: 'Hoboken - World Trade Center' stops at Hoboken, Newport, Exchange Place, World Trade Center
-    - JSQ_33: 'Journal Square - 33rd Street' stops at Journal Square, Grove Street, Christopher Street, 9th Street, 14th Street, 23rd Street, 33rd Street
-    - HOB_33: 'Hoboken - 33rd Street' stops at Hoboken, Christopher Street, 9th Street, 14th Street, 23rd Street, 33rd Street
-    - JSQ_33_HOB: 'Journal Square - 33rd Street (via Hoboken)' stops at Journal Square, Grove Street, Newport, Hoboken, Christopher Street, 9th Street, 14th Street, 23rd Street, 33rd Street
-    Note that 'Journal Square - 33rd Street (via Hoboken)' only runs on weekends and overnight.
-    """
-
-    query: str = dspy.InputField(  # pyright: ignore[reportUnknownMemberType]
-        desc="The alert to figure out what lines and stations are affected."
-    )
-    affected_lines: AffectedLines | None = dspy.OutputField(  # pyright: ignore[reportUnknownMemberType]
-        desc="A list of specific lines the alerts affects"
-    )
-    affected_stations: AffectedStations | None = dspy.OutputField(  # pyright: ignore[reportUnknownMemberType]
-        desc="A list of specific stations the alerts affects"
-    )
-
-
-# 3. Prepare Training Data
-# A small set of inputs and expected outputs (trainset)
-# This dataset demonstrates various scenarios: only stations, only routes, both, and neither.
+dspy.settings.configure(lm=STUDENT_LLM)
 
 
 def create_dspy_example(
@@ -218,36 +87,6 @@ trainset = [
         affected_lines=[PathLine.JSQ_33_HOB, PathLine.JSQ_33],
     ),
 ]
-
-
-# 4. Define a Metric for Evaluation
-# This metric will compare the predicted outputs with the gold standard outputs.
-def metric_without_feedback(
-    gold_example: AffectedAreaSignature,
-    pred_example: AffectedAreaSignature,
-    trace: DSPyTrace | None = None,
-) -> float:
-    """
-    Evaluate the prediction based on:
-    1. Matching the same type (stations vs routes)
-    2. Matching the number of items in the prediction vs gold standard
-    """
-    # Convert AffectedAreaSignature to dspy.Example and dspy.Prediction for compatibility
-    gold_dspy_example = dspy.Example(  # pyright: ignore
-        query=gold_example.query,
-        affected_stations=gold_example.affected_stations,
-        affected_lines=gold_example.affected_lines,
-    ).with_inputs("query")
-
-    pred_dspy_prediction = dspy.Prediction(
-        affected_stations=pred_example.affected_stations,
-        affected_lines=pred_example.affected_lines,
-    )
-
-    # Call metric_with_feedback and return just the score
-    result = metric_with_feedback(gold_dspy_example, pred_dspy_prediction, trace)
-    # Safely extract score attribute with default value
-    return float(getattr(result, "score", 0.0))
 
 
 def metric_with_feedback(
@@ -354,23 +193,6 @@ def metric_with_feedback(
     return dspy.Prediction(score=jaccard_score, feedback=feedback)
 
 
-# 5. Define the DSPy Program
-class AffectedAreaPredictor(dspy.Module):
-    def __init__(self):
-        super().__init__()  # pyright: ignore
-        self.affected_area = dspy.Predict(AffectedAreaSignature)
-
-    def forward(self, query: str):
-        affected_area = self.affected_area(query=query)
-        return dspy.Prediction(
-            affected_stations=affected_area.affected_stations,  # pyright: ignore
-            affected_lines=affected_area.affected_lines,  # pyright: ignore
-        )
-
-
-# Instantiate the program
-unoptimized_program = AffectedAreaPredictor()
-
 kwargs: dict[str, Any] = dict(
     num_threads=16,
     display_progress=False,
@@ -378,7 +200,28 @@ kwargs: dict[str, Any] = dict(
     max_errors=100,
     failure_score=0.99,
 )
-evaluate = dspy.Evaluate(metric=metric_without_feedback, devset=trainset, **kwargs)
+evaluate = dspy.Evaluate(metric=metric_with_feedback, devset=trainset, **kwargs)
+
+# llms = [
+#     LLM.GEMINI_FLASH_LITE,
+#     LLM.GEMINI_FLASH,
+#     LLM.GEMINI_PRO,
+#     LLM.QWEN3_30B,
+#     LLM.QWEN3_235B,
+#     LLM.QWEN3_32B,
+#     LLM.GPT_OSS_20B,
+#     LLM.GPT_OSS_120B,
+# ]
+
+# for llm in llms:
+#     with dspy.context(lm=llm.lm):
+#         print(llm.model)
+#         print(evaluate(unoptimized_program).score) # pyright: ignore[reportArgumentType]
+#         print()
+
+# exit(0)
+
+
 unop_results = evaluate(unoptimized_program)
 unop_results_list: list[
     tuple[
@@ -405,11 +248,13 @@ print(unop_results_list)
 
 
 teleprompter = dspy.GEPA(
-    metric=metric_with_feedback,  # pyright: ignore
+    metric=metric_with_feedback,  # pyright: ignore[reportArgumentType]
     # auto="light",
     num_threads=32,
     reflection_lm=TEACHER_LLM,
     max_full_evals=TRAINING_N,
+    use_wandb=True,
+    wandb_api_key=os.environ["WANDB_API_KEY"],
 )
 
 print("\nStarting COPRO optimization...")
@@ -466,10 +311,10 @@ teacher_model_name = (
 
 # Generate SHA1 hash of the optimized prompt
 # Use first 8 characters for brevity
-prompt_hash = hashlib.sha1(optimized_prompt.encode()).hexdigest()[:8]  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType]
+prompt_hash = hashlib.sha1(optimized_prompt.encode()).hexdigest()[:8]
 
 # Create filename with student-teacher-hash format
-html_filename = f"{student_model_name}-{teacher_model_name}-{prompt_hash}.html"
+html_filename = f"dspy_affected_area_output/{student_model_name}-{teacher_model_name}-{prompt_hash}.html"
 
 
 def format_result(result: AffectedStations | AffectedLines | None) -> str:
@@ -663,6 +508,8 @@ def generate_results_html(
 </html>
 """
 
+    os.makedirs("dspy_affected_area_output", exist_ok=True)
+
     with open(html_filename, "w") as f:
         f.write(html_content)
 
@@ -687,8 +534,8 @@ def generate_html_index():
 
     # Get all HTML files in the current directory except index.html itself
     html_files: list[tuple[str, datetime]] = []
-    for file in glob.glob("*.html"):
-        if file != "index.html":
+    for file in glob.glob("dspy_affected_area_output/*.html"):
+        if not file.endswith("index.html") and file.endswith(".html"):
             stat = os.stat(file)
             mod_time = datetime.fromtimestamp(stat.st_mtime)
             html_files.append((file, mod_time))
@@ -750,9 +597,10 @@ def generate_html_index():
         except Exception:
             optimized_score = "N/A"
 
+        file_link = file.replace("dspy_affected_area_output/", "")
         html_content += f"""
         <tr>
-            <td><a href="{file}">{file}</a></td>
+            <td><a href="{file_link}">{file_link}</a></td>
             <td>{mod_time.strftime("%Y-%m-%d %H:%M:%S")}</td>
             <td>{optimized_score}</td>
         </tr>
@@ -765,7 +613,7 @@ def generate_html_index():
 """
 
     # Write index.html
-    with open("index.html", "w") as f:
+    with open("dspy_affected_area_output/index.html", "w") as f:
         f.write(html_content)
 
     print("Index file generated: index.html")
@@ -773,7 +621,7 @@ def generate_html_index():
 
 # Generate the HTML file
 generate_results_html(
-    unop_score=unop_results.score,  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
+    unop_score=unop_results.score,
     op_score=op_results.score,  # pyright: ignore[reportUnknownArgumentType, reportUnknownMemberType]
     unop_results_list=unop_results_list,
     op_results_list=op_results_list,

@@ -1,18 +1,57 @@
 from decimal import Decimal
 import os
 from typing import Generic, TypeVar
-from typing_extensions import Any
+from typing import Any, List
 
 from dyntastic import Dyntastic
 from pydantic import BaseModel
+from enum import Enum
 
-from baml_client.types import AffectedRoutes, AffectedStations
+
+class PathLine(str, Enum):
+    """
+    Enum representing PATH lines.
+    """
+
+    NWK_WTC = "NWK_WTC"
+    JSQ_WTC = "JSQ_WTC"
+    HOB_WTC = "HOB_WTC"
+    JSQ_33 = "JSQ_33"
+    HOB_33 = "HOB_33"
+    JSQ_33_HOB = "JSQ_33_HOB"
+
+
+class PathStation(str, Enum):
+    """Enum representing PATH stations."""
+
+    NWK = "Newark Penn Station"
+    HAR = "Harrison"
+    JSQ = "Journal Square"
+    GRV = "Grove Street"
+    EXP = "Exchange Place"
+    WTC = "World Trade Center"
+    HOB = "Hoboken"
+    NEW = "Newport"
+    CHR = "Christopher Street"
+    S09 = "9th Street"
+    S14 = "14th Street"
+    S23 = "23rd Street"
+    S33 = "33rd Street"
+
+
+class AffectedLines(BaseModel):
+    affected_lines: List[PathLine]
+
+
+class AffectedStations(BaseModel):
+    affected_stations: List[PathStation]
 
 
 class AlertSummaryContainer(BaseModel):
     text: str
     is_delay: bool
-    affected_area: AffectedStations | AffectedRoutes | None
+    affected_stations: AffectedStations | None
+    affected_lines: AffectedLines | None
     summary_cost: Decimal | None = None
     affected_area_cost: Decimal | None = None
 

@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >-
   Provides APIs for summarizing content and viewing cache, using DynamoDB for storage and Bedrock for AI.
@@ -26,9 +26,9 @@ Globals:
     Runtime: python3.12
     MemorySize: 512
     Timeout: 60
-    Tracing: Active 
-    Layers:
-      - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
+    Tracing: Active
+    # Layers:
+    #   - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-32-0:2
     Environment:
       Variables:
         POWERTOOLS_SERVICE_NAME: path-summarize-alerts
@@ -38,7 +38,7 @@ Globals:
         SKIP_CACHE_MAGIC_WORD: !Ref SkipCacheMagicWord
         OPENROUTER_APP_NAME: !Ref OpenRouterAppName
         OPENROUTER_APP_URL: !Ref OpenRouterAppUrl
-        AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
+        # AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
         BAML_LOG: trace
         DYNAMODB_TABLE: !Ref AiResponsesTables
     CodeUri: src/
@@ -59,7 +59,6 @@ Resources:
       MinimumCompressionSize: 0
       # CORS is configured on the individual function events for REST APIs in SAM
       # CorsConfiguration property is ONLY for AWS::Serverless::HttpApi (V2)
-
 
   # --- Lambda Functions ---
   SummarizeFunction:
@@ -167,12 +166,12 @@ Resources:
       TableName: AiResponseTable
       AttributeDefinitions:
         - AttributeName: input_string_hash
-          AttributeType: S    # S for String
+          AttributeType: S # S for String
         - AttributeName: code_version_hash
-          AttributeType: S    # S for String
+          AttributeType: S # S for String
       KeySchema:
         - AttributeName: input_string_hash
-          KeyType: HASH     # Partition Key
+          KeyType: HASH # Partition Key
       GlobalSecondaryIndexes:
         - IndexName: CodeVersionIndex
           KeySchema:
