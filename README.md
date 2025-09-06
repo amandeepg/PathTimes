@@ -27,7 +27,7 @@ Built with:
 * Framing screenshots with [framer](https://github.com/amandeepg/framer)
 
 ## Screenshots
-<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr1.webp"><img src="images/framescr1.webp" width="45%"/></a> 
-<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr2.webp"><img src="images/framescr2.webp" width="45%"/></a> 
-<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr3.webp"><img src="images/framescr3.webp" width="45%"/></a> 
-<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr4.webp"><img src="images/framescr4.webp" width="45%"/></a> 
+<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr1.webp"><img src="android/images/framescr1.webp" width="45%"/></a> 
+<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr2.webp"><img src="android/images/framescr2.webp" width="45%"/></a> 
+<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr3.webp"><img src="android/images/framescr3.webp" width="45%"/></a> 
+<a href="https://raw.githubusercontent.com/amandeepg/PATHTimes/master/images/framescr4.webp"><img src="android/images/framescr4.webp" width="45%"/></a> 
