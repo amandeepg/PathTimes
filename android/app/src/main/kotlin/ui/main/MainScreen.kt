@@ -44,6 +44,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State as ComposeState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -58,7 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ca.amandeep.path.DeveloperStatus
-import ca.amandeep.path.data.model.State
+import ca.amandeep.path.data.model.State as PathState
 import ca.amandeep.path.main.core.ArrivalsUiModel
 import ca.amandeep.path.main.core.MainUiModel
 import ca.amandeep.path.main.core.Result
@@ -120,7 +121,7 @@ fun MainScreen(
 
     val showDebugOptions by DeveloperStatus.developerModeFlow.collectAsStateWithLifecycle()
 
-    val store = UserPreferencesRepo(context)
+    val store = remember(context) { UserPreferencesRepo(context) }
 
     val showModelNamePref by store.showModelName.collectAsStateWithLifecycle(initialValue = false)
     val aiSummarizeAlertsPref by store.aiSummarizeAlerts.collectAsStateWithLifecycle(initialValue = false)
@@ -260,6 +261,7 @@ fun MainScreen(
                 setShowHelpGuide = setShowHelpGuideWithUndo,
                 anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                 windowSizeClass = windowSizeClass,
+                store = store,
             )
             PullRefreshIndicator(
                 refreshing = refreshing,
@@ -290,14 +292,14 @@ private fun setAndComputeLastGoodState(
 ): MainUiModel {
     val uiModel by uiStateFlow.collectAsStateWithLifecycle(initialValue = MainUiModel())
 
-    val (lastGoodState, setLastGoodState) = remember { mutableStateOf(MainUiModel()) }
+    var lastGoodState by remember { mutableStateOf(MainUiModel()) }
 
-    setLastGoodState(
-        MainUiModel(
+    LaunchedEffect(uiModel) {
+        lastGoodState = MainUiModel(
             arrivals = foldWithLastGoodState(uiModel, lastGoodState) { it.arrivals },
             alerts = foldWithLastGoodState(uiModel, lastGoodState) { it.alerts },
-        ),
-    )
+        )
+    }
 
     // If all trains are empty, force a refresh, and show a loading screen
     val allTrainsEmpty = lastGoodState.arrivals.let {
@@ -307,13 +309,9 @@ private fun setAndComputeLastGoodState(
     LaunchedEffect(allTrainsEmpty, forceUpdate) {
         if (allTrainsEmpty) {
             forceUpdate()
-            setLastGoodState(
-                MainUiModel(alerts = lastGoodState.alerts),
-            )
+            lastGoodState = MainUiModel(alerts = lastGoodState.alerts)
         }
     }
-
-    d { "lastGoodState: $lastGoodState" }
 
     return lastGoodState
 }
@@ -348,8 +346,10 @@ private fun MainScreenContent(
     setShowElevatorAlerts: suspend (Boolean) -> Unit,
     setShowHelpGuide: suspend (Boolean) -> Unit,
     windowSizeClass: WindowSizeClass,
+    store: UserPreferencesRepo,
 ) {
-    val connectivityState by LocalContext.current.observeConnectivity()
+    val connectivityState by LocalContext.current
+        .observeConnectivity()
         .collectAsStateWithLifecycle(initialValue = ConnectionState.Available)
 
     if (uiModel.arrivals is Result.Error) {
@@ -364,7 +364,10 @@ private fun MainScreenContent(
         ) { isLoading ->
             val uiModelArrivals = uiModel.arrivals
             when (isLoading || uiModelArrivals !is Result.Valid) {
-                true -> LoadingScreen()
+                true -> {
+                    LoadingScreen()
+                }
+
                 false -> {
                     val lastUpdatedState = rememberLastUpdatedState(uiModelArrivals.lastUpdated)
                     lastUpdatedState.KeepUpdatedEffect(uiModelArrivals.lastUpdated, 1.seconds)
@@ -381,8 +384,6 @@ private fun MainScreenContent(
                         },
                     )
 
-                    val context = LocalContext.current
-                    val store = UserPreferencesRepo(context)
                     val showDirectionWarning by store.showDirectionWarning.collectAsStateWithLifecycle(initialValue = true)
                     val setShowDirectionWarningPref = store::updateShowDirectionWarning
 
@@ -396,7 +397,7 @@ private fun MainScreenContent(
                         anyLocationPermissionsGranted = anyLocationPermissionsGranted,
                         setShowingOppositeDirection = setShowingOppositeDirection,
                         snackbarState = snackbarState,
-                        lastUpdatedState = lastUpdatedState.value,
+                        lastUpdatedState = lastUpdatedState,
                         now = now,
                         setShowHelpGuide = setShowHelpGuide,
                         alertsExpanded = alertsExpanded,
@@ -422,7 +423,7 @@ fun LoadedScreen(
     setShowingOppositeDirection: suspend (Boolean) -> Unit,
     setShowElevatorAlerts: suspend (Boolean) -> Unit,
     snackbarState: SnackbarHostState,
-    lastUpdatedState: LastUpdatedUiModel,
+    lastUpdatedState: ComposeState<LastUpdatedUiModel>,
     now: Long,
     setShowHelpGuide: suspend (Boolean) -> Unit,
     alertsExpanded: Boolean,
@@ -469,13 +470,14 @@ fun LoadedScreen(
                 val alertsModel = when (val uiModelAlerts = uiModel.alerts) {
                     is Result.Valid -> uiModelAlerts.copy(
                         data = uiModelAlerts.data.copy(
-                            alerts = uiModelAlerts.data.alerts.filter {
-                                if (userState.showElevatorAlerts) {
-                                    true
-                                } else {
-                                    !it.isElevator
-                                }
-                            }.toImmutableList(),
+                            alerts = uiModelAlerts.data.alerts
+                                .filter {
+                                    if (userState.showElevatorAlerts) {
+                                        true
+                                    } else {
+                                        !it.isElevator
+                                    }
+                                }.toImmutableList(),
                         ),
                     )
 
@@ -517,13 +519,13 @@ fun LoadedScreen(
                     else -> Unit
                 }
                 AnimatedVisibility(
-                    visible = !autoRefreshingNow && lastUpdatedState.secondsAgo > TOP_LAST_UPDATED_THRESHOLD_SECS,
+                    visible = !autoRefreshingNow && lastUpdatedState.value.secondsAgo > TOP_LAST_UPDATED_THRESHOLD_SECS,
                     enter = expandVertically(),
                     exit = shrinkVertically(),
                 ) {
                     LastUpdatedInfoRow(
                         modifier = spacingModifier,
-                        lastUpdatedState = lastUpdatedState,
+                        lastUpdatedState = lastUpdatedState.value,
                     )
                 }
             }
@@ -532,7 +534,7 @@ fun LoadedScreen(
             arrivals.data
         } else {
             arrivals.data.filter {
-                it.first.stationName.state == (if (userState.isInNJ) State.NJ else State.NY)
+                it.first.stationName.state == (if (userState.isInNJ) PathState.NJ else PathState.NY)
             }
         }
         items(
@@ -554,7 +556,7 @@ fun LoadedScreen(
         ) {
             LastUpdatedInfoRow(
                 modifier = spacingModifier,
-                lastUpdatedState = lastUpdatedState,
+                lastUpdatedState = lastUpdatedState.value,
             )
         }
     }

@@ -25,6 +25,7 @@ class LLM(Enum):
     QWEN3_32B = ("openrouter/qwen/qwen3-32b:price", False, 0.0)
     QWEN3_235B = ("openrouter/qwen/qwen3-235b-a22b-2507:price", False, 0.0)
     QWEN3_30B = ("openrouter/qwen/qwen3-30b-a3b-instruct-2507:price", False, 0.0)
+    NEMOTRON_NANO_9B_V2 = ("openrouter/nvidia/nemotron-nano-9b-v2", False, 0.0)
 
     def __init__(self, model: str, use_reasoning: bool, temperature: float):
         self.model = model

@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("src")
+
 from typing import Any, List, Set
 import dspy  # pyright: ignore[reportMissingTypeStubs]
 import os
@@ -9,13 +13,13 @@ from datetime import datetime
 from dspy.teleprompt.gepa.gepa_utils import DSPyTrace  # pyright: ignore[reportMissingTypeStubs]
 
 from lib.models import AffectedStations, PathStation
-from lib.dspy.elevator_affected_area import ElevatorAffectedStationsPredictor
-from lib.dspy.llms import LLM
+from lib.llm_programs.elevator_affected_area import ElevatorAffectedStationsPredictor
+from lib.llm_programs.llms import LLM
 
 program = ElevatorAffectedStationsPredictor()
 unoptimized_program = program
 
-STUDENT_LLM = LLM.GPT_OSS_20B.lm
+STUDENT_LLM = LLM.NEMOTRON_NANO_9B_V2.lm
 TEACHER_LLM = LLM.GEMINI_FLASH.lm
 TRAINING_N = 40
 

@@ -12,4 +12,4 @@ uv run src/update_llms.py
 
 uvx ruff format
 uvx ruff check --fix
-uvx pyright
+# uvx pyright

@@ -93,7 +93,8 @@ fun Station(
                     }
 
                     Text(
-                        text = station.first.stationName.longName.uppercase(Locale.US),
+                        text = station.first.stationName.longName
+                            .uppercase(Locale.US),
                         color = PATH_ON_BLUE,
                         fontWeight = FontWeight.Black,
                         fontSize = 24.sp,

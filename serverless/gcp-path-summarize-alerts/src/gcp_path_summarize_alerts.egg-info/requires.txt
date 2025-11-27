@@ -1,0 +1,6 @@
+functions-framework==3.5.0
+google-cloud-firestore==2.21.0
+google-cloud-aiplatform==1.128.0
+google-cloud-tasks==2.20.0
+pydantic==2.8.2
+openai>=1.55.0

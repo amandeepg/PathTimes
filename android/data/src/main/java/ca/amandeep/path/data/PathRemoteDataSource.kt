@@ -36,7 +36,9 @@ class PathRemoteDataSource(
     suspend fun getArrivals(): Map<StationName, List<UpcomingTrains>> =
         withContext(ioDispatcher) {
             d { "getArrivals" }
-            pathRestApi.getArrivals().stations
+            pathRestApi
+                .getArrivals()
+                .stations
                 .associate { it.name to it.upcomingTrains }
         }
 }
@@ -46,7 +48,9 @@ class AlertParser {
         val noAlerts = NO_ALERTS_HTML_TEXT in container.content.orEmpty()
         val alerts = try {
             val document = Jsoup.parse(container.content?.replace("&quot", "").orEmpty())
-            document.select(".stationName").map { it.text() }
+            document
+                .select(".stationName")
+                .map { it.text() }
                 .zip(document.select(".alertText").map { it.text() })
                 .toAlertDatas()
         } catch (_: Exception) {
@@ -63,10 +67,7 @@ class AlertParser {
     }
 }
 
-data class AlertDatas(
-    val alerts: ImmutableList<AlertData> = persistentListOf(),
-    val hasError: Boolean = false,
-) {
+data class AlertDatas(val alerts: ImmutableList<AlertData> = persistentListOf(), val hasError: Boolean = false) {
     val size = alerts.size
 
     fun isEmpty() = alerts.isEmpty()
@@ -83,8 +84,7 @@ data class AlertDatas(
         fun Iterable<Pair<String, String>>.toAlertDatas(): ImmutableList<AlertData.Single> = this
             .filter {
                 "satisfaction survey" !in it.second.lowercase()
-            }
-            .map {
+            }.map {
                 val date = try {
                     DATE_FORMATTER.parse(it.first.trim())
                 } catch (_: Exception) {
@@ -97,8 +97,7 @@ data class AlertDatas(
                         .trim(),
                     date = date,
                 )
-            }
-            .sortedBy { it.date }
+            }.sortedBy { it.date }
             .reversed()
             .distinctBy { it.text }
             .toImmutableList()
@@ -108,11 +107,13 @@ data class AlertDatas(
                 if ("Service Advisory" in it.text.orEmpty()) {
                     it.text
                 } else {
-                    it.text?.extractRoutesTitle()?.routes?.joinToString()
+                    it.text
+                        ?.extractRoutesTitle()
+                        ?.routes
+                        ?.joinToString()
                         ?: it.text?.split(".")?.first()
                 }
-            }
-            .map { group ->
+            }.map { group ->
                 val title = group.value.first().toTitle()
                 if (group.value.size == 1 && title !is AlertData.Grouped.Title.RouteTitle) {
                     group.value.single()
@@ -125,8 +126,7 @@ data class AlertDatas(
                                     0 -> it
                                     else -> it.replace(UPDATE_IN_MINS_REGEX, "")
                                 }
-                            }
-                            ?.trim()
+                            }?.trim()
                             ?.takeIf { it.any { char -> char.isLetter() } }
                             .orEmpty()
                         alert.copy(text = newText)
@@ -134,7 +134,11 @@ data class AlertDatas(
                     val alerts = alertsWithBlanks.mapIndexed { index, alert ->
                         if (alert.text.isNullOrBlank() && index != 0) {
                             alert.copy(
-                                text = group.value[index].toTitle()?.text?.capitalize()?.addPeriod(),
+                                text = group.value[index]
+                                    .toTitle()
+                                    ?.text
+                                    ?.capitalize()
+                                    ?.addPeriod(),
                             )
                         } else {
                             alert.copy(text = alert.text?.capitalize()?.addPeriod())
@@ -146,8 +150,7 @@ data class AlertDatas(
                         history = alerts.drop(1).sortedByDescending { it.date }.toImmutableList(),
                     )
                 }
-            }
-            .let { allAlerts ->
+            }.let { allAlerts ->
                 val containingRoutesAlerts = allAlerts.findContainedRouteAlerts()
                 val allToBeAbsorbed = containingRoutesAlerts.map { it.first }
                 val allAbsorbing = containingRoutesAlerts.map { it.second }
@@ -169,17 +172,19 @@ data class AlertDatas(
                             null
                         }
 
-                        else -> it
+                        else -> {
+                            it
+                        }
                     }
                 }
-            }
-            .toImmutableList()
+            }.toImmutableList()
 
         private fun AlertData.Single.toTitle(): AlertData.Grouped.Title? =
             text?.getBefore(".")?.toTitle()
 
         private fun Iterable<AlertData>.findContainedRouteAlerts(): List<Pair<AlertData.Grouped, AlertData.Grouped>> {
-            val routeAlerts = this.filterIsInstance<AlertData.Grouped>()
+            val routeAlerts = this
+                .filterIsInstance<AlertData.Grouped>()
                 .filter { it.title is AlertData.Grouped.Title.RouteTitle }
 
             val containedAlerts = mutableListOf<Pair<AlertData.Grouped, AlertData.Grouped>>()
@@ -204,7 +209,11 @@ data class AlertDatas(
 
         private fun String.removeUnnecessaryText(): String = this
             .trim()
-            .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
+            .remove("  ")
+            .remove("  ")
+            .remove("  ")
+            .remove("  ")
+            .remove("  ")
             .replaceFirst(TIME_PREFIX_REGEX, "")
             .replace("An update will be issued in approx.", "Update in")
             .replace("An update will be issued in approx", "Update in")
@@ -219,8 +228,13 @@ data class AlertDatas(
             .remove("Final Update:")
             .remove("Update:")
             .remove("Real-Time Train Departures on: - RidePATH app: - PATH website:")
-            .remove("  ").remove("  ").remove("  ").remove("  ").remove("  ")
-            .replace("..", ".").replace("..", ".")
+            .remove("  ")
+            .remove("  ")
+            .remove("  ")
+            .remove("  ")
+            .remove("  ")
+            .replace("..", ".")
+            .replace("..", ".")
             .trim()
 
         private fun String.remove(str: String): String = replace(str, "")
@@ -234,10 +248,7 @@ sealed interface AlertData {
     val isElevator: Boolean
 
     @Immutable
-    data class Single(
-        val text: String?,
-        val date: Date?,
-    ) : AlertData {
+    data class Single(val text: String?, val date: Date?) : AlertData {
         override val isElevator: Boolean = text?.isElevator() == true
     }
 
@@ -252,16 +263,10 @@ sealed interface AlertData {
             val text: String?
 
             @Immutable
-            data class RouteTitle(
-                val routes: ImmutableList<Route>,
-                override val text: String?,
-            ) : Title
+            data class RouteTitle(val routes: ImmutableList<Route>, override val text: String?) : Title
 
             @Immutable
-            data class StationTitle(
-                val stations: ImmutableList<StationName>,
-                override val text: String?,
-            ) : Title
+            data class StationTitle(val stations: ImmutableList<StationName>, override val text: String?) : Title
 
             @Immutable
             data class FreeformTitle(override val text: String?) : Title

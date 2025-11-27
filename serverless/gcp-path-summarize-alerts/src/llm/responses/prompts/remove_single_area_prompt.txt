@@ -1,0 +1,7 @@
+I will give you an alert text, and I want you to remove references to {single_area}, but keep everything else the same. The alert should still be readable.
+.
+Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
+.
+
+Alert:
+{alert}

@@ -1,6 +1,7 @@
 import dspy  # pyright: ignore[reportMissingTypeStubs]
 
 from ..models import AffectedStations
+from lib.llm_programs.llms import LLM
 
 ORIGINAL_PROMPT = """
     Analyze which stations are affected by this elevator alert.
@@ -115,5 +116,6 @@ class ElevatorAffectedStationsDeterminer:
         Returns:
             AffectedStations object containing the list of affected stations
         """
-        prediction = self.predictor.forward(query)
+        with dspy.context(lm=LLM.NEMOTRON_NANO_9B_V2.lm):  # pyright: ignore[reportUnknownMemberType]
+            prediction = self.predictor(query)
         return prediction.affected_stations  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]

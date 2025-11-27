@@ -1,0 +1,11 @@
+I will give you an alert text, and I want you to remove the following info, but keep everything else the same, the alert should still be readable:
+ - Remove the word "tips" but just give the advice from the tips succinctly.
+ - Riders already know that a delay will cause them extra time, so dont tell them that, focus on explaining what the delay is.
+ - Remove saying that an update will be issued later.
+
+.
+Your answer is very important for my job and life! So think carefully and take your time!! Don't make mistakes!
+.
+
+Alert:
+{alert}

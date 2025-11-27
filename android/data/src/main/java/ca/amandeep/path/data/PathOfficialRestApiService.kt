@@ -17,17 +17,18 @@ interface PathOfficialRestApiService {
         private const val API_PATH = "https://www.panynj.gov/bin/portauthority/"
 
         val INSTANCE: PathOfficialRestApiService by lazy {
-            Retrofit.Builder()
+            Retrofit
+                .Builder()
                 .baseUrl(API_PATH)
                 .addConverterFactory(
                     MoshiConverterFactory.create(
-                        Moshi.Builder()
+                        Moshi
+                            .Builder()
                             .add(StationName.Adapter())
                             .add(Date::class.java, Rfc3339DateJsonAdapter())
                             .build(),
                     ),
-                )
-                .build()
+                ).build()
                 .create(PathOfficialRestApiService::class.java)
         }
     }

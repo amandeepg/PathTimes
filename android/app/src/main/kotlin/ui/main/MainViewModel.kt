@@ -26,8 +26,7 @@ import ca.amandeep.path.util.isInNJ
 import ca.amandeep.path.util.mapToNotNullPairs
 import ca.amandeep.path.util.repeat
 import com.github.ajalt.timberkt.w
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -58,7 +57,9 @@ interface MainViewModel {
     }
 }
 
-class MainViewModelImpl(application: Application) : AndroidViewModel(application), MainViewModel {
+class MainViewModelImpl(application: Application) :
+    AndroidViewModel(application),
+    MainViewModel {
     private val locationUseCase = LocationUseCase(application.applicationContext)
     private val pathRepository: PathRepository
 
@@ -95,10 +96,9 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                     lastUpdated = it.metadata.lastUpdated,
                     data = it,
                 )
-            }
-            .onStart { emit(Result.Loading()) }
+            }.onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
-                Firebase.crashlytics.recordException(cause)
+                FirebaseCrashlytics.getInstance().recordException(cause)
                 emit(Result.Error())
                 delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying ArrivalsResult chain after error: $cause (attempt $attempt)" }
@@ -110,10 +110,9 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                     lastUpdated = it.metadata.lastUpdated,
                     data = it,
                 )
-            }
-            .onStart { emit(Result.Loading()) }
+            }.onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
-                Firebase.crashlytics.recordException(cause)
+                FirebaseCrashlytics.getInstance().recordException(cause)
                 emit(Result.Error())
                 delay(min(45, attempt * attempt).seconds + 1.seconds)
                 w(cause) { "Retrying AlertsResult chain after error: $cause (attempt $attempt)" }
@@ -125,30 +124,45 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
             arrivalsFlow,
             alertsFlow,
         ) { currentLocation, arrivalsResult, alertsResult ->
-            val arrivals = arrivalsResult.asValid()?.data?.arrivals.orEmpty()
-            val closestStations = arrivalsResult.asValid()?.data?.arrivals?.keys
-                ?.sortedWith(SortPlaces(currentLocation)).orEmpty()
-            val alertsList = alertsResult.asValid()?.data?.alerts?.alerts ?: persistentListOf()
-            val closestArrivals = closestStations.mapToNotNullPairs { stationName ->
-                stationName.toUiStation(alertsList) to arrivals[stationName]?.flatMap { upcomingTrains ->
-                    upcomingTrains.trains.toUiTrains(
-                        currentLocation = currentLocation,
-                        now = System.currentTimeMillis(),
-                        alerts = alertsList,
-                        direction = upcomingTrains.direction,
-                    )
-                }
-                    ?.sortedByDirectionAndTime(currentLocation)
-                    ?.toImmutableList()
-            }
-                .addHelpText()
+            val arrivals = arrivalsResult
+                .asValid()
+                ?.data
+                ?.arrivals
+                .orEmpty()
+            val closestStations = arrivalsResult
+                .asValid()
+                ?.data
+                ?.arrivals
+                ?.keys
+                ?.sortedWith(SortPlaces(currentLocation))
+                .orEmpty()
+            val alertsList = alertsResult
+                .asValid()
+                ?.data
+                ?.alerts
+                ?.alerts ?: persistentListOf()
+            val closestArrivals = closestStations
+                .mapToNotNullPairs { stationName ->
+                    stationName.toUiStation(alertsList) to arrivals[stationName]
+                        ?.flatMap { upcomingTrains ->
+                            upcomingTrains.trains.toUiTrains(
+                                currentLocation = currentLocation,
+                                now = System.currentTimeMillis(),
+                                alerts = alertsList,
+                                direction = upcomingTrains.direction,
+                            )
+                        }?.sortedByDirectionAndTime(currentLocation)
+                        ?.toImmutableList()
+                }.addHelpText()
                 .toImmutableList()
 
             val arrivalsUiModel =
                 when (arrivalsResult) {
                     is Result.Valid -> when {
                         arrivalsResult.lastUpdated < 0 -> Result.Loading()
+
                         closestArrivals.isEmpty() -> Result.Error()
+
                         else -> Result.Valid(
                             lastUpdated = arrivalsResult.lastUpdated,
                             data = closestArrivals,
@@ -156,13 +170,16 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                     }
 
                     is Result.Error -> Result.Error()
+
                     is Result.Loading -> Result.Loading()
                 }
             val alertsUiModel =
                 when (alertsResult) {
                     is Result.Valid -> when {
                         alertsResult.lastUpdated < 0 -> Result.Loading()
+
                         alertsResult.data.alerts.hasError -> Result.Error()
+
                         else -> Result.Valid(
                             lastUpdated = alertsResult.lastUpdated,
                             data = alertsResult.data.alerts,
@@ -170,6 +187,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                     }
 
                     is Result.Error -> Result.Error()
+
                     is Result.Loading -> Result.Loading()
                 }
             MainUiModel(
@@ -177,7 +195,7 @@ class MainViewModelImpl(application: Application) : AndroidViewModel(application
                 alerts = alertsUiModel,
             )
         }.retryWhen { cause, attempt ->
-            Firebase.crashlytics.recordException(cause)
+            FirebaseCrashlytics.getInstance().recordException(cause)
             emit(
                 MainUiModel(
                     arrivals = Result.Error(),
@@ -205,13 +223,14 @@ private fun List<Pair<UiStation, ImmutableList<UiUpcomingTrain>>>.addHelpText():
 
     return map {
         it.copy(
-            second = it.second.map { train ->
-                if (train == firstNjTrain || train == firstNycTrain) {
-                    train.copy(showDirectionHelpText = true)
-                } else {
-                    train
-                }
-            }.toImmutableList(),
+            second = it.second
+                .map { train ->
+                    if (train == firstNjTrain || train == firstNycTrain) {
+                        train.copy(showDirectionHelpText = true)
+                    } else {
+                        train
+                    }
+                }.toImmutableList(),
         )
     }
 }

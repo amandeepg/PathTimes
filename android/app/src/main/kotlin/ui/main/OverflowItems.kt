@@ -41,7 +41,7 @@ fun RowScope.OverflowItems(
     forceRefresh: () -> Unit,
     showDebugOptions: Boolean,
     showModelNamePref: Boolean,
-    setShowModelNamePref: suspend suspend (Boolean) -> Unit,
+    setShowModelNamePref: suspend (Boolean) -> Unit,
     aiSummarizeAlertsPref: Boolean,
     setAiSummarizeAlertsPref: suspend (Boolean) -> Unit,
     shortenNamesPref: Boolean,

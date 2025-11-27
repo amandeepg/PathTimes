@@ -10,10 +10,7 @@ import kotlin.math.abs
 private const val NJ_LONGITUDE: Double = -74.03240619573852
 private const val NY_LONGITUDE: Double = -74.01354955895476
 
-data class Coordinates(
-    val latitude: Double,
-    val longitude: Double,
-)
+data class Coordinates(val latitude: Double, val longitude: Double)
 
 /**
  * Returns true if the coordinates are in New Jersey, false if they are in New York.
@@ -28,7 +25,5 @@ val Coordinates.isInNJ: Boolean
         return distanceToNJ < distanceToNY
     }
 
-fun Context.checkPermission(permission: String): Boolean {
-    return ContextCompat.checkSelfPermission(this, permission) ==
-        PackageManager.PERMISSION_GRANTED
-}
+fun Context.checkPermission(permission: String): Boolean = ContextCompat.checkSelfPermission(this, permission) ==
+    PackageManager.PERMISSION_GRANTED

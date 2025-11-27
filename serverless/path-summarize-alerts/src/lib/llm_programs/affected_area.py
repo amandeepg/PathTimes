@@ -1,6 +1,6 @@
 import dspy  # pyright: ignore[reportMissingTypeStubs]
 
-from lib.dspy.llms import LLM
+from lib.llm_programs.llms import LLM
 
 from ..models import AffectedLines, AffectedStations
 

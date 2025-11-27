@@ -11,15 +11,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
-class AlertsSummarizer(
-    private val summarizerApi: PathAlertsSummarizerApiService,
-    context: Context,
-) {
+class AlertsSummarizer(private val summarizerApi: PathAlertsSummarizerApiService, context: Context) {
     private val alertCache = AlertCache(context)
 
     fun Iterable<AlertData>.maybeSummarizeAlertDatas(): Flow<List<AlertData>> {
         val alertFlows = map { alertData ->
-            alertData.maybeSummarizeAlertData()
+            alertData
+                .maybeSummarizeAlertData()
                 .onStart { emit(alertData) }
         }
         return if (alertFlows.isEmpty()) {
@@ -32,9 +30,9 @@ class AlertsSummarizer(
     private fun AlertData.maybeSummarizeAlertData(): Flow<AlertData> =
         if (this is AlertData.Single && !text.isNullOrBlank()) {
             summarizeAlertText(text).map { summarizeApiResponse ->
-                val summarizedText = summarizeApiResponse.response?.text
+                val summarizedText = summarizeApiResponse.result.text.ifBlank { summarizeApiResponse.summary }
                 d { "summarized alert: $summarizedText" }
-                if (!summarizedText.isNullOrBlank()) {
+                if (summarizedText.isNotBlank()) {
                     createSummarizedAlertData(summarizedText, summarizeApiResponse)
                 } else {
                     this
@@ -50,13 +48,12 @@ class AlertsSummarizer(
         // Check cache first
         val cachedResult = alertCache.get(text)
         if (cachedResult != null) {
-            d { "returning cached summary for: $text" }
+            d { "returning cached summary for: $text (cache hit, will refresh)" }
             emit(cachedResult)
-            return@flow
         }
 
         // If not in cache, make API call
-        val result = summarizerApi.summarize(text)
+        val result = summarizerApi.summarize(text, "b")
         alertCache.put(text, result)
         emit(result)
     }
@@ -66,9 +63,10 @@ class AlertsSummarizer(
         summarizeApiResponse: SummarizeApiResponse,
     ): AlertData {
         val newAlert = copy(text = summarizedText)
-        val response = summarizeApiResponse.response
-        val routes = response?.affectedArea?.affectedRoutes
-        val stations = response?.affectedArea?.affectedStations
+        val response = summarizeApiResponse.result
+        val affectedArea = response.affectedArea
+        val routes = affectedArea?.affectedRoutes
+        val stations = affectedArea?.affectedStations
 
         val title = when {
             !routes.isNullOrEmpty() -> AlertData.Grouped.Title.RouteTitle(
@@ -88,7 +86,7 @@ class AlertsSummarizer(
             AlertData.GroupedWithLlm(
                 title = title,
                 main = newAlert,
-                modelName = summarizeApiResponse.model.orEmpty(),
+                modelName = summarizeApiResponse.llmType.orEmpty(),
                 original = this,
             )
         } else {

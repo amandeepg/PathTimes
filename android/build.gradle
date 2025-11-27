@@ -53,4 +53,14 @@ subprojects {
             }
         }
     }
+
+    // Gradle 9 fails Test tasks when no tests are discovered. Several modules intentionally
+    // have empty test suites, so allow those tasks to pass without failing the build.
+    tasks.withType(Test).configureEach { testTask ->
+        if (testTask.hasProperty("failOnNoDiscoveredTests")) {
+            testTask.setProperty("failOnNoDiscoveredTests", false)
+        } else if (testTask.hasProperty("failOnNoMatchingTests")) {
+            testTask.setProperty("failOnNoMatchingTests", false)
+        }
+    }
 }

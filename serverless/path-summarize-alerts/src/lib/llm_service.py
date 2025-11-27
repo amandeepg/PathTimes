@@ -14,8 +14,8 @@ from baml_client.types import (
 
 from .llm_client_base import LlmClient
 from .models import AffectedLines, AffectedStations, LlmCostInfo, LlmResponseWithCost
-from .dspy.affected_area import AffectedAreaDeterminer
-from .dspy.elevator_affected_area import ElevatorAffectedStationsDeterminer
+from .llm_programs.affected_area import AffectedAreaDeterminer
+from .llm_programs.elevator_affected_area import ElevatorAffectedStationsDeterminer
 
 logger = Logger()
 tracer = trace.get_tracer(__name__)

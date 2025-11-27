@@ -1,0 +1,6 @@
+Identify affected PATH lines and stations mentioned in this alert.
+Respond with JSON: {{"affected_lines": ["NWK_WTC", ...], "affected_stations": ["Newark Penn Station", ...]}}.
+If none are clear, return {{"affected_lines": [], "affected_stations": []}}.
+
+Alert:
+{alert}

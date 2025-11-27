@@ -81,6 +81,7 @@ class DeveloperMenuTrigger(
                 activePointers[pointerId] = PointF(event.getX(pointerIndex), event.getY(pointerIndex))
                 checkState()
             }
+
             MotionEvent.ACTION_MOVE -> {
                 for (i in 0 until event.pointerCount) {
                     val id = event.getPointerId(i)
@@ -94,6 +95,7 @@ class DeveloperMenuTrigger(
                     reset()
                 }
             }
+
             MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
                 activePointers.remove(pointerId)
                 // If a required pointer was lifted during hold, reset
@@ -111,16 +113,20 @@ class DeveloperMenuTrigger(
                     checkState()
                 }
             }
-            MotionEvent.ACTION_CANCEL -> reset()
+
+            MotionEvent.ACTION_CANCEL -> {
+                reset()
+            }
         }
 
         return currentState != TriggerState.IDLE
     }
 
     private fun getPressedCorners(): Set<Corner> =
-        activePointers.values.mapNotNull { point ->
-            corners.entries.find { (_, rect) -> rect.contains(point.x, point.y) }?.key
-        }.toSet()
+        activePointers.values
+            .mapNotNull { point ->
+                corners.entries.find { (_, rect) -> rect.contains(point.x, point.y) }?.key
+            }.toSet()
 
     private fun areRequiredCornersHeld(): Boolean {
         val pressed = getPressedCorners()
@@ -142,12 +148,14 @@ class DeveloperMenuTrigger(
                     startFirstHold()
                 }
             }
+
             TriggerState.WAITING_SECOND -> {
                 if (activePointers.size >= 2 && pressedCorners == secondComboCorners) {
                     startSecondHold()
                 }
                 // Timeout job handles reset if wrong/no corners are pressed for too long
             }
+
             TriggerState.HOLDING_FIRST, TriggerState.HOLDING_SECOND -> {
                 // Hold validity checked in ACTION_MOVE / ACTION_UP
             }

@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("src")
+
 from typing import Any, List, Set
 import dspy
 import os
@@ -9,8 +13,8 @@ from datetime import datetime
 from dspy.teleprompt.gepa.gepa_utils import DSPyTrace
 
 from lib.models import AffectedLines, AffectedStations, PathLine, PathStation
-from lib.dspy.affected_area import AffectedAreaPredictor
-from lib.dspy.llms import LLM
+from lib.llm_programs.affected_area import AffectedAreaPredictor
+from lib.llm_programs.llms import LLM
 
 program = AffectedAreaPredictor()
 unoptimized_program = program

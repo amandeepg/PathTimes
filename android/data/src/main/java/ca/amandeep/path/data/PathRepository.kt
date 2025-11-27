@@ -44,7 +44,8 @@ class PathRepository(
         get() =
             // Merge tick flow to periodically poll the API, and the refresh flow to force a refresh
             merge(tickFlow(arrivalsUpdateInterval), refreshFlow).map {
-                pathRemoteDataSource.getArrivals()
+                pathRemoteDataSource
+                    .getArrivals()
                     .let {
                         ArrivalsResult(
                             metadata = Metadata(System.currentTimeMillis()),
@@ -59,34 +60,35 @@ class PathRepository(
     val alerts: Flow<AlertsResult>
         get() =
             // Merge tick flow to periodically poll the API, and the refresh flow to force a refresh
-            merge(tickFlow(alertsUpdateInterval), refreshFlow).flatMapLatest {
-                val alertsResult = AlertsResult(
-                    Metadata(System.currentTimeMillis()),
-                    pathRemoteDataSource.getAlerts(),
-                )
+            merge(tickFlow(alertsUpdateInterval), refreshFlow)
+                .flatMapLatest {
+                    val alertsResult = AlertsResult(
+                        Metadata(System.currentTimeMillis()),
+                        pathRemoteDataSource.getAlerts(),
+                    )
 
-                if (!userPreferencesRepo.aiSummarizeAlerts.first()) {
-                    flow { emit(alertsResult.alerts.alerts) }
-                        .map {
-                            alertsResult.copy(
-                                alerts = alertsResult.alerts.copy(
-                                    alerts = it.toImmutableList(),
-                                ),
-                            )
-                        }
-                } else {
-                    with(alertsSummarizer) {
-                        val originalAlerts = alertsResult.alerts.alerts
-                        originalAlerts.maybeSummarizeAlertDatas().map {
-                            alertsResult.copy(
-                                alerts = alertsResult.alerts.copy(
-                                    alerts = it.toImmutableList(),
-                                ),
-                            )
+                    if (!userPreferencesRepo.aiSummarizeAlerts.first()) {
+                        flow { emit(alertsResult.alerts.alerts) }
+                            .map {
+                                alertsResult.copy(
+                                    alerts = alertsResult.alerts.copy(
+                                        alerts = it.toImmutableList(),
+                                    ),
+                                )
+                            }
+                    } else {
+                        with(alertsSummarizer) {
+                            val originalAlerts = alertsResult.alerts.alerts
+                            originalAlerts.maybeSummarizeAlertDatas().map {
+                                alertsResult.copy(
+                                    alerts = alertsResult.alerts.copy(
+                                        alerts = it.toImmutableList(),
+                                    ),
+                                )
+                            }
                         }
                     }
-                }
-            }.debounce(100.milliseconds)
+                }.debounce(100.milliseconds)
 
     /**
      * Refreshes the data from the remote data source.
@@ -99,12 +101,7 @@ class PathRepository(
             persistentMapOf(),
     )
 
-    data class AlertsResult(
-        val metadata: Metadata = Metadata(),
-        val alerts: AlertDatas = AlertDatas(),
-    )
+    data class AlertsResult(val metadata: Metadata = Metadata(), val alerts: AlertDatas = AlertDatas())
 
-    data class Metadata(
-        val lastUpdated: Long = -1,
-    )
+    data class Metadata(val lastUpdated: Long = -1)
 }

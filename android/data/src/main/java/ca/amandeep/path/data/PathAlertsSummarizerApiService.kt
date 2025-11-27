@@ -15,35 +15,37 @@ import retrofit2.http.Query
 import java.util.Date
 
 interface PathAlertsSummarizerApiService {
-    @GET("summarize")
+    @GET("summarize-staging")
     suspend fun summarize(
-        @Query("input") input: String,
+        @Query("text") input: String,
+        @Query("cache_key_prefix") cacheKey: String,
     ): SummarizeApiResponse
 
     companion object {
-        private const val API_PATH = "https://abh8g4eebe.execute-api.us-east-1.amazonaws.com/dev/"
+        private const val API_PATH = "https://us-central1-underthehudson.cloudfunctions.net/"
 
         fun create(
             applicationContext: Context,
         ): PathAlertsSummarizerApiService =
-            Retrofit.Builder()
+            Retrofit
+                .Builder()
                 .baseUrl(API_PATH)
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(
                     MoshiConverterFactory.create(
-                        Moshi.Builder()
+                        Moshi
+                            .Builder()
                             .add(Date::class.java, Rfc3339DateJsonAdapter())
                             .add(StationName.Adapter())
                             .build(),
                     ),
-                )
-                .client(
-                    OkHttpClient.Builder()
+                ).client(
+                    OkHttpClient
+                        .Builder()
                         // 2MB cache
                         .cache(Cache(applicationContext.cacheDir, 2 * 1024 * 1024))
                         .build(),
-                )
-                .build()
+                ).build()
                 .create(PathAlertsSummarizerApiService::class.java)
     }
 }

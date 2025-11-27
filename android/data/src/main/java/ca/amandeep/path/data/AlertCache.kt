@@ -16,6 +16,7 @@ import java.io.IOException
 import java.util.Date
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.days
 
 /**
  * Caches alert summaries to avoid repeated API calls.
@@ -23,12 +24,11 @@ import kotlin.time.Duration.Companion.minutes
  * This class provides a simple file-based cache for [SummarizeApiResponse] objects.
  * Each cache entry has a time-to-live (TTL) defined by [CACHE_TTL].
  */
-class AlertCache(
-    private val context: Context,
-) {
+class AlertCache(private val context: Context) {
     private val cacheDir by lazy { File(context.cacheDir, "alert_summaries").also { it.mkdirs() } }
     private val moshi: Moshi by lazy {
-        Moshi.Builder()
+        Moshi
+            .Builder()
             .add(Date::class.java, Rfc3339DateJsonAdapter())
             .build()
     }
@@ -39,11 +39,7 @@ class AlertCache(
     }
 
     @JsonClass(generateAdapter = true)
-    data class CachedAlertSummary(
-        val text: String,
-        val response: SummarizeApiResponse,
-        val timestamp: Long,
-    ) {
+    data class CachedAlertSummary(val text: String, val response: SummarizeApiResponse, val timestamp: Long) {
         fun isExpired(): Boolean = System.currentTimeMillis() - timestamp > CACHE_TTL.inWholeMilliseconds
     }
 
@@ -118,6 +114,6 @@ class AlertCache(
     }
 
     companion object {
-        private val CACHE_TTL: Duration = 5.minutes
+        private val CACHE_TTL: Duration = 7.days
     }
 }

@@ -22,10 +22,7 @@ import kotlin.time.toJavaDuration
 /**
  * Background worker that synchronizes PATH data every 30 minutes
  */
-class PathDataSyncWorker(
-    private val context: Context,
-    workerParams: WorkerParameters,
-) : CoroutineWorker(context, workerParams) {
+class PathDataSyncWorker(private val context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             d { "Starting background data sync" }
@@ -52,9 +49,10 @@ class PathDataSyncWorker(
             AlertCache(context).deleteExpired()
 
             withTimeoutOrNull(1.minutes.toJavaDuration()) {
-                pathRepository.alerts.combine(pathRepository.arrivals) { alerts, arrivals ->
-                    d { "Background sync: ${arrivals.arrivals.size} arrivals, ${alerts.alerts.size} alerts" }
-                }.collect()
+                pathRepository.alerts
+                    .combine(pathRepository.arrivals) { alerts, arrivals ->
+                        d { "Background sync: ${arrivals.arrivals.size} arrivals, ${alerts.alerts.size} alerts" }
+                    }.collect()
             }
 
             Result.success()
@@ -78,14 +76,13 @@ class PathDataSyncWorker(
                 PeriodicWorkRequestBuilder<PathDataSyncWorker>(
                     repeatInterval = 15.minutes.toJavaDuration(),
                     flexTimeInterval = 15.minutes.toJavaDuration(),
-                )
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiresBatteryNotLow(true)
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build(),
-                    )
-                    .build(),
+                ).setConstraints(
+                    Constraints
+                        .Builder()
+                        .setRequiresBatteryNotLow(true)
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                ).build(),
             )
 
             d { "Scheduled PATH data sync to run every 15 minutes" }

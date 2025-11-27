@@ -16,7 +16,7 @@ plugins {
 }
 
 android {
-    compileSdk 36
+    compileSdk = 36
 
     defaultConfig {
         applicationId "ca.amandeep.path"
@@ -160,4 +160,3 @@ tasks.withType(Test) {
     android.sourceSets.main.res.srcDirs += 'src/test/res'
     maxParallelForks = 4
 }
-

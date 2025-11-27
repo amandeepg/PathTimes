@@ -1,0 +1,22 @@
+# Local virtualenvs and caches
+.venv/
+venv/
+env/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+*.pyc
+
+# Editor/OS noise
+.DS_Store
+*.swp
+*.swo
+
+# Build artifacts
+build/
+
+# Terraform local state
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfstate.d/

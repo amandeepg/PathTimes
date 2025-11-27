@@ -20,9 +20,18 @@ fun <T, R> zip(
     flows: List<Flow<T>>,
     transform: suspend (List<T>) -> R,
 ): Flow<R> = when (flows.size) {
-    0 -> emptyFlow()
-    1 -> flows[0].map { transform(listOf(it)) }
-    2 -> flows[0].zip(flows[1]) { a, b -> transform(listOf(a, b)) }
+    0 -> {
+        emptyFlow()
+    }
+
+    1 -> {
+        flows[0].map { transform(listOf(it)) }
+    }
+
+    2 -> {
+        flows[0].zip(flows[1]) { a, b -> transform(listOf(a, b)) }
+    }
+
     else -> {
         var accFlow: Flow<List<T>> = flows[0].zip(flows[1]) { a, b -> listOf(a, b) }
         for (i in 2 until flows.size) {

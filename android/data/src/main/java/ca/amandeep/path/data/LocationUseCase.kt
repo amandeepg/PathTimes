@@ -22,9 +22,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 @SuppressLint("MissingPermission")
-class LocationUseCase(
-    private val context: Context,
-) {
+class LocationUseCase(private val context: Context) {
     private var permissionsUpdatedFlow = MutableStateFlow<List<String>>(emptyList())
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
@@ -33,24 +31,26 @@ class LocationUseCase(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val location: Flow<Location> by lazy {
-        permissionsUpdatedFlow.flatMapLatest {
-            callbackFlow {
-                if (
-                    checkSelfPermission(context, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
-                    checkSelfPermission(context, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
-                ) {
-                    val callback: (Location?) -> Unit = {
-                        d { "Location: $it" }
-                        it?.let { this.trySend(it) }
+        permissionsUpdatedFlow
+            .flatMapLatest {
+                callbackFlow {
+                    if (
+                        checkSelfPermission(context, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
+                        checkSelfPermission(context, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
+                    ) {
+                        val callback: (Location?) -> Unit = {
+                            d { "Location: $it" }
+                            it?.let { this.trySend(it) }
+                        }
+                        fusedLocationClient.lastLocation
+                            .addOnSuccessListener(callback)
+                        fusedLocationClient
+                            .getCurrentLocation(PRIORITY_BALANCED_POWER_ACCURACY, null)
+                            .addOnSuccessListener(callback)
                     }
-                    fusedLocationClient.lastLocation
-                        .addOnSuccessListener(callback)
-                    fusedLocationClient.getCurrentLocation(PRIORITY_BALANCED_POWER_ACCURACY, null)
-                        .addOnSuccessListener(callback)
+                    awaitClose()
                 }
-                awaitClose()
-            }
-        }.distinctUntilChanged()
+            }.distinctUntilChanged()
     }
 
     /**

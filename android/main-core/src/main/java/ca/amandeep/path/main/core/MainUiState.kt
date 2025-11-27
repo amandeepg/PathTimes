@@ -30,8 +30,7 @@ fun Iterable<UpcomingTrain>.toUiTrains(
             alerts = alerts,
             direction = direction,
         )
-    }
-    .toImmutableList()
+    }.toImmutableList()
 
 fun UpcomingTrain.toUiTrain(
     currentLocation: Coordinates,
@@ -71,8 +70,7 @@ fun UpcomingTrain.toUiTrain(
                 } else {
                     false
                 }
-            }
-            .toImmutableList(),
+            }.toImmutableList(),
     )
 }
 
@@ -132,6 +130,5 @@ fun StationName.toUiStation(
             } else {
                 false
             }
-        }
-        .toImmutableList(),
+        }.toImmutableList(),
 )

@@ -98,10 +98,10 @@ class AlertSummarizer:
 
         # Handle USE_CACHING policy
         if caching_policy == CachingPolicy.USE_CACHING:
-            cached_response = await self.summarize_from_cache(input_text, model)
-            if cached_response:
-                self._in_memory_cache[in_mem_cache_key] = cached_response
-                return cached_response
+            result = await self.summarize_from_cache(input_text, model)
+            if result:
+                self._in_memory_cache[in_mem_cache_key] = result
+                return result
 
         # For NO_CACHE and USE_CACHING (when cache miss), proceed with LLM call
         try:

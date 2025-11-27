@@ -1,0 +1,8 @@
+# Files/directories excluded from Cloud Functions uploads
+.git
+.gitignore
+__pycache__/
+env/
+.venv/
+venv/
+*.pyc

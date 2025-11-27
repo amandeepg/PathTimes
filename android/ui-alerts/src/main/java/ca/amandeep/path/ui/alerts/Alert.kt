@@ -133,12 +133,15 @@ fun Alert(
                     }
                 }
 
-                is AlertData.Grouped.Title.FreeformTitle ->
+                is AlertData.Grouped.Title.FreeformTitle -> {
                     alert.GroupedTitleText(
                         titleTextStyle = titleTextStyle,
                     )
+                }
 
-                else -> Unit
+                else -> {
+                    Unit
+                }
             }
         }
         val singleAlert = alert.asSingleAlert(userState)
@@ -154,11 +157,13 @@ fun Alert(
         if (singleAlertDate != null) {
             @Composable
             fun DateText() = Text(
-                text = DateUtils.getRelativeTimeSpanString(
-                    singleAlertDate.time, // time
-                    System.currentTimeMillis(), // now
-                    DateUtils.MINUTE_IN_MILLIS, // minResolution
-                ).toString().lowercase(Locale.US),
+                text = DateUtils
+                    .getRelativeTimeSpanString(
+                        singleAlertDate.time, // time
+                        System.currentTimeMillis(), // now
+                        DateUtils.MINUTE_IN_MILLIS, // minResolution
+                    ).toString()
+                    .lowercase(Locale.US),
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
                 style = timeTextStyle,
             )
@@ -182,14 +187,16 @@ fun Alert(
                             .expandableClickable(onClick = { setExpanded(!expanded) })
                             .alpha(0.6f),
                         text = when (alertTitle) {
-                            is AlertData.Grouped.Title.RouteTitle ->
+                            is AlertData.Grouped.Title.RouteTitle -> {
                                 stringResource(
                                     R.string.view_older_route,
                                     alertTitle.routes.joinToString { it.displayName },
                                 )
+                            }
 
-                            else ->
+                            else -> {
                                 stringResource(R.string.view_older)
+                            }
                         },
                         color = MaterialTheme.colorScheme.primary,
                         style = timeTextStyle,
@@ -200,8 +207,7 @@ fun Alert(
                                 with(LocalDensity.current) {
                                     timeTextStyle.fontSize.toDp()
                                 },
-                            )
-                            .align(Alignment.CenterVertically)
+                            ).align(Alignment.CenterVertically)
                             .rotate(arrowRotationDegree),
                         imageVector = Icons.Filled.ExpandLess,
                         tint = MaterialTheme.colorScheme.primary,
@@ -262,7 +268,9 @@ private fun AlertData.asSingleAlert(
 ): AlertData.Single {
     val singleAlert = when (this) {
         is AlertData.Single -> this
+
         is AlertData.GroupedRaw -> main
+
         is AlertData.GroupedWithLlm -> main.let { alertMain ->
             if (!userState.debugOptions.aiSummarizeAlerts) {
                 return@let original.asSingleAlert(userState)

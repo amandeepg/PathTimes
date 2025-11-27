@@ -12,11 +12,7 @@ import kotlinx.collections.immutable.persistentListOf
 @Immutable
 sealed interface Result<T : Any> {
     @Immutable
-    data class Valid<T : Any>(
-        val lastUpdated: Long,
-        val data: T,
-        val hasError: Boolean = false,
-    ) : Result<T>
+    data class Valid<T : Any>(val lastUpdated: Long, val data: T, val hasError: Boolean = false) : Result<T>
 
     @Immutable
     class Error<T : Any> : Result<T>
@@ -27,10 +23,7 @@ sealed interface Result<T : Any> {
 
 fun <T : Any> Result<T>.asValid(): Result.Valid<T>? = this as? Result.Valid<T>
 
-data class MainUiModel(
-    val arrivals: Result<ArrivalsUiModel> = Result.Loading(),
-    val alerts: Result<AlertsUiModel> = Result.Loading(),
-)
+data class MainUiModel(val arrivals: Result<ArrivalsUiModel> = Result.Loading(), val alerts: Result<AlertsUiModel> = Result.Loading())
 
 typealias ArrivalsUiModel = ImmutableList<Pair<UiStation, ImmutableList<UiUpcomingTrain>>>
 typealias AlertsUiModel = AlertDatas
@@ -60,8 +53,5 @@ data class UserState(
     val isInNJ: Boolean = false,
     val debugOptions: Debug = Debug(),
 ) {
-    data class Debug(
-        val showModelName: Boolean = false,
-        val aiSummarizeAlerts: Boolean = false,
-    )
+    data class Debug(val showModelName: Boolean = false, val aiSummarizeAlerts: Boolean = false)
 }

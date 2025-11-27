@@ -27,8 +27,8 @@ Globals:
     MemorySize: 512
     Timeout: 60
     Tracing: Active
-    # Layers:
-    #   - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-32-0:2
+    Layers:
+      - arn:aws:lambda:us-east-1:901920570463:layer:aws-otel-python-amd64-ver-1-29-0:1
     Environment:
       Variables:
         POWERTOOLS_SERVICE_NAME: path-summarize-alerts
@@ -38,7 +38,7 @@ Globals:
         SKIP_CACHE_MAGIC_WORD: !Ref SkipCacheMagicWord
         OPENROUTER_APP_NAME: !Ref OpenRouterAppName
         OPENROUTER_APP_URL: !Ref OpenRouterAppUrl
-        # AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
+        AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
         BAML_LOG: trace
         DYNAMODB_TABLE: !Ref AiResponsesTables
     CodeUri: src/
@@ -57,6 +57,8 @@ Resources:
     Properties:
       StageName: !Ref Stage
       MinimumCompressionSize: 0
+      TracingEnabled: true
+      OpenApiVersion: 3.0.2
       # CORS is configured on the individual function events for REST APIs in SAM
       # CorsConfiguration property is ONLY for AWS::Serverless::HttpApi (V2)
 

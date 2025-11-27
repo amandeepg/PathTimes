@@ -115,8 +115,7 @@ fun Train(
                         .padding(
                             top = 8.dp,
                             bottom = if (isLastInStation) 0.dp else 8.dp,
-                        )
-                        .fillMaxWidth(),
+                        ).fillMaxWidth(),
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         Alerts(train.alerts, userState = userState)
@@ -167,8 +166,10 @@ fun Train(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     text = helpTextAnnotatedString,
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = MaterialTheme.typography.labelSmall.fontSize.times(0.95f),
-                        lineHeight = MaterialTheme.typography.labelSmall.lineHeight.times(0.9f),
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize
+                            .times(0.95f),
+                        lineHeight = MaterialTheme.typography.labelSmall.lineHeight
+                            .times(0.9f),
                     ),
                     onClick = { offset ->
                         helpTextAnnotatedString
@@ -206,8 +207,7 @@ private fun RowScope.TrainMainRowContent(
                             Direction.ToNJ -> Alignment.CenterStart
                             Direction.ToNY -> Alignment.CenterEnd
                         },
-                    )
-                    .offset(
+                    ).offset(
                         x = when (train.direction) {
                             Direction.ToNJ -> (-6).dp
                             Direction.ToNY -> (6).dp
@@ -284,7 +284,10 @@ private fun RowScope.TrainMainRowContent(
         }
         ProvideTextStyle(TextStyle(fontWeight = FontWeight.Light)) {
             when {
-                arrivalTime <= 0 -> Unit
+                arrivalTime <= 0 -> {
+                    Unit
+                }
+
                 arrivalTime == 1 -> {
                     Spacer(Modifier.width(6.dp))
                     Text(

@@ -31,12 +31,7 @@ data class Station(
 }
 
 @Immutable
-enum class StationName(
-    val longName: String,
-    val shortName: String,
-    val state: State,
-    val coordinates: Coordinates,
-) {
+enum class StationName(val longName: String, val shortName: String, val state: State, val coordinates: Coordinates) {
     NWK(
         longName = "Newark".displayStr(),
         shortName = "NWK",
@@ -175,9 +170,21 @@ enum class StationName(
             else -> throw IllegalArgumentException("Station name not found")
         }
     }
+
+    companion object {
+        fun fromStringOrNull(raw: String): StationName? {
+            val normalized = raw.normalizeSpaces().lowercase()
+            return entries.firstOrNull { candidate ->
+                normalized == candidate.name.lowercase() ||
+                    normalized == candidate.shortName.lowercase() ||
+                    normalized == candidate.longName.normalizeSpaces().lowercase()
+            }
+        }
+    }
 }
 
 private fun String.displayStr(): String = replace(' ', Typography.nbsp)
+private fun String.normalizeSpaces(): String = replace('\u00A0', ' ').trim()
 
 enum class State {
     NY,
@@ -193,20 +200,13 @@ data class UpcomingTrains(
 )
 
 @Immutable
-enum class Direction(
-    val stateName: String,
-    val stateNameShort: String,
-) {
+enum class Direction(val stateName: String, val stateNameShort: String) {
     ToNJ("New Jersey".displayStr(), "NJ"),
     ToNY("New York".displayStr(), "NY"),
 }
 
 @Immutable
-enum class Route(
-    val njTerminus: StationName,
-    val nyTerminus: StationName,
-    val via: StationName? = null,
-) {
+enum class Route(val njTerminus: StationName, val nyTerminus: StationName, val via: StationName? = null) {
     JSQ_33(
         njTerminus = StationName.JSQ,
         nyTerminus = StationName.S33,
@@ -228,6 +228,12 @@ enum class Route(
         nyTerminus = StationName.S33,
         via = StationName.HOB,
     ),
+    ;
+
+    companion object {
+        fun fromStringOrNull(raw: String): Route? =
+            runCatching { valueOf(raw) }.getOrNull()
+    }
 }
 
 val Route.displayName
@@ -242,13 +248,9 @@ val Route.displayName
 @Immutable
 @JsonClass(generateAdapter = true)
 data class UpcomingTrain(
-    @Json(name = "lineColor")
     val lineColor: String,
-    @Json(name = "secondsToArrival")
     val secondsToArrival: Int,
-    @Json(name = "target")
     val target: StationName,
-    @Json(name = "lastUpdated")
     val lastUpdated: Date,
 ) {
     constructor(
@@ -292,19 +294,42 @@ fun UpcomingTrain.relativeArrivalMins(now: Long): Double {
 
 @JsonClass(generateAdapter = true)
 data class SummarizeApiResponse(
-    @Json(name = "input_string_hash") val inputStringHash: String,
-    @Json(name = "code_version_hash") val codeVersionHash: String,
     val input: String,
-    val response: LlmResponse?,
-    val model: String?,
-    @Json(name = "generated_at") val generatedAt: Long, // Or use Date if you prefer and add a TypeAdapter for Long to Date
+    val summary: String,
+    val result: LlmResult,
+    val cached: Boolean? = null,
+    @Json(name = "llm_type") val llmType: String? = null,
+    val environment: String? = null,
+    @Json(name = "ttl_seconds") val ttlSeconds: Int? = null,
 )
 
 @JsonClass(generateAdapter = true)
-data class LlmResponse(
+data class LlmResult(
     val text: String,
-    @Json(name = "is_delay") val isDelay: Boolean?,
-    @Json(name = "affected_area") val affectedArea: AffectedArea?,
+    @Json(name = "affected_stations") val affectedStations: AffectedStations? = null,
+    @Json(name = "affected_lines") val affectedLines: AffectedLines? = null,
+) {
+    val affectedArea: AffectedArea?
+        get() = if (affectedStations?.affectedStations != null || affectedLines?.affectedLines != null) {
+            AffectedArea(
+                affectedStations = affectedStations?.affectedStations
+                    ?.mapNotNull { StationName.fromStringOrNull(it) },
+                affectedRoutes = affectedLines?.affectedLines
+                    ?.mapNotNull { Route.fromStringOrNull(it) },
+            )
+        } else {
+            null
+        }
+}
+
+@JsonClass(generateAdapter = true)
+data class AffectedStations(
+    @Json(name = "affected_stations") val affectedStations: List<String>?,
+)
+
+@JsonClass(generateAdapter = true)
+data class AffectedLines(
+    @Json(name = "affected_lines") val affectedLines: List<String>?,
 )
 
 @JsonClass(generateAdapter = true)

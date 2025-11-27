@@ -108,7 +108,12 @@ fun ExpandableAlerts(
             expandableContent = {
                 Alerts(
                     modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 4.dp),
-                    alerts = alertsResult.asValid()?.data?.alerts.orEmpty().toImmutableList(),
+                    alerts = alertsResult
+                        .asValid()
+                        ?.data
+                        ?.alerts
+                        .orEmpty()
+                        .toImmutableList(),
                     userState = userState,
                     setShowElevatorAlerts = setShowElevatorAlerts,
                 )
@@ -155,14 +160,21 @@ private fun AlertsTitle(alertsResults: Result<AlertsUiModel>) {
         color = MaterialTheme.colorScheme.onBackground,
         style = MaterialTheme.typography.titleMedium,
         text = when (alertsResults) {
-            is Result.Error -> stringResource(R.string.couldn_t_load_path_alerts)
-            is Result.Loading -> stringResource(R.string.loading_path_alerts)
-            is Result.Valid ->
+            is Result.Error -> {
+                stringResource(R.string.couldn_t_load_path_alerts)
+            }
+
+            is Result.Loading -> {
+                stringResource(R.string.loading_path_alerts)
+            }
+
+            is Result.Valid -> {
                 if (alertsResults.data.isEmpty()) {
                     stringResource(R.string.no_path_alerts)
                 } else {
                     stringResource(R.string.path_alerts_title)
                 }
+            }
         },
     )
 }
@@ -175,7 +187,8 @@ private fun BoxScope.Icon(
 ) {
     val arrowRotationDegree by animateExpandingArrow(expanded)
 
-    Modifier.size(24.dp)
+    Modifier
+        .size(24.dp)
         .align(Alignment.CenterStart)
         .let { modifier ->
             when (alertsResults) {
@@ -218,14 +231,21 @@ val HAS_ALERTS_COLOR = Color(253, 216, 53).copy(alpha = 0.3f)
 @Composable
 private fun Result<AlertsUiModel>.backgroundColor() =
     when (this) {
-        is Result.Error -> MaterialTheme.colorScheme.errorContainer
-        is Result.Loading -> Color.Transparent
-        is Result.Valid ->
+        is Result.Error -> {
+            MaterialTheme.colorScheme.errorContainer
+        }
+
+        is Result.Loading -> {
+            Color.Transparent
+        }
+
+        is Result.Valid -> {
             if (data.isEmpty()) {
                 NO_ALERTS_COLOR
             } else {
                 HAS_ALERTS_COLOR
             }
+        }
     }
 
 @Composable
@@ -253,7 +273,12 @@ private fun CollapsingAlertsPreview(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(10.dp),
         ) {
-            val defaultExpanded = alertsResult.asValid()?.data?.alerts.orEmpty().size > 1
+            val defaultExpanded = alertsResult
+                .asValid()
+                ?.data
+                ?.alerts
+                .orEmpty()
+                .size > 1
             val (expanded, setExpanded) = remember { mutableStateOf<Boolean?>(null) }
             ExpandableAlerts(
                 connectivityState = ConnectionState.Unavailable,

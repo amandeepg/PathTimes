@@ -22,7 +22,8 @@ interface PathAlertsApiService {
         private const val APP_VERSION = "5.2.0"
 
         val INSTANCE: PathAlertsApiService by lazy {
-            Retrofit.Builder()
+            Retrofit
+                .Builder()
                 .baseUrl(API_PATH)
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build()

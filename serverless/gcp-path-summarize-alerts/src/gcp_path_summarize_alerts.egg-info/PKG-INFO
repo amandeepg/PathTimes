@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: gcp-path-summarize-alerts
+Version: 0.1.0
+Summary: HTTP Cloud Function: summarize text with Gemini and cache in Firestore.
+Requires-Python: >=3.11
+Requires-Dist: functions-framework==3.5.0
+Requires-Dist: google-cloud-firestore==2.21.0
+Requires-Dist: google-cloud-aiplatform==1.128.0
+Requires-Dist: google-cloud-tasks==2.20.0
+Requires-Dist: pydantic==2.8.2
+Requires-Dist: openai>=1.55.0
