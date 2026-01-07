@@ -15,9 +15,9 @@ LOCATION = os.getenv("VERTEX_LOCATION") or os.getenv("LOCATION") or "us-central1
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 FAST_MODEL_NAME: Final = "vertex_ai/gemini-2.5-flash"
-SLOW_MODEL_NAME: Final = "openai/gpt-5.1"
+SLOW_MODEL_NAME: Final = "openai/gpt-5.2"
 FAST_PRICING: Final = (Decimal("0.30"), Decimal("2.50"))
-SLOW_PRICING: Final = (Decimal("1.25"), Decimal("10.00"))
+SLOW_PRICING: Final = (Decimal("1.75"), Decimal("14.00"))
 
 _configured = False
 
