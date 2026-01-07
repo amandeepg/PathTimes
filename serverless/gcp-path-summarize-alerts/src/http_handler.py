@@ -67,8 +67,13 @@ def summarize_http(request: Request) -> tuple[str, int, dict[str, str]]:
     logger = request_logger(request, name="http")
     try:
         start_total = perf_counter()
+        logger.info(
+            "summarize_request_start %s",
+            {"path": request.path, "method": request.method},
+        )
         parsed = _parse_request(request)
         if parsed is None:
+            logger.info("summarize_request_invalid %s", {"reason": "missing_text"})
             return _json_response(
                 {"error": "Provide non-empty 'text' in JSON body or query parameter."},
                 400,
@@ -77,10 +82,16 @@ def summarize_http(request: Request) -> tuple[str, int, dict[str, str]]:
         cache_key_prefix = parsed.cache_key_prefix
 
         now = _now()
-        cache_key = _build_cache_key(
-            text, (CACHE_KEY_PREFIX, cache_key_prefix)
-        )
+        cache_key = _build_cache_key(text, (CACHE_KEY_PREFIX, cache_key_prefix))
 
+        logger.info(
+            "cache_lookup_expensive %s",
+            {
+                "cache_key": cache_key,
+                "text_length": len(text),
+                "cache_key_prefix": cache_key_prefix or "",
+            },
+        )
         expensive_hit = CACHE.get_expensive(cache_key, now)
 
         if expensive_hit:
@@ -109,23 +120,28 @@ def summarize_http(request: Request) -> tuple[str, int, dict[str, str]]:
             ).model_dump(mode="json")
             return _json_response(response_body, 200, max_age=remaining)
 
+        logger.info("cache_miss_expensive %s", {"cache_key": cache_key})
+
+        worker_url = PRO_WORKER_URL or _worker_url_from_request(request)
         enqueue_pro_task(
             text=text,
             cache_key=cache_key,
             project_id=PROJECT_ID,
             region=LOCATION,
             queue_id=PRO_QUEUE_ID,
-            worker_url=PRO_WORKER_URL,
+            worker_url=worker_url,
+            logger=logger,
         )
         logger.info(
-            "pro_task_enqueued %s",
+            "pro_task_enqueue_requested %s",
             {
                 "cache_key": cache_key,
                 "queue_id": PRO_QUEUE_ID,
-                "worker_url": PRO_WORKER_URL,
+                "worker_url": worker_url,
             },
         )
 
+        logger.info("cache_lookup_cheap %s", {"cache_key": cache_key})
         cheap_hit = CACHE.get_cheap(cache_key, now)
         if cheap_hit:
             data = cheap_hit.data
@@ -140,6 +156,7 @@ def summarize_http(request: Request) -> tuple[str, int, dict[str, str]]:
                     "llm_type": data.get("llm_type")
                     or data.get("model")
                     or LlmType.FAST.value,
+                    "upgrading_to_expensive": True,
                 },
             )
             response_body = SummarizeResponse(
@@ -156,6 +173,11 @@ def summarize_http(request: Request) -> tuple[str, int, dict[str, str]]:
             ).model_dump(mode="json")
             return _json_response(response_body, 200, max_age=remaining)
 
+        logger.info("cache_miss_cheap %s", {"cache_key": cache_key})
+        logger.info(
+            "cheap_summarize_start %s",
+            {"cache_key": cache_key, "llm_type": LlmType.FAST.value},
+        )
         result = _CHEAP_SUMMARIZER.summarize(text, logger=logger)
         CACHE.store_cheap(
             cache_key, text=text, result=result, llm_type=LlmType.FAST.value, now=now
@@ -218,3 +240,15 @@ def _parse_request(request: Request) -> SummarizeRequest | None:
     if not text:
         return None
     return SummarizeRequest(text=text, cache_key_prefix=cache_key_prefix)
+
+
+def _worker_url_from_request(request: Request) -> str:
+    """Builds a worker URL from the current request host."""
+    scheme = "https"
+    host = request.host or ""
+    if host:
+        return f"{scheme}://{host}/pro-worker"
+    host_url = request.host_url or ""
+    if not host_url:
+        return "/pro-worker"
+    return f"{scheme}://{host_url.split('://', 1)[-1].rstrip('/')}/pro-worker"

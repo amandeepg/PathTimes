@@ -1,6 +1,8 @@
 package ca.amandeep.path.data
 
+import android.content.Context
 import ca.amandeep.path.data.model.AlertContainer
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
@@ -21,13 +23,17 @@ interface PathAlertsApiService {
         private const val APP_NAME = "RidePATH"
         private const val APP_VERSION = "5.2.0"
 
-        val INSTANCE: PathAlertsApiService by lazy {
+        fun create(context: Context): PathAlertsApiService =
             Retrofit
                 .Builder()
                 .baseUrl(API_PATH)
                 .addConverterFactory(MoshiConverterFactory.create())
-                .build()
+                .client(
+                    OkHttpClient
+                        .Builder()
+                        .addChuckerIfDebug(context.applicationContext)
+                        .build(),
+                ).build()
                 .create(PathAlertsApiService::class.java)
-        }
     }
 }

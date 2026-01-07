@@ -1,12 +1,12 @@
 {
   "venvPath": ".",
   "venv": ".venv",
-  "include": ["src", "main.py"],
+  "include": ["src", "scripts", "main.py"],
   "pythonVersion": "3.11",
   "executionEnvironments": [
     {
       "root": ".",
-      "extraPaths": ["src"]
+      "extraPaths": ["src", "typings"]
     }
   ]
 }

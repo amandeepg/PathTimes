@@ -45,6 +45,10 @@ def summarize_pro_worker(request: Request) -> tuple[str, int, dict[str, str]]:
     logger = request_logger(request, name="pro_worker")
     try:
         start_total = perf_counter()
+        logger.info(
+            "pro_worker_request_start %s",
+            {"path": request.path, "method": request.method},
+        )
         payload_raw = request.get_json(silent=True)
         payload: dict[str, object] | None = cast(
             dict[str, object] | None,
@@ -52,6 +56,7 @@ def summarize_pro_worker(request: Request) -> tuple[str, int, dict[str, str]]:
         )
         text = payload.get("text") if payload else None
         if not isinstance(text, str) or not text:
+            logger.info("pro_worker_request_invalid %s", {"reason": "missing_text"})
             return _json_response({"error": "missing text"}, 400)
 
         cache_key = cast(str, payload.get("cache_key")) if payload else hash_text(text)
@@ -59,10 +64,22 @@ def summarize_pro_worker(request: Request) -> tuple[str, int, dict[str, str]]:
             cache_key = hash_text(text)
 
         logger.info("pro_worker_start %s", {"cache_key": cache_key})
+        logger.info(
+            "pro_worker_summarize_start %s",
+            {"cache_key": cache_key, "llm_type": LlmType.SLOW.value},
+        )
         summary = _PRO_SUMMARIZER.summarize(text, logger=logger)
         now = datetime.now(timezone.utc)
         CACHE.store_expensive(
             cache_key, text=text, result=summary, llm_type=LlmType.SLOW.value, now=now
+        )
+        logger.info(
+            "cache_store_expensive %s",
+            {
+                "cache_key": cache_key,
+                "ttl_seconds": EXPENSIVE_TTL_SECONDS,
+                "llm_type": LlmType.SLOW.value,
+            },
         )
         duration = perf_counter() - start_total
         logger.info(

@@ -3,6 +3,7 @@ package ca.amandeep.path.ui.main
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import ca.amandeep.path.data.AlertParser
+import ca.amandeep.path.data.AlertData
 import ca.amandeep.path.data.AlertsSummarizer
 import ca.amandeep.path.data.LocationUseCase
 import ca.amandeep.path.data.PathAlertsApiService
@@ -33,8 +34,10 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
 import kotlin.math.min
@@ -62,16 +65,18 @@ class MainViewModelImpl(application: Application) :
     MainViewModel {
     private val locationUseCase = LocationUseCase(application.applicationContext)
     private val pathRepository: PathRepository
+    private val lastAlerts = MutableStateFlow<ImmutableList<AlertData>>(persistentListOf())
 
     init {
+        val appContext = application.applicationContext
         val alertsSummarizer = AlertsSummarizer(
-            summarizerApi = PathAlertsSummarizerApiService.create(application.applicationContext),
-            context = application.applicationContext,
+            summarizerApi = PathAlertsSummarizerApiService.create(appContext),
+            context = appContext,
         )
         pathRepository = PathRepository(
             pathRemoteDataSource = PathRemoteDataSource(
-                pathRestApi = PathOfficialRestApiService.INSTANCE,
-                alertsApi = PathAlertsApiService.INSTANCE,
+                pathRestApi = PathOfficialRestApiService.create(appContext),
+                alertsApi = PathAlertsApiService.create(appContext),
                 ioDispatcher = Dispatchers.IO,
                 alertParser = AlertParser(),
             ),
@@ -110,7 +115,13 @@ class MainViewModelImpl(application: Application) :
                     lastUpdated = it.metadata.lastUpdated,
                     data = it,
                 )
-            }.onStart { emit(Result.Loading()) }
+            }
+            .onEach { result ->
+                if (result is Result.Valid) {
+                    lastAlerts.value = result.data.alerts.alerts
+                }
+            }
+            .onStart { emit(Result.Loading()) }
             .retryWhen { cause, attempt ->
                 FirebaseCrashlytics.getInstance().recordException(cause)
                 emit(Result.Error())
@@ -140,7 +151,7 @@ class MainViewModelImpl(application: Application) :
                 .asValid()
                 ?.data
                 ?.alerts
-                ?.alerts ?: persistentListOf()
+                ?.alerts ?: lastAlerts.value
             val closestArrivals = closestStations
                 .mapToNotNullPairs { stationName ->
                     stationName.toUiStation(alertsList) to arrivals[stationName]

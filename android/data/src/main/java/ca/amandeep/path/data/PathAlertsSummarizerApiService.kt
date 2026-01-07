@@ -15,14 +15,14 @@ import retrofit2.http.Query
 import java.util.Date
 
 interface PathAlertsSummarizerApiService {
-    @GET("summarize-staging")
+    @GET("summarize")
     suspend fun summarize(
         @Query("text") input: String,
         @Query("cache_key_prefix") cacheKey: String,
     ): SummarizeApiResponse
 
     companion object {
-        private const val API_PATH = "https://us-central1-underthehudson.cloudfunctions.net/"
+        private const val API_PATH = "https://summarize-all-staging-wthdafgtpq-uc.a.run.app/"
 
         fun create(
             applicationContext: Context,
@@ -42,6 +42,7 @@ interface PathAlertsSummarizerApiService {
                 ).client(
                     OkHttpClient
                         .Builder()
+                        .addChuckerIfDebug(applicationContext)
                         // 2MB cache
                         .cache(Cache(applicationContext.cacheDir, 2 * 1024 * 1024))
                         .build(),

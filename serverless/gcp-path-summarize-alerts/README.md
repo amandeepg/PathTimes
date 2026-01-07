@@ -24,23 +24,20 @@ uv run ruff check       # lint
 uv run ruff format      # format (safe because it formats in place)
 ```
 
-## Terraform deploy (staging example)
+## Deploy (single-build Cloud Run)
 ```
-# Export a fresh requirements.txt for Cloud Functions (uses uv.lock, not committed)
-uv export --no-dev --frozen --format requirements-txt --no-hashes --output-file requirements.txt
-
-terraform init
-terraform workspace new staging || terraform workspace select staging
-# Allow a long timeout (deploy can take a few minutes); bump your CLI timeout to >= 10m.
-GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) terraform apply \
-  -auto-approve \
-  -var="project_id=underthehudson" \
-  -var="region=us-central1" \
-  -var="environment=staging"
+# Build once, deploy single Cloud Run service (summarize, pro-worker, cache)
+scripts/terraform_apply.sh   # full apply
+# Set NO_EXPORT_REQS=1 if deps didn't change.
 ```
+Endpoints:
+- Summarize: `<run_service_uri>/summarize`
+- Pro worker (Cloud Tasks target): `<run_service_uri>/pro-worker`
+- Cache viewer: `<run_service_uri>/cache`
 Outputs include:
-- `function_url` (HTTP endpoint)
-- `run_service_uri` (Cloud Run backing service)
+- `function_url` (summarize HTTP endpoint)
+- `cache_function_url` (cache viewer)
+- `run_service_uri` (Cloud Run service)
 - `source_bucket`
 - `pro_queue` (Cloud Tasks queue for pro worker)
 

@@ -16,44 +16,39 @@ from ..dspy_utils import (
 )
 from .base import BaseResponse, LoggerLike
 
-AREAS_TEMPLATE = BaseResponse.load_prompt("areas_prompt.txt")
+ELEVATOR_AREAS_TEMPLATE = BaseResponse.load_prompt("elevator_areas_prompt.txt")
 
 
-class AffectedAreasSignature(dspy.Signature):
-    f"""{AREAS_TEMPLATE}"""
+class ElevatorAffectedAreasSignature(dspy.Signature):
+    """{ELEVATOR_AREAS_TEMPLATE}"""
 
-    alert: str = dspy.InputField(desc="Complete non-elevator alert text.")
-    affected_lines: AffectedLines | None = dspy.OutputField(
-        desc="Structured list of impacted PATH lines (AffectedLines)."
-    )
+    alert: str = dspy.InputField(desc="Elevator-specific alert text.")
     affected_stations: AffectedStations | None = dspy.OutputField(
-        desc="Structured list of impacted PATH stations (AffectedStations)."
+        desc="Structured AffectedStations result for elevator alerts."
     )
 
 
-class AffectedAreasModule(dspy.Module):
-    def __init__(self, llm_type: LlmType) -> None:
+class ElevatorAffectedAreasModule(dspy.Module):
+    def __init__(self) -> None:
         super().__init__()
-        self._llm_type: LlmType = llm_type
-        self._lm: dspy.LM = lm_for_type(llm_type)
-        self._predict: dspy.Predict = dspy.Predict(AffectedAreasSignature)
+        self._lm: dspy.LM = lm_for_type(LlmType.FAST)
+        self._predict: dspy.Predict = dspy.Predict(ElevatorAffectedAreasSignature)
 
     @override
     def forward(self, alert: str) -> ModuleCallResult:
         with dspy.context(lm=self._lm):
             prediction = self._predict(alert=alert)
         model_name = self._lm.model
-        lines: AffectedLines | None = getattr(prediction, "affected_lines", None)
         stations: AffectedStations | None = getattr(
             prediction, "affected_stations", None
         )
 
         structured_prediction = dspy.Prediction(
-            alert=alert, affected_lines=lines, affected_stations=stations
+            alert=alert, affected_lines=None, affected_stations=stations
         )
         generation, pricing = usage_from_prediction(
             structured_prediction,
-            llm_type=self._llm_type,
+            llm_type=LlmType.FAST,
             model_name=model_name,
         )
         return ModuleCallResult(
@@ -65,7 +60,7 @@ class AffectedAreasModule(dspy.Module):
 
 
 @dataclass(frozen=True)
-class AffectedAreasResponse(BaseResponse):
+class ElevatorAffectedAreasResponse(BaseResponse):
     lines: AffectedLines | None
     stations: AffectedStations | None
     usage: UsageResult
@@ -74,20 +69,26 @@ class AffectedAreasResponse(BaseResponse):
 
     @classmethod
     @override
-    def from_alert(cls, *args: object, **kwargs: object) -> "AffectedAreasResponse":
+    def from_alert(
+        cls, *args: object, **kwargs: object
+    ) -> "ElevatorAffectedAreasResponse":
         alert = cast(str, kwargs.get("alert") or (args[0] if args else ""))
-        speed = cast(
-            LlmType, kwargs.get("speed") or (args[1] if len(args) > 1 else LlmType.FAST)
-        )
         logger = cast(
             LoggerLike | None,
-            kwargs.get("logger") or (args[2] if len(args) > 2 else None),
+            kwargs.get("logger") or (args[1] if len(args) > 1 else None),
         )
-        module = AffectedAreasModule(speed)
+        module = ElevatorAffectedAreasModule()
         start = perf_counter()
         call = cast(ModuleCallResult, module(alert=alert))
         result = call.generation
-        cls.log_llm_call(logger, "affected_areas", "", result, start, call.model_name)
+        cls.log_llm_call(
+            logger,
+            "affected_areas_elevator",
+            "",
+            result,
+            start,
+            call.model_name,
+        )
 
         lines = cast(AffectedLines | None, call.prediction.affected_lines)
         stations = cast(AffectedStations | None, call.prediction.affected_stations)
@@ -96,6 +97,6 @@ class AffectedAreasResponse(BaseResponse):
             lines=lines,
             stations=stations,
             usage=result,
-            llm_type=speed,
+            llm_type=LlmType.FAST,
             pricing=call.pricing,
         )

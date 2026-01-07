@@ -22,31 +22,33 @@ import kotlin.time.toJavaDuration
 /**
  * Background worker that synchronizes PATH data every 30 minutes
  */
-class PathDataSyncWorker(private val context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
+class PathDataSyncWorker(context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             d { "Starting background data sync" }
 
+            val appContext = applicationContext
+
             // TODO consolidate this with MainViewModel
             val alertsSummarizer = AlertsSummarizer(
-                summarizerApi = PathAlertsSummarizerApiService.create(context),
-                context = context,
+                summarizerApi = PathAlertsSummarizerApiService.create(appContext),
+                context = appContext,
             )
             val pathRepository = PathRepository(
                 pathRemoteDataSource = PathRemoteDataSource(
-                    pathRestApi = PathOfficialRestApiService.INSTANCE,
-                    alertsApi = PathAlertsApiService.INSTANCE,
+                    pathRestApi = PathOfficialRestApiService.create(appContext),
+                    alertsApi = PathAlertsApiService.create(appContext),
                     ioDispatcher = Dispatchers.IO,
                     alertParser = AlertParser(),
                 ),
                 alertsSummarizer = alertsSummarizer,
                 arrivalsUpdateInterval = 99.days,
                 alertsUpdateInterval = 99.days,
-                userPreferencesRepo = UserPreferencesRepo(context),
+                userPreferencesRepo = UserPreferencesRepo(appContext),
             )
 
             // Clean up expired cache entries
-            AlertCache(context).deleteExpired()
+            AlertCache(appContext).deleteExpired()
 
             withTimeoutOrNull(1.minutes.toJavaDuration()) {
                 pathRepository.alerts

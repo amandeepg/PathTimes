@@ -6,8 +6,7 @@ from time import perf_counter
 from typing import Final, cast
 
 from ..types import LlmType
-from ..clients.llm_client import GenerationResult
-from ..clients.clients import gemini_flash_client, gpt_5_1_client
+from ..dspy_utils import UsageResult, model_name_for_type as dspy_model_name_for_type
 
 LoggerLike = logging.Logger | logging.LoggerAdapter[logging.Logger]
 
@@ -16,21 +15,17 @@ class BaseResponse:
     _PROMPTS_DIR: Final[Path] = Path(__file__).resolve().parent / "prompts"
 
     @classmethod
-    def from_alert(  # type: ignore[override, unused-argument]
-        cls, *args: object, **kwargs: object
-    ) -> "BaseResponse":
+    def from_alert(cls, *args: object, **kwargs: object) -> "BaseResponse":
         _ = args
         _ = kwargs
         raise NotImplementedError
 
     @classmethod
     def model_name_for_type(cls, llm_type: LlmType) -> str:
-        if llm_type is LlmType.FAST:
-            return gemini_flash_client().model_name
-        return gpt_5_1_client().model_name
+        return dspy_model_name_for_type(llm_type)
 
     def cost(self) -> Decimal:
-        usage = cast(GenerationResult, getattr(self, "usage"))
+        usage = cast(UsageResult, getattr(self, "usage"))
         pricing = cast(tuple[Decimal, Decimal], getattr(self, "pricing"))
         input_cost_per_1m, output_cost_per_1m = pricing
         prompt_tokens = Decimal(usage.prompt_tokens)
@@ -67,7 +62,7 @@ class BaseResponse:
         logger: LoggerLike | None,
         phase: str,
         prompt: str,
-        result: GenerationResult,
+        result: UsageResult,
         started_at: float,
         model_name: str,
     ) -> None:
@@ -83,6 +78,6 @@ class BaseResponse:
                 "prompt_tokens": result.prompt_tokens,
                 "output_tokens": result.output_tokens,
                 "prompt": prompt,
-                "response_text": result.text,
+                "response_text": "",
             },
         )

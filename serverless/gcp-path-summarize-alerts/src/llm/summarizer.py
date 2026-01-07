@@ -3,11 +3,16 @@ import logging
 from time import perf_counter
 from typing import Final, TypeAlias
 
-from .responses import AffectedAreasResponse, SummaryResponse
+from .responses import (
+    AffectedAreasResponse,
+    ElevatorAffectedAreasResponse,
+    SummaryResponse,
+)
 from .types import LlmType
-from ..models import AlertSummaryContainer
+from src.models import AlertSummaryContainer
 
 LoggerLike: TypeAlias = logging.Logger | logging.LoggerAdapter[logging.Logger]
+AreasResponse: TypeAlias = AffectedAreasResponse | ElevatorAffectedAreasResponse
 
 
 class LlmSummarizer:
@@ -59,7 +64,7 @@ class LlmSummarizer:
     def _generate_summary(
         self,
         text: str,
-        areas_future: Future[AffectedAreasResponse],
+        areas_future: Future[AreasResponse],
         logger: LoggerLike | None,
     ) -> SummaryResponse:
         areas_result = areas_future.result()
@@ -68,17 +73,13 @@ class LlmSummarizer:
             text, self._speed, logger, single_area=single_area
         )
 
-    def _extract_areas(
-        self, text: str, logger: LoggerLike | None
-    ) -> AffectedAreasResponse:
-        return AffectedAreasResponse.from_alert(
-            text,
-            speed=self._speed,
-            logger=logger,
-        )
+    def _extract_areas(self, text: str, logger: LoggerLike | None) -> AreasResponse:
+        if "elevator" in text.lower():
+            return ElevatorAffectedAreasResponse.from_alert(text, logger=logger)
+        return AffectedAreasResponse.from_alert(text, speed=self._speed, logger=logger)
 
     @staticmethod
-    def _single_area_value(areas: AffectedAreasResponse) -> str | None:
+    def _single_area_value(areas: AreasResponse) -> str | None:
         lines = areas.lines.affected_lines if areas.lines else []
         stations = areas.stations.affected_stations if areas.stations else []
         if len(lines) == 1 and not stations:

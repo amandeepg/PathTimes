@@ -39,6 +39,10 @@ android {
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -86,6 +90,8 @@ dependencies {
     implementation Square.retrofit2.converter.scalars
     implementation Square.retrofit2
     ksp Square.moshi.kotlinCodegen
+    debugImplementation "com.github.chuckerteam.chucker:library:_"
+    releaseImplementation "com.github.chuckerteam.chucker:library-no-op:_"
 
     implementation "org.jsoup:jsoup:_"
 

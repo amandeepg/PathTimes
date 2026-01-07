@@ -14,6 +14,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
   }
 }
 
@@ -32,13 +36,15 @@ data "google_project" "current" {
 }
 
 locals {
-  environment       = var.environment
-  function_name     = "summarize-${var.environment}"
-  pro_function_name = "summarize-pro-worker-${var.environment}"
-  queue_name        = "${var.environment}-${var.pro_queue_id}"
-  build_dir         = "${path.module}/build"
-  source_dir        = path.module
-  archive_name      = "function.zip"
+  environment        = var.environment
+  app_name           = "summarize-all-${var.environment}"
+  queue_name         = "${var.environment}-${var.pro_queue_id}"
+  build_dir          = "${path.module}/build"
+  source_dir         = path.module
+  archive_name       = "function.zip"
+  image_tag          = "${var.environment}-${substr(data.archive_file.function_zip.output_md5, 0, 8)}"
+  image_name         = "${var.region}-docker.pkg.dev/${var.project_id}/gcf-artifacts/summarize-all:${local.image_tag}"
+  service_account    = "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "random_id" "bucket_suffix" {
@@ -88,101 +94,90 @@ resource "google_cloud_tasks_queue" "pro_queue" {
   location = var.region
 }
 
-resource "google_cloudfunctions2_function" "summarize" {
-  name     = local.function_name
-  location = var.region
-
-  build_config {
-    runtime     = "python311"
-    entry_point = "summarize"
-    source {
-      storage_source {
-        bucket     = google_storage_bucket.function_bucket.name
-        object     = google_storage_bucket_object.function_source.name
-        generation = google_storage_bucket_object.function_source.generation
-      }
-    }
+resource "null_resource" "build_image" {
+  # Build a single container image and push to Artifact Registry.
+  triggers = {
+    source_md5 = data.archive_file.function_zip.output_md5
+  }
+  provisioner "local-exec" {
+    command = <<EOT
+gcloud builds submit --timeout=1200s --tag ${local.image_name} .
+EOT
   }
 
-  service_config {
-    available_memory = "512M"
-    environment_variables = {
-      LOCATION       = var.region
-      ENVIRONMENT    = var.environment
-      PRO_WORKER_URL = google_cloudfunctions2_function.summarize_pro_worker.url
-      PRO_QUEUE_ID   = local.queue_name
-    }
-    secret_environment_variables {
-      key     = "OPENAI_API_KEY"
-      project_id = var.project_id
-      secret  = var.openai_api_key_secret
-      version = "latest"
-    }
-    ingress_settings = "ALLOW_ALL"
-  }
-
-  depends_on = [google_project_service.apis]
+  depends_on = [google_project_service.apis, google_storage_bucket_object.function_source]
 }
 
-resource "google_cloud_run_service_iam_member" "invoker" {
+resource "google_cloud_run_v2_service" "app" {
+  name     = local.app_name
+  location = var.region
+
+  template {
+    service_account = local.service_account
+    containers {
+      image = local.image_name
+      ports { container_port = 8080 }
+      resources {
+        limits = {
+          memory = "1Gi"
+        }
+      }
+      env {
+        name  = "PROJECT_ID"
+        value = var.project_id
+      }
+      env {
+        name  = "LOCATION"
+        value = var.region
+      }
+      env {
+        name  = "ENVIRONMENT"
+        value = var.environment
+      }
+      env {
+        name  = "PRO_QUEUE_ID"
+        value = local.queue_name
+      }
+      env {
+        name  = "PRO_WORKER_URL"
+        value = ""
+      }
+      env {
+        name = "OPENAI_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = var.openai_api_key_secret
+            version = "latest"
+          }
+        }
+      }
+    }
+    scaling {
+      max_instance_count = 5
+    }
+  }
+
+  traffic {
+    percent = 100
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+  }
+
+  depends_on = [null_resource.build_image, google_project_service.apis]
+}
+
+resource "google_cloud_run_service_iam_member" "app_invoker" {
   provider = google-beta
 
   location = var.region
-  service  = google_cloudfunctions2_function.summarize.service_config[0].service
+  service  = google_cloud_run_v2_service.app.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 
-  depends_on = [google_cloudfunctions2_function.summarize]
-}
-
-resource "google_cloudfunctions2_function" "summarize_pro_worker" {
-  name     = local.pro_function_name
-  location = var.region
-
-  build_config {
-    runtime     = "python311"
-    entry_point = "summarize_pro_worker_entrypoint"
-    source {
-      storage_source {
-        bucket     = google_storage_bucket.function_bucket.name
-        object     = google_storage_bucket_object.function_source.name
-        generation = google_storage_bucket_object.function_source.generation
-      }
-    }
-  }
-
-  service_config {
-    available_memory = "512M"
-    environment_variables = {
-      LOCATION     = var.region
-      ENVIRONMENT  = var.environment
-      PRO_QUEUE_ID = local.queue_name
-    }
-    secret_environment_variables {
-      key     = "OPENAI_API_KEY"
-      project_id = var.project_id
-      secret  = var.openai_api_key_secret
-      version = "latest"
-    }
-    ingress_settings = "ALLOW_ALL"
-  }
-
-  depends_on = [google_project_service.apis]
-}
-
-resource "google_cloud_run_service_iam_member" "pro_worker_invoker" {
-  provider = google-beta
-
-  location = var.region
-  service  = google_cloudfunctions2_function.summarize_pro_worker.service_config[0].service
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-
-  depends_on = [google_cloudfunctions2_function.summarize_pro_worker]
+  depends_on = [google_cloud_run_v2_service.app]
 }
 
 resource "google_secret_manager_secret_iam_member" "openai_accessor" {
   secret_id = "projects/${var.project_id}/secrets/${var.openai_api_key_secret}"
   role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member    = "serviceAccount:${local.service_account}"
 }

@@ -15,8 +15,38 @@ __pycache__/
 # Build artifacts
 build/
 
+# Secrets
+.env
+.env.*
+.envrc
+
+# Python build/test artifacts
+dist/
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pyright/
+.pyrightcache/
+.pytype/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# Editors
+.idea/
+.vscode/
+*.iml
+
+# Node
+node_modules/
+
 # Terraform local state
 .terraform/
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfstate.d/
+crash.log
+crash.*.log

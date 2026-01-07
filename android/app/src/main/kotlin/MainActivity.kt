@@ -1,5 +1,6 @@
 package ca.amandeep.path
 
+import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        DeveloperStatus.ensureDefaultForDevice()
 
         installSplashScreen()
         setContent {
@@ -91,5 +93,32 @@ class MainActivity : ComponentActivity() {
 }
 
 object DeveloperStatus {
-    val developerModeFlow = MutableStateFlow(false)
+    val developerModeFlow = MutableStateFlow(isRunningOnEmulator())
+
+    fun ensureDefaultForDevice() {
+        if (isRunningOnEmulator()) {
+            developerModeFlow.value = true
+        }
+    }
+}
+
+private fun isRunningOnEmulator(): Boolean {
+    val fingerprint = Build.FINGERPRINT
+    val model = Build.MODEL
+    val manufacturer = Build.MANUFACTURER
+    val brand = Build.BRAND
+    val device = Build.DEVICE
+    val product = Build.PRODUCT
+    val hardware = Build.HARDWARE
+
+    val genericFingerprint = fingerprint.startsWith("generic") || fingerprint.startsWith("unknown")
+    val knownModels = model.contains("google_sdk", ignoreCase = true) ||
+        model.contains("Emulator", ignoreCase = true) ||
+        model.contains("Android SDK built for x86", ignoreCase = true)
+    val genericBrandDevice = brand.startsWith("generic") && device.startsWith("generic")
+    val genymotion = manufacturer.contains("Genymotion", ignoreCase = true)
+    val sdkProduct = product == "google_sdk"
+    val emulatorHardware = hardware.contains("goldfish") || hardware.contains("ranchu") || hardware.contains("emulator")
+
+    return genericFingerprint || knownModels || genericBrandDevice || genymotion || sdkProduct || emulatorHardware
 }

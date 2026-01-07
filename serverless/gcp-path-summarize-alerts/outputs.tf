@@ -1,6 +1,11 @@
 output "function_url" {
-  description = "Public HTTPS endpoint for the summarize function."
-  value       = google_cloudfunctions2_function.summarize.url
+  description = "Public HTTPS endpoint for summarize (Cloud Run)."
+  value       = "${google_cloud_run_v2_service.app.uri}/summarize"
+}
+
+output "cache_function_url" {
+  description = "Public HTTPS endpoint for the cache viewer."
+  value       = "${google_cloud_run_v2_service.app.uri}/cache"
 }
 
 output "environment" {
@@ -10,7 +15,7 @@ output "environment" {
 
 output "run_service_uri" {
   description = "Underlying Cloud Run service URI."
-  value       = google_cloudfunctions2_function.summarize.service_config[0].uri
+  value       = google_cloud_run_v2_service.app.uri
 }
 
 output "source_bucket" {
